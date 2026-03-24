@@ -23,7 +23,7 @@ import {
 } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { UserPlus } from "lucide-react";
+import { UserPlus, Users, Loader2, CheckCircle2 } from "lucide-react";
 
 export function TeamPageClient() {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -38,8 +38,6 @@ export function TeamPageClient() {
     setSuccess(false);
 
     const formData = new FormData(e.currentTarget);
-    // In a real flow, workspaceId comes from context.
-    // For now we pass it as a hidden field or from shell context.
     const result = await sendInvite("placeholder", formData);
 
     if (result?.error) {
@@ -56,15 +54,15 @@ export function TeamPageClient() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">Team</h1>
-          <p className="text-muted-foreground">
+          <p className="mt-1 text-muted-foreground">
             Manage your workspace members and invitations.
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger render={<Button />}>
+          <DialogTrigger render={<Button className="shrink-0" />}>
             <UserPlus className="mr-2 h-4 w-4" />
             Invite member
           </DialogTrigger>
@@ -78,12 +76,13 @@ export function TeamPageClient() {
             <form onSubmit={handleInvite}>
               <div className="space-y-4 py-4">
                 {error && (
-                  <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+                  <div className="animate-in fade-in slide-in-from-top-1 rounded-lg bg-destructive/10 p-3 text-sm text-destructive dark:bg-destructive/20">
                     {error}
                   </div>
                 )}
                 {success && (
-                  <div className="rounded-md bg-green-50 p-3 text-sm text-green-700">
+                  <div className="animate-in fade-in slide-in-from-top-1 flex items-center gap-2 rounded-lg bg-success/10 p-3 text-sm text-green-700 dark:text-green-400">
+                    <CheckCircle2 className="h-4 w-4 shrink-0" />
                     Invitation sent successfully!
                   </div>
                 )}
@@ -95,6 +94,7 @@ export function TeamPageClient() {
                     type="email"
                     placeholder="colleague@company.com"
                     required
+                    disabled={pending}
                   />
                 </div>
                 <div className="space-y-2">
@@ -102,8 +102,9 @@ export function TeamPageClient() {
                   <select
                     id="invite-role"
                     name="role"
-                    className="flex h-10 w-full rounded-md border border-input bg-background px-3 py-2 text-sm ring-offset-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
+                    className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-50"
                     defaultValue="member"
+                    disabled={pending}
                   >
                     <option value="member">Member</option>
                     <option value="admin">Admin</option>
@@ -112,6 +113,7 @@ export function TeamPageClient() {
               </div>
               <DialogFooter>
                 <Button type="submit" disabled={pending}>
+                  {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
                   {pending ? "Sending..." : "Send invite"}
                 </Button>
               </DialogFooter>
@@ -120,6 +122,7 @@ export function TeamPageClient() {
         </Dialog>
       </div>
 
+      {/* Members card */}
       <Card>
         <CardHeader>
           <CardTitle>Members</CardTitle>
@@ -128,15 +131,15 @@ export function TeamPageClient() {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-4 rounded-lg border p-4">
+          <div className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50">
             <Avatar>
               <AvatarFallback className="bg-primary/10 text-primary">
                 Y
               </AvatarFallback>
             </Avatar>
-            <div className="flex-1">
+            <div className="flex-1 min-w-0">
               <p className="text-sm font-medium">You</p>
-              <p className="text-xs text-muted-foreground">
+              <p className="text-xs text-muted-foreground truncate">
                 Signed in user
               </p>
             </div>
@@ -144,6 +147,25 @@ export function TeamPageClient() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Empty state hint */}
+      <div className="rounded-xl border border-dashed bg-card/50 p-8 text-center dark:bg-card/20">
+        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
+          <Users className="h-7 w-7 text-primary" />
+        </div>
+        <h3 className="mt-4 text-base font-semibold">Better together</h3>
+        <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
+          Invite your teammates to collaborate on your chatbot. They&apos;ll be able to manage knowledge, view conversations, and more.
+        </p>
+        <Button
+          variant="outline"
+          className="mt-5"
+          onClick={() => setDialogOpen(true)}
+        >
+          <UserPlus className="mr-2 h-4 w-4" />
+          Invite your first teammate
+        </Button>
+      </div>
     </div>
   );
 }

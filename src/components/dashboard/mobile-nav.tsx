@@ -85,9 +85,9 @@ export function MobileNav({
                     onWorkspaceChange(ws.id);
                     setOpen(false);
                   }}
-                  className={`block w-full text-left rounded-md px-3 py-2 text-sm ${
+                  className={`flex h-11 w-full items-center text-left rounded-lg px-3 text-sm transition-colors ${
                     ws.id === activeWorkspace.id
-                      ? "bg-primary/10 text-primary font-medium"
+                      ? "bg-primary/10 text-primary font-medium dark:bg-primary/20"
                       : "text-muted-foreground hover:bg-muted"
                   }`}
                 >
@@ -112,13 +112,13 @@ export function MobileNav({
                   <Link
                     href={item.href}
                     onClick={() => setOpen(false)}
-                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                    className={`flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-150 ${
                       isActive
-                        ? "bg-primary/10 text-primary"
+                        ? "bg-primary/10 text-primary dark:bg-primary/20"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
                   >
-                    <item.icon className="h-4 w-4" />
+                    <item.icon className="h-4 w-4 shrink-0" />
                     {item.label}
                   </Link>
                 </li>

@@ -67,10 +67,10 @@ export function Sidebar({
   return (
     <aside className="flex h-screen w-[260px] flex-col border-r bg-card">
       {/* Workspace selector */}
-      <div className="p-4">
+      <div className="p-3">
         {workspaces.length > 1 ? (
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex w-full items-center justify-between rounded-md px-3 py-2 font-heading text-base font-semibold hover:bg-muted transition-colors">
+            <DropdownMenuTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-heading text-base font-semibold transition-colors hover:bg-muted">
               <span className="truncate">{activeWorkspace.name}</span>
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </DropdownMenuTrigger>
@@ -79,7 +79,7 @@ export function Sidebar({
                 <DropdownMenuItem
                   key={ws.id}
                   onClick={() => onWorkspaceChange(ws.id)}
-                  className={ws.id === activeWorkspace.id ? "bg-accent/10" : ""}
+                  className={ws.id === activeWorkspace.id ? "bg-primary/10 text-primary" : ""}
                 >
                   {ws.name}
                 </DropdownMenuItem>
@@ -93,7 +93,7 @@ export function Sidebar({
             </DropdownMenuContent>
           </DropdownMenu>
         ) : (
-          <div className="px-3 py-2 font-heading text-base font-semibold truncate">
+          <div className="px-3 py-2.5 font-heading text-base font-semibold truncate">
             {activeWorkspace.name}
           </div>
         )}
@@ -114,13 +114,13 @@ export function Sidebar({
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                  className={`flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-150 ${
                     isActive
-                      ? "bg-primary/10 text-primary border-l-2 border-primary"
+                      ? "bg-primary/10 text-primary border-l-2 border-primary dark:bg-primary/20"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}
                 >
-                  <item.icon className="h-4 w-4" />
+                  <item.icon className="h-4 w-4 shrink-0" />
                   {item.label}
                 </Link>
               </li>
@@ -134,7 +134,7 @@ export function Sidebar({
       {/* User menu */}
       <div className="p-2">
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex w-full items-center gap-3 rounded-md px-3 py-2 hover:bg-muted transition-colors">
+          <DropdownMenuTrigger className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-muted">
             <Avatar className="h-8 w-8">
               <AvatarFallback className="bg-primary/10 text-primary text-xs">
                 {getInitials(user.name, user.email)}
