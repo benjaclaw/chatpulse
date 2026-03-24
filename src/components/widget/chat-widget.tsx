@@ -104,9 +104,9 @@ export function ChatWidget({
       <div
         className={cn(
           "flex flex-col overflow-hidden rounded-xl border bg-card shadow-lg",
+          !className?.includes("h-") && "h-[420px]",
           className
         )}
-        style={{ height: 420 }}
       >
         <WidgetHeader
           botName={botName}

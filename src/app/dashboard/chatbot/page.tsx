@@ -7,10 +7,11 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatWidget } from "@/components/widget/chat-widget";
-import { Bot, Eye } from "lucide-react";
+import { Bot, Eye, Code2, Copy, Check } from "lucide-react";
 
 export default function ChatbotConfigPage() {
   const [config, setConfig] = useState(mockChatbotConfig);
+  const [copied, setCopied] = useState(false);
 
   function update<K extends keyof typeof config>(
     key: K,
@@ -158,6 +159,90 @@ export default function ChatbotConfigPage() {
           </div>
 
           <Button className="w-full sm:w-auto">Lagre endringer</Button>
+
+          {/* Embed code */}
+          <div className="rounded-xl border bg-card p-6 shadow-sm">
+            <h3 className="flex items-center gap-2 font-semibold">
+              <Code2 className="h-4 w-4 text-primary" />
+              Embed på nettside
+            </h3>
+            <p className="mt-2 text-sm text-muted-foreground">
+              Lim inn denne kodesnutten rett før{" "}
+              <code className="rounded bg-muted px-1 py-0.5 text-xs font-mono">
+                &lt;/body&gt;
+              </code>{" "}
+              på nettsiden din.
+            </p>
+            <div className="relative mt-4">
+              <pre className="overflow-x-auto rounded-lg border bg-muted/50 p-4 text-sm font-mono leading-relaxed">
+                <code>{`<script
+  src="https://chatpulse.vercel.app/widget.js"
+  data-chatbot-id="${config.id}"
+  data-primary-color="${config.widget_styling.primary_color}"
+  data-position="${config.widget_styling.position}">
+</script>`}</code>
+              </pre>
+              <Button
+                variant="outline"
+                size="sm"
+                className="absolute right-2 top-2"
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    `<script src="https://chatpulse.vercel.app/widget.js" data-chatbot-id="${config.id}" data-primary-color="${config.widget_styling.primary_color}" data-position="${config.widget_styling.position}"></script>`
+                  );
+                  setCopied(true);
+                  setTimeout(() => setCopied(false), 2000);
+                }}
+              >
+                {copied ? (
+                  <>
+                    <Check className="mr-1.5 h-3.5 w-3.5" />
+                    Kopiert!
+                  </>
+                ) : (
+                  <>
+                    <Copy className="mr-1.5 h-3.5 w-3.5" />
+                    Kopier kode
+                  </>
+                )}
+              </Button>
+            </div>
+            {/* Mini preview */}
+            <div className="mt-4">
+              <p className="mb-2 text-xs font-medium text-muted-foreground">
+                Forhåndsvisning av knapp
+              </p>
+              <div className="flex items-center gap-3 rounded-lg border bg-background p-4">
+                <div
+                  className="flex h-12 w-12 items-center justify-center rounded-full shadow-md"
+                  style={{
+                    backgroundColor: config.widget_styling.primary_color,
+                  }}
+                >
+                  <svg
+                    xmlns="http://www.w3.org/2000/svg"
+                    width="22"
+                    height="22"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="white"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                  >
+                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
+                  </svg>
+                </div>
+                <span className="text-sm text-muted-foreground">
+                  Denne knappen vises nederst{" "}
+                  {config.widget_styling.position === "right"
+                    ? "til høyre"
+                    : "til venstre"}{" "}
+                  på nettsiden
+                </span>
+              </div>
+            </div>
+          </div>
         </div>
 
         {/* Live preview */}

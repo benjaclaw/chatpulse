@@ -12,8 +12,10 @@ import {
   Plus,
   Zap,
   Puzzle,
+  MessageSquare,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
+import { ChatWidget } from "@/components/widget/chat-widget";
 import { cn } from "@/lib/utils";
 
 export default function HomePage() {
@@ -121,6 +123,33 @@ export default function HomePage() {
                 icon={Code2}
                 title="Enkel integrasjon"
                 description="Én kodelinje. Fungerer på alle nettsider."
+              />
+            </div>
+          </div>
+        </section>
+
+        {/* ─── Demo ─── */}
+        <section className="border-t px-4 py-16 sm:px-6 sm:py-24">
+          <div className="mx-auto max-w-5xl">
+            <div className="text-center">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-sm text-muted-foreground shadow-sm">
+                <MessageSquare className="h-4 w-4 text-primary" />
+                Interaktiv demo
+              </div>
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                Prøv chatboten selv
+              </h2>
+              <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
+                Skriv en melding og se hvordan ChatPulse svarer kundene dine.
+              </p>
+            </div>
+
+            <div className="mx-auto mt-10 max-w-sm">
+              <ChatWidget
+                inline
+                botName="Demo Bot"
+                welcomeMessage="Hei! 👋 Jeg er en demo-chatbot. Prøv å spør meg om leveringstid, retur eller betaling!"
+                primaryColor="#6366f1"
               />
             </div>
           </div>
