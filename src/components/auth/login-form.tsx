@@ -14,6 +14,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import { Loader2 } from "lucide-react";
 
 export function LoginForm() {
   const [error, setError] = useState<string | null>(null);
@@ -42,7 +43,7 @@ export function LoginForm() {
       <form onSubmit={handleSubmit}>
         <CardContent className="space-y-4">
           {error && (
-            <div className="rounded-md bg-destructive/10 p-3 text-sm text-destructive">
+            <div className="animate-in fade-in slide-in-from-top-1 rounded-lg bg-destructive/10 p-3 text-sm text-destructive dark:bg-destructive/20">
               {error}
             </div>
           )}
@@ -55,6 +56,7 @@ export function LoginForm() {
               placeholder="you@company.com"
               required
               autoComplete="email"
+              disabled={pending}
             />
           </div>
           <div className="space-y-2">
@@ -65,16 +67,21 @@ export function LoginForm() {
               type="password"
               required
               autoComplete="current-password"
+              disabled={pending}
             />
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <Button type="submit" className="w-full" disabled={pending}>
+            {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {pending ? "Signing in..." : "Sign in"}
           </Button>
           <p className="text-sm text-muted-foreground">
             Don&apos;t have an account?{" "}
-            <Link href="/signup" className="text-primary hover:underline">
+            <Link
+              href="/signup"
+              className="font-medium text-primary underline-offset-4 transition-colors hover:underline"
+            >
               Sign up
             </Link>
           </p>
