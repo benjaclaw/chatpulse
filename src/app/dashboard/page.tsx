@@ -2,25 +2,40 @@ import {
   BookOpen,
   MessageSquare,
   HelpCircle,
-  Rocket,
+  Users,
   ArrowRight,
-  Bot,
-  Sparkles,
+  Rocket,
+  MessageCircle,
+  FileText,
+  UserPlus,
 } from "lucide-react";
 import Link from "next/link";
+import {
+  mockDashboardStats,
+  mockRecentActivity,
+} from "@/lib/mock-data";
 
 export const metadata = {
   title: "Dashboard — ChatPulse",
 };
 
+const activityIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+  conversation: MessageCircle,
+  knowledge: FileText,
+  question: HelpCircle,
+  team: UserPlus,
+};
+
 export default function DashboardPage() {
+  const stats = mockDashboardStats;
+
   return (
     <div className="space-y-8">
       {/* Page header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">Dashboard</h1>
         <p className="mt-1 text-muted-foreground">
-          Welcome to ChatPulse. Here&apos;s an overview of your workspace.
+          Oversikt over din workspace.
         </p>
       </div>
 
@@ -32,9 +47,9 @@ export default function DashboardPage() {
               <Rocket className="h-6 w-6" />
             </div>
             <div>
-              <h2 className="text-lg font-semibold">Get started with ChatPulse</h2>
+              <h2 className="text-lg font-semibold">Kom i gang med ChatPulse</h2>
               <p className="mt-1 text-sm text-muted-foreground">
-                Set up your AI chatbot in 3 simple steps: add knowledge, configure your bot, and embed the widget.
+                Sett opp AI-chatboten din i 3 enkle steg: legg til kunnskap, konfigurer boten, og embed widgeten.
               </p>
             </div>
           </div>
@@ -42,67 +57,96 @@ export default function DashboardPage() {
             href="/dashboard/knowledge"
             className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
           >
-            Add knowledge
+            Legg til kunnskap
             <ArrowRight className="h-4 w-4" />
           </Link>
         </div>
       </div>
 
       {/* Stats cards */}
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-3">
-        <StatCard
-          icon={BookOpen}
-          title="Knowledge Base"
-          description="Add content your chatbot can use to answer questions."
-          count={0}
-          unit="articles"
-          emptyText="No articles yet"
-          emptyHint="Add your first article to start training your chatbot"
-        />
+      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
         <StatCard
           icon={MessageSquare}
-          title="Conversations"
-          description="Chat sessions from your website visitors."
-          count={0}
-          unit="total"
-          emptyText="No conversations yet"
-          emptyHint="Conversations will appear once your chatbot is live"
+          title="Totale samtaler"
+          value={stats.totalConversations}
+          href="/dashboard/conversations"
+        />
+        <StatCard
+          icon={MessageCircle}
+          title="Meldinger i dag"
+          value={stats.messagesToday}
         />
         <StatCard
           icon={HelpCircle}
-          title="Unanswered Questions"
-          description="Questions your chatbot couldn't answer."
-          count={0}
-          unit="pending"
-          emptyText="All caught up!"
-          emptyHint="Unanswered questions will show up here"
+          title="Ubesvarte spørsmål"
+          value={stats.unansweredQuestions}
+          href="/dashboard/insights"
+        />
+        <StatCard
+          icon={Users}
+          title="Team-medlemmer"
+          value={stats.teamMembers}
+          href="/dashboard/team"
         />
       </div>
 
-      {/* Quick actions when empty */}
-      <div className="rounded-xl border bg-card p-8 text-center">
-        <div className="mx-auto flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10">
-          <Bot className="h-8 w-8 text-primary" />
+      {/* Recent activity + quick actions */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Recent activity */}
+        <div className="rounded-xl border bg-card p-6 shadow-sm">
+          <h3 className="text-base font-semibold">Siste aktivitet</h3>
+          <div className="mt-4 space-y-3">
+            {mockRecentActivity.map((item) => {
+              const Icon = activityIcons[item.type] ?? MessageCircle;
+              return (
+                <div
+                  key={item.id}
+                  className="flex items-start gap-3 rounded-lg p-2 transition-colors hover:bg-muted/50"
+                >
+                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                    <Icon className="h-4 w-4" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm">{item.description}</p>
+                    <p className="mt-0.5 text-xs text-muted-foreground">
+                      {formatRelativeTime(item.time)}
+                    </p>
+                  </div>
+                </div>
+              );
+            })}
+          </div>
         </div>
-        <h3 className="mt-4 text-lg font-semibold">Your chatbot awaits</h3>
-        <p className="mx-auto mt-2 max-w-md text-sm text-muted-foreground">
-          Once you add knowledge and configure your chatbot, it&apos;ll be ready to help your customers around the clock.
-        </p>
-        <div className="mt-6 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-          <Link
-            href="/dashboard/knowledge"
-            className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-background px-4 text-sm font-medium transition-colors hover:bg-muted"
-          >
-            <BookOpen className="h-4 w-4" />
-            Knowledge Base
-          </Link>
-          <Link
-            href="/dashboard/chatbot"
-            className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-background px-4 text-sm font-medium transition-colors hover:bg-muted"
-          >
-            <Sparkles className="h-4 w-4" />
-            Configure Chatbot
-          </Link>
+
+        {/* Quick actions */}
+        <div className="rounded-xl border bg-card p-6 shadow-sm">
+          <h3 className="text-base font-semibold">Hurtighandlinger</h3>
+          <div className="mt-4 grid gap-3 sm:grid-cols-2">
+            <QuickAction
+              icon={BookOpen}
+              title="Kunnskapsbase"
+              description="Legg til artikler"
+              href="/dashboard/knowledge"
+            />
+            <QuickAction
+              icon={MessageSquare}
+              title="Samtaler"
+              description="Se samtalelogg"
+              href="/dashboard/conversations"
+            />
+            <QuickAction
+              icon={HelpCircle}
+              title="Innsikt"
+              description="Se topp-spørsmål"
+              href="/dashboard/insights"
+            />
+            <QuickAction
+              icon={Users}
+              title="Team"
+              description="Inviter medlemmer"
+              href="/dashboard/team"
+            />
+          </div>
         </div>
       </div>
     </div>
@@ -112,43 +156,65 @@ export default function DashboardPage() {
 function StatCard({
   icon: Icon,
   title,
-  description,
-  count,
-  unit,
-  emptyText,
-  emptyHint,
+  value,
+  href,
 }: {
   icon: React.ComponentType<{ className?: string }>;
   title: string;
-  description: string;
-  count: number;
-  unit: string;
-  emptyText: string;
-  emptyHint: string;
+  value: number;
+  href?: string;
 }) {
-  const isEmpty = count === 0;
-
-  return (
+  const content = (
     <div className="group rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md">
       <div className="flex items-center gap-3">
         <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
           <Icon className="h-4 w-4" />
         </div>
-        <h3 className="font-semibold">{title}</h3>
+        <span className="text-sm text-muted-foreground">{title}</span>
       </div>
-      <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-
-      {isEmpty ? (
-        <div className="mt-4 rounded-lg bg-muted/50 p-3 dark:bg-muted/30">
-          <p className="text-sm font-medium text-muted-foreground">{emptyText}</p>
-          <p className="mt-0.5 text-xs text-muted-foreground/70">{emptyHint}</p>
-        </div>
-      ) : (
-        <div className="mt-4">
-          <p className="text-3xl font-bold">{count}</p>
-          <p className="text-xs text-muted-foreground">{unit}</p>
-        </div>
-      )}
+      <p className="mt-3 text-3xl font-bold">{value}</p>
     </div>
   );
+
+  if (href) {
+    return <Link href={href}>{content}</Link>;
+  }
+  return content;
+}
+
+function QuickAction({
+  icon: Icon,
+  title,
+  description,
+  href,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  title: string;
+  description: string;
+  href: string;
+}) {
+  return (
+    <Link
+      href={href}
+      className="flex items-center gap-3 rounded-lg border p-3 transition-all duration-150 hover:bg-muted/50 hover:shadow-sm"
+    >
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <Icon className="h-4 w-4" />
+      </div>
+      <div>
+        <p className="text-sm font-medium">{title}</p>
+        <p className="text-xs text-muted-foreground">{description}</p>
+      </div>
+    </Link>
+  );
+}
+
+function formatRelativeTime(iso: string): string {
+  const diff = Date.now() - new Date(iso).getTime();
+  const mins = Math.floor(diff / 60000);
+  if (mins < 60) return `${mins} min siden`;
+  const hours = Math.floor(mins / 60);
+  if (hours < 24) return `${hours}t siden`;
+  const days = Math.floor(hours / 24);
+  return `${days}d siden`;
 }
