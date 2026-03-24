@@ -15,7 +15,6 @@ import {
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { ChatWidget } from "@/components/widget/chat-widget";
 
 export default function HomePage() {
   return (
@@ -62,9 +61,8 @@ export default function HomePage() {
             </h1>
 
             <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg">
-              Last opp kunnskapsbasen din, tilpass utseendet, og legg til en
-              kodelinje på nettsiden. ChatPulse svarer kundene dine 24/7 med
-              presis, kontekstuell AI.
+              Tren chatboten med din kunnskapsbase. Embed på nettsiden. Se hva
+              kundene spør om.
             </p>
 
             <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
@@ -76,12 +74,12 @@ export default function HomePage() {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
               <a
-                href="#demo"
+                href="#how-it-works"
                 className={cn(
                   buttonVariants({ size: "lg", variant: "outline" })
                 )}
               >
-                Se demo
+                Se hvordan det fungerer
               </a>
             </div>
           </div>
@@ -99,36 +97,40 @@ export default function HomePage() {
               Alt du trenger for smart kundeservice
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
-              Fra kunnskapsbase til live widget — ChatPulse gir deg full kontroll.
+              Fra kunnskapsbase til live widget — ChatPulse gir deg full
+              kontroll.
             </p>
 
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <FeatureCard
                 icon={BookOpen}
                 title="Kunnskapsbase"
-                description="Last opp dokumenter og artikler. Chatboten lærer automatisk og svarer basert på din bedrifts innhold."
+                description="Last opp dokumenter og FAQ. Chatboten lærer automatisk."
               />
               <FeatureCard
                 icon={Palette}
                 title="Tilpasning"
-                description="Velg farger, logo og velkomstmelding. Widgeten matcher merkevaren din perfekt."
+                description="Dine farger, din logo, din velkomstmelding."
               />
               <FeatureCard
                 icon={BarChart3}
                 title="Innsikt"
-                description="Se hva kundene spør om mest. Identifiser mangler i kunnskapsbasen og forbedre over tid."
+                description="Se hva kundene spør om. Finn hull i dokumentasjonen."
               />
               <FeatureCard
                 icon={Code2}
                 title="Enkel integrasjon"
-                description="Legg til chatboten med én kodelinje. Fungerer på alle nettsider og plattformer."
+                description="Én kodelinje. Fungerer på alle nettsider."
               />
             </div>
           </div>
         </section>
 
         {/* ─── How it works ─── */}
-        <section className="border-t px-4 py-16 sm:px-6 sm:py-24">
+        <section
+          id="how-it-works"
+          className="scroll-mt-16 border-t px-4 py-16 sm:px-6 sm:py-24"
+        >
           <div className="mx-auto max-w-4xl">
             <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
               Tre enkle steg
@@ -142,19 +144,19 @@ export default function HomePage() {
                 step={1}
                 icon={Plus}
                 title="Opprett"
-                description="Lag en workspace og legg inn bedriftsinformasjon og kunnskapsbase-artikler."
+                description="Opprett workspace og last opp kunnskapsbase."
               />
               <StepCard
                 step={2}
                 icon={Zap}
-                title="Tren"
-                description="ChatPulse prosesserer innholdet ditt og bygger en AI-modell tilpasset din bedrift."
+                title="Tilpass"
+                description="Tilpass chatboten til din merkevare."
               />
               <StepCard
                 step={3}
                 icon={Puzzle}
                 title="Embed"
-                description="Kopier embed-koden og lim inn på nettsiden din. Chatboten er live!"
+                description="Embed på nettsiden med én kodelinje."
               />
             </div>
           </div>
@@ -179,10 +181,9 @@ export default function HomePage() {
                 features={[
                   "1 chatbot",
                   "100 meldinger/mnd",
-                  "Grunnleggende tilpasning",
-                  "Community support",
+                  "50 kunnskapsbaser",
                 ]}
-                cta="Kom i gang gratis"
+                cta="Kom i gang"
                 ctaHref="/signup"
               />
               <PricingCard
@@ -193,74 +194,24 @@ export default function HomePage() {
                 features={[
                   "5 chatbots",
                   "Ubegrenset meldinger",
-                  "Avansert tilpasning",
                   "Priority support",
-                  "Innsikt og analytics",
-                  "Team-tilgang (5 brukere)",
                 ]}
-                cta="Start Pro"
+                cta="Oppgrader"
                 ctaHref="/signup"
                 highlighted
               />
               <PricingCard
                 name="Enterprise"
-                price="Kontakt oss"
+                price="Custom"
                 description="For store organisasjoner"
                 features={[
                   "Ubegrenset chatbots",
-                  "Ubegrenset meldinger",
-                  "SSO og avansert sikkerhet",
-                  "Dedikert kundekontakt",
                   "SLA-garanti",
-                  "Custom integrasjoner",
+                  "Dedikert support",
                 ]}
-                cta="Kontakt salg"
+                cta="Kontakt oss"
                 ctaHref="mailto:salg@chatpulse.no"
               />
-            </div>
-          </div>
-        </section>
-
-        {/* ─── Demo ─── */}
-        <section
-          id="demo"
-          className="scroll-mt-16 border-t px-4 py-16 sm:px-6 sm:py-24"
-        >
-          <div className="mx-auto max-w-5xl">
-            <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
-              Prøv chatboten selv
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
-              Skriv en melding og se hvordan ChatPulse svarer i sanntid.
-            </p>
-            <div className="mx-auto mt-10 max-w-sm">
-              <ChatWidget
-                inline
-                botName="Demo Bot"
-                welcomeMessage="Hei! Dette er en demo av ChatPulse. Still meg et spørsmål! 👋"
-                primaryColor="#6366f1"
-              />
-            </div>
-          </div>
-        </section>
-
-        {/* ─── Final CTA ─── */}
-        <section className="border-t bg-gradient-to-br from-primary/5 via-background to-accent/5 px-4 py-16 dark:from-primary/10 dark:to-accent/10 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-              Klar til å prøve ChatPulse?
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              Opprett en gratis konto og ha din AI-chatbot oppe og kjøre i dag.
-            </p>
-            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center">
-              <Link
-                href="/signup"
-                className={cn(buttonVariants({ size: "lg" }))}
-              >
-                Kom i gang gratis
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
             </div>
           </div>
         </section>
@@ -272,9 +223,25 @@ export default function HomePage() {
           <span className="font-heading text-lg font-bold text-primary">
             ChatPulse
           </span>
-          <p className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} ChatPulse. Bygget med AI.
-          </p>
+          <div className="flex items-center gap-6 text-sm text-muted-foreground">
+            <a
+              href="https://github.com/benjaclaw/chatpulse"
+              target="_blank"
+              rel="noopener noreferrer"
+              className="transition-colors hover:text-foreground"
+            >
+              GitHub
+            </a>
+            <Link
+              href="/privacy"
+              className="transition-colors hover:text-foreground"
+            >
+              Privacy
+            </Link>
+            <span>
+              &copy; {new Date().getFullYear()} ChatPulse
+            </span>
+          </div>
         </div>
       </footer>
     </div>
@@ -291,18 +258,20 @@ function WidgetMockup() {
         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
           <Sparkles className="h-3.5 w-3.5 text-white" />
         </div>
-        <span className="text-sm font-semibold text-white">ChatPulse Bot</span>
+        <span className="text-sm font-semibold text-white">
+          ChatPulse Bot
+        </span>
       </div>
       {/* Messages */}
       <div className="space-y-3 p-4">
         <div className="max-w-[75%] rounded-2xl rounded-bl-md bg-muted px-4 py-2 text-sm">
-          Hei! Hvordan kan jeg hjelpe? 👋
+          Hei! Hvordan kan jeg hjelpe?
         </div>
         <div className="ml-auto max-w-[75%] rounded-2xl rounded-br-md bg-primary px-4 py-2 text-sm text-white">
           Hva er leveringstiden?
         </div>
         <div className="max-w-[75%] rounded-2xl rounded-bl-md bg-muted px-4 py-2 text-sm">
-          Standard frakt tar 3-5 virkedager. Ekspress leverer på 1-2 dager! 🚀
+          Standard frakt tar 3-5 virkedager. Ekspress leverer på 1-2 dager!
         </div>
       </div>
       {/* Input */}
