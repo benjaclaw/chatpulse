@@ -205,6 +205,39 @@ export const mockConversations = [
       },
     ],
   },
+  {
+    id: "c5",
+    visitor_id: "visitor_e9f3",
+    started_at: "2026-03-20T10:20:00Z",
+    message_count: 4,
+    messages: [
+      {
+        id: "m19",
+        role: "assistant" as const,
+        content: "Hei! Hvordan kan jeg hjelpe deg i dag? 👋",
+        created_at: "2026-03-20T10:20:00Z",
+      },
+      {
+        id: "m20",
+        role: "user" as const,
+        content: "Hei, kan jeg endre bestillingen min etter at den er lagt inn?",
+        created_at: "2026-03-20T10:20:15Z",
+      },
+      {
+        id: "m21",
+        role: "assistant" as const,
+        content:
+          "Ja, du kan endre bestillingen din inntil den er sendt fra vårt lager. Gå til \"Mine bestillinger\" eller kontakt kundeservice for hjelp.",
+        created_at: "2026-03-20T10:20:30Z",
+      },
+      {
+        id: "m22",
+        role: "user" as const,
+        content: "Supert, takk for info!",
+        created_at: "2026-03-20T10:20:50Z",
+      },
+    ],
+  },
 ];
 
 export const mockQuestions = [
@@ -263,6 +296,20 @@ export const mockQuestions = [
     count: 21,
     last_asked_at: "2026-03-21T16:45:10Z",
     answered: true,
+  },
+  {
+    id: "q9",
+    question: "Kan jeg endre bestillingen min?",
+    count: 11,
+    last_asked_at: "2026-03-23T08:15:00Z",
+    answered: true,
+  },
+  {
+    id: "q10",
+    question: "Har dere prisgaranti?",
+    count: 4,
+    last_asked_at: "2026-03-18T12:00:00Z",
+    answered: false,
   },
 ];
 

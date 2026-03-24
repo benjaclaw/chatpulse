@@ -82,6 +82,46 @@ export default function InsightsPage() {
         ))}
       </div>
 
+      {/* Bar chart */}
+      <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <h3 className="text-base font-semibold mb-4">Topp-spørsmål</h3>
+        <div className="space-y-3">
+          {filtered.slice(0, 8).map((q) => {
+            const maxCount = Math.max(...filtered.map((x) => x.count));
+            const pct = maxCount > 0 ? (q.count / maxCount) * 100 : 0;
+            return (
+              <div key={q.id} className="space-y-1">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="truncate pr-4">{q.question}</span>
+                  <span className="shrink-0 font-medium">{q.count}</span>
+                </div>
+                <div className="h-2.5 w-full rounded-full bg-muted">
+                  <div
+                    className="h-2.5 rounded-full transition-all duration-500"
+                    style={{
+                      width: `${pct}%`,
+                      backgroundColor: q.answered
+                        ? "var(--success)"
+                        : "var(--warning)",
+                    }}
+                  />
+                </div>
+              </div>
+            );
+          })}
+        </div>
+        <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block h-2.5 w-2.5 rounded-full bg-success" />
+            Besvart
+          </div>
+          <div className="flex items-center gap-1.5">
+            <span className="inline-block h-2.5 w-2.5 rounded-full bg-warning" />
+            Ubesvart
+          </div>
+        </div>
+      </div>
+
       {/* Questions list */}
       {filtered.length === 0 ? (
         <div className="rounded-xl border border-dashed bg-card/50 p-8 text-center dark:bg-card/20">
