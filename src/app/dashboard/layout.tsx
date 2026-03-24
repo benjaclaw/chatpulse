@@ -1,0 +1,43 @@
+import { redirect } from "next/navigation";
+import { createClient } from "@/lib/supabase/server";
+import { DashboardShell } from "@/components/dashboard/shell";
+
+export default async function DashboardLayout({
+  children,
+}: {
+  children: React.ReactNode;
+}) {
+  const supabase = await createClient();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    redirect("/login");
+  }
+
+  // Get user's workspaces
+  const { data: memberships } = await supabase
+    .from("members")
+    .select("workspace:workspaces(*), role")
+    .eq("user_id", user.id);
+
+  if (!memberships || memberships.length === 0) {
+    redirect("/create-workspace");
+  }
+
+  const workspaces = memberships.map((m) => {
+    const ws = m.workspace as unknown as { id: string; name: string; slug: string };
+    return { ...ws, role: m.role as string };
+  });
+
+  return (
+    <DashboardShell
+      user={{ id: user.id, email: user.email!, name: user.user_metadata?.full_name }}
+      workspaces={workspaces}
+    >
+      {children}
+    </DashboardShell>
+  );
+}

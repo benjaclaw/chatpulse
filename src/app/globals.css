@@ -134,9 +134,37 @@
     @apply bg-background text-foreground;
   }
   html {
-    @apply font-sans;
+    @apply font-sans scroll-smooth;
   }
   h1, h2, h3, h4, h5, h6 {
     font-family: var(--font-heading);
+  }
+  h1 {
+    @apply text-4xl font-bold leading-tight tracking-tight;
+  }
+  h2 {
+    @apply text-3xl font-bold leading-snug;
+  }
+  h3 {
+    @apply text-2xl font-semibold leading-snug;
+  }
+  h4 {
+    @apply text-xl font-semibold;
+  }
+
+  /* Focus-visible for keyboard navigation */
+  :focus-visible {
+    @apply outline-2 outline-offset-2 outline-ring;
+  }
+
+  /* Smooth transitions on interactive elements */
+  a, button, input, select, textarea {
+    @apply transition-colors duration-200;
+  }
+
+  /* Selection color */
+  ::selection {
+    background-color: var(--primary);
+    color: white;
   }
 }

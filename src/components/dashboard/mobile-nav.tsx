@@ -1,0 +1,162 @@
+"use client";
+
+import { useState } from "react";
+import Link from "next/link";
+import { usePathname } from "next/navigation";
+import {
+  LayoutDashboard,
+  BookOpen,
+  Building2,
+  Bot,
+  MessageSquare,
+  BarChart3,
+  Settings,
+  Users,
+  Menu,
+  LogOut,
+} from "lucide-react";
+import { signOut } from "@/lib/auth-actions";
+import { Button } from "@/components/ui/button";
+import {
+  Sheet,
+  SheetContent,
+  SheetHeader,
+  SheetTitle,
+  SheetTrigger,
+} from "@/components/ui/sheet";
+import { Separator } from "@/components/ui/separator";
+import { Avatar, AvatarFallback } from "@/components/ui/avatar";
+import type { UserInfo, Workspace } from "./shell";
+
+const navItems = [
+  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { label: "Knowledge Base", href: "/dashboard/knowledge", icon: BookOpen },
+  { label: "Company Info", href: "/dashboard/company", icon: Building2 },
+  { label: "Chatbot", href: "/dashboard/chatbot", icon: Bot },
+  { label: "Conversations", href: "/dashboard/conversations", icon: MessageSquare },
+  { label: "Insights", href: "/dashboard/insights", icon: BarChart3 },
+  { label: "Team", href: "/dashboard/team", icon: Users },
+  { label: "Settings", href: "/dashboard/settings", icon: Settings },
+];
+
+interface MobileNavProps {
+  user: UserInfo;
+  workspaces: Workspace[];
+  activeWorkspace: Workspace;
+  onWorkspaceChange: (id: string) => void;
+}
+
+export function MobileNav({
+  user,
+  workspaces,
+  activeWorkspace,
+  onWorkspaceChange,
+}: MobileNavProps) {
+  const pathname = usePathname();
+  const [open, setOpen] = useState(false);
+
+  return (
+    <Sheet open={open} onOpenChange={setOpen}>
+      <SheetTrigger
+        render={
+          <Button variant="ghost" size="icon" className="shrink-0" />
+        }
+      >
+        <Menu className="h-5 w-5" />
+        <span className="sr-only">Toggle menu</span>
+      </SheetTrigger>
+      <SheetContent side="left" className="w-[280px] p-0">
+        <SheetHeader className="p-4">
+          <SheetTitle className="font-heading text-left">
+            {activeWorkspace.name}
+          </SheetTitle>
+        </SheetHeader>
+
+        {workspaces.length > 1 && (
+          <>
+            <div className="px-4 pb-2">
+              <p className="text-xs font-medium text-muted-foreground mb-2">
+                Workspaces
+              </p>
+              {workspaces.map((ws) => (
+                <button
+                  key={ws.id}
+                  onClick={() => {
+                    onWorkspaceChange(ws.id);
+                    setOpen(false);
+                  }}
+                  className={`block w-full text-left rounded-md px-3 py-2 text-sm ${
+                    ws.id === activeWorkspace.id
+                      ? "bg-primary/10 text-primary font-medium"
+                      : "text-muted-foreground hover:bg-muted"
+                  }`}
+                >
+                  {ws.name}
+                </button>
+              ))}
+            </div>
+            <Separator />
+          </>
+        )}
+
+        <nav className="flex-1 p-2">
+          <ul className="space-y-1">
+            {navItems.map((item) => {
+              const isActive =
+                item.href === "/dashboard"
+                  ? pathname === "/dashboard"
+                  : pathname.startsWith(item.href);
+
+              return (
+                <li key={item.href}>
+                  <Link
+                    href={item.href}
+                    onClick={() => setOpen(false)}
+                    className={`flex items-center gap-3 rounded-md px-3 py-2 text-sm font-medium transition-colors ${
+                      isActive
+                        ? "bg-primary/10 text-primary"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                    }`}
+                  >
+                    <item.icon className="h-4 w-4" />
+                    {item.label}
+                  </Link>
+                </li>
+              );
+            })}
+          </ul>
+        </nav>
+
+        <Separator />
+
+        <div className="p-4">
+          <div className="flex items-center gap-3 mb-3">
+            <Avatar className="h-8 w-8">
+              <AvatarFallback className="bg-primary/10 text-primary text-xs">
+                {user.name?.charAt(0).toUpperCase() ?? user.email.charAt(0).toUpperCase()}
+              </AvatarFallback>
+            </Avatar>
+            <div className="flex flex-col">
+              <span className="text-sm font-medium">
+                {user.name ?? user.email}
+              </span>
+              {user.name && (
+                <span className="text-xs text-muted-foreground">
+                  {user.email}
+                </span>
+              )}
+            </div>
+          </div>
+          <Button
+            variant="ghost"
+            className="w-full justify-start text-destructive"
+            onClick={() => signOut()}
+          >
+            <LogOut className="mr-2 h-4 w-4" />
+            Sign out
+          </Button>
+        </div>
+      </SheetContent>
+    </Sheet>
+  );
+}
