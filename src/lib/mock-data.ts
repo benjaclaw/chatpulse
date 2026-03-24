@@ -337,6 +337,123 @@ export const mockTeamMembers = [
   },
 ];
 
+// --- Super Admin mock data ---
+
+export type AdminUser = {
+  id: string;
+  name: string;
+  email: string;
+  role: "owner" | "admin" | "member";
+  is_super_admin: boolean;
+  workspace_id: string;
+  workspace_name: string;
+  created_at: string;
+};
+
+export const mockAdminUsers: AdminUser[] = [
+  {
+    id: "au1",
+    name: "Benjamin Bruaroy",
+    email: "benjamin.bruaroy@gmail.com",
+    role: "owner",
+    is_super_admin: true,
+    workspace_id: "ws1",
+    workspace_name: "ChatPulse Demo",
+    created_at: "2026-01-10T08:00:00Z",
+  },
+  {
+    id: "au2",
+    name: "Ola Nordmann",
+    email: "ola@chatpulse.no",
+    role: "owner",
+    is_super_admin: false,
+    workspace_id: "ws1",
+    workspace_name: "ChatPulse Demo",
+    created_at: "2026-02-01T10:00:00Z",
+  },
+  {
+    id: "au3",
+    name: "Kari Hansen",
+    email: "kari@chatpulse.no",
+    role: "admin",
+    is_super_admin: false,
+    workspace_id: "ws2",
+    workspace_name: "Nettbutikk AS",
+    created_at: "2026-02-15T12:30:00Z",
+  },
+  {
+    id: "au4",
+    name: "Erik Johansen",
+    email: "erik@chatpulse.no",
+    role: "member",
+    is_super_admin: false,
+    workspace_id: "ws2",
+    workspace_name: "Nettbutikk AS",
+    created_at: "2026-03-01T09:00:00Z",
+  },
+  {
+    id: "au5",
+    name: "Lise Berg",
+    email: "lise@techstart.no",
+    role: "owner",
+    is_super_admin: false,
+    workspace_id: "ws3",
+    workspace_name: "TechStart",
+    created_at: "2026-03-10T14:00:00Z",
+  },
+];
+
+export type AdminWorkspace = {
+  id: string;
+  name: string;
+  slug: string;
+  member_count: number;
+  created_at: string;
+  members: { id: string; name: string; email: string; role: string }[];
+};
+
+export const mockAdminWorkspaces: AdminWorkspace[] = [
+  {
+    id: "ws1",
+    name: "ChatPulse Demo",
+    slug: "chatpulse-demo",
+    member_count: 2,
+    created_at: "2026-01-10T08:00:00Z",
+    members: [
+      { id: "au1", name: "Benjamin Bruaroy", email: "benjamin.bruaroy@gmail.com", role: "owner" },
+      { id: "au2", name: "Ola Nordmann", email: "ola@chatpulse.no", role: "owner" },
+    ],
+  },
+  {
+    id: "ws2",
+    name: "Nettbutikk AS",
+    slug: "nettbutikk-as",
+    member_count: 2,
+    created_at: "2026-02-15T12:30:00Z",
+    members: [
+      { id: "au3", name: "Kari Hansen", email: "kari@chatpulse.no", role: "admin" },
+      { id: "au4", name: "Erik Johansen", email: "erik@chatpulse.no", role: "member" },
+    ],
+  },
+  {
+    id: "ws3",
+    name: "TechStart",
+    slug: "techstart",
+    member_count: 1,
+    created_at: "2026-03-10T14:00:00Z",
+    members: [
+      { id: "au5", name: "Lise Berg", email: "lise@techstart.no", role: "owner" },
+    ],
+  },
+];
+
+export const mockAdminStats = {
+  totalUsers: 5,
+  totalWorkspaces: 3,
+  totalConversations: 128,
+  totalMessages: 847,
+};
+
 export const mockDashboardStats = {
   totalConversations: 47,
   messagesToday: 12,
