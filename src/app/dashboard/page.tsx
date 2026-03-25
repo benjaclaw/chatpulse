@@ -10,11 +10,10 @@ import {
   UserPlus,
 } from "lucide-react";
 import Link from "next/link";
-import {
-  mockDashboardStats,
-  mockRecentActivity,
-} from "@/lib/mock-data";
+import { createClient } from "@/lib/supabase/server";
 import type { ActivityType } from "@/lib/types";
+
+export const dynamic = "force-dynamic";
 
 export const metadata = {
   title: "Dashboard — ChatPulse",
@@ -27,8 +26,23 @@ const activityIcons: Record<ActivityType, React.ComponentType<{ className?: stri
   team: UserPlus,
 };
 
-export default function DashboardPage(): React.ReactNode {
-  const stats = mockDashboardStats;
+export default async function DashboardPage(): Promise<React.ReactNode> {
+  const supabase = await createClient();
+
+  // Get real counts from Supabase
+  const [convResult, msgResult, qResult, memberResult] = await Promise.all([
+    supabase.from("conversations").select("id", { count: "exact", head: true }),
+    supabase.from("messages").select("id", { count: "exact", head: true }).gte("created_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
+    supabase.from("questions").select("id", { count: "exact", head: true }).eq("answered", false),
+    supabase.from("members").select("id", { count: "exact", head: true }),
+  ]);
+
+  const stats = {
+    totalConversations: convResult.count ?? 0,
+    messagesToday: msgResult.count ?? 0,
+    unansweredQuestions: qResult.count ?? 0,
+    teamMembers: memberResult.count ?? 0,
+  };
 
   return (
     <div className="space-y-8">
@@ -97,25 +111,15 @@ export default function DashboardPage(): React.ReactNode {
         <div className="rounded-xl border bg-card p-6 shadow-sm">
           <h3 className="text-base font-semibold">Siste aktivitet</h3>
           <div className="mt-4 space-y-3">
-            {mockRecentActivity.map((item) => {
-              const Icon = activityIcons[item.type] ?? MessageCircle;
-              return (
-                <div
-                  key={item.id}
-                  className="flex items-start gap-3 rounded-lg p-2 transition-colors hover:bg-muted/50"
-                >
-                  <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
-                    <Icon className="h-4 w-4" />
-                  </div>
-                  <div className="flex-1 min-w-0">
-                    <p className="text-sm">{item.description}</p>
-                    <p className="mt-0.5 text-xs text-muted-foreground">
-                      {formatRelativeTime(item.time)}
-                    </p>
-                  </div>
-                </div>
-              );
-            })}
+            {stats.totalConversations === 0 ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Ingen aktivitet ennå. Sett opp chatboten for å komme i gang!
+              </p>
+            ) : (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                Aktivitetslogg kommer snart.
+              </p>
+            )}
           </div>
         </div>
 
