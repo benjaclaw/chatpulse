@@ -35,37 +35,42 @@ create trigger on_auth_user_created
 -- RLS for profiles
 alter table public.profiles enable row level security;
 
--- Super admins can read all profiles
-create policy "Super admins can read all profiles"
-  on public.profiles for select
-  using (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid() and p.is_super_admin = true
-    )
+-- Helper: check super admin status without recursion (SECURITY DEFINER bypasses RLS)
+create or replace function public.is_super_admin()
+returns boolean as $$
+  select coalesce(
+    (select is_super_admin from public.profiles where id = auth.uid()),
+    false
   );
+$$ language sql security definer stable;
 
 -- Users can read own profile
 create policy "Users can read own profile"
   on public.profiles for select
   using (id = auth.uid());
 
+-- Super admins can read all profiles (uses function to avoid infinite recursion)
+create policy "Super admins can read all profiles"
+  on public.profiles for select
+  using (public.is_super_admin());
+
+-- Allow profile creation from auth trigger and signup
+create policy "Auth trigger can insert profiles"
+  on public.profiles for insert
+  to authenticated
+  with check (id = auth.uid());
+
+create policy "Service can insert profiles"
+  on public.profiles for insert
+  to service_role
+  with check (true);
+
 -- Super admins can read ALL workspaces (override normal RLS)
 create policy "Super admins can read all workspaces"
   on public.workspaces for select
-  using (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid() and p.is_super_admin = true
-    )
-  );
+  using (public.is_super_admin());
 
 -- Super admins can read ALL members
 create policy "Super admins can read all members"
   on public.members for select
-  using (
-    exists (
-      select 1 from public.profiles p
-      where p.id = auth.uid() and p.is_super_admin = true
-    )
-  );
+  using (public.is_super_admin());
