@@ -319,7 +319,7 @@ const MessageList = ({
                 : undefined
             }
           >
-            {msg.content}
+            <SimpleMarkdown text={msg.content} />
           </div>
         </div>
       ))}
@@ -380,3 +380,75 @@ const WidgetInput = ({
     </div>
   );
 };
+
+/** Lightweight markdown: bold, italic, bullet lists, line breaks */
+function SimpleMarkdown({ text }: { text: string }): React.ReactNode {
+  const lines = text.split("\n");
+  const elements: React.ReactNode[] = [];
+  let listItems: React.ReactNode[] = [];
+
+  function flushList() {
+    if (listItems.length > 0) {
+      elements.push(
+        <ul key={`ul-${elements.length}`} className="my-1 ml-4 list-disc space-y-0.5">
+          {listItems}
+        </ul>
+      );
+      listItems = [];
+    }
+  }
+
+  for (let i = 0; i < lines.length; i++) {
+    const line = lines[i];
+    const bulletMatch = line.match(/^\s*[-*•]\s+(.*)/);
+    if (bulletMatch) {
+      listItems.push(<li key={`li-${i}`}>{inlineFormat(bulletMatch[1])}</li>);
+    } else {
+      flushList();
+      if (line.trim() === "") {
+        if (i > 0 && i < lines.length - 1) {
+          elements.push(<br key={`br-${i}`} />);
+        }
+      } else {
+        if (elements.length > 0) {
+          elements.push(<br key={`br-${i}`} />);
+        }
+        elements.push(<span key={`s-${i}`}>{inlineFormat(line)}</span>);
+      }
+    }
+  }
+  flushList();
+
+  return <>{elements}</>;
+}
+
+function inlineFormat(text: string): React.ReactNode {
+  // Bold **text** or __text__
+  // Italic *text* or _text_
+  const parts: React.ReactNode[] = [];
+  let remaining = text;
+  let key = 0;
+
+  while (remaining.length > 0) {
+    // Bold: **...**
+    const boldMatch = remaining.match(/^(.*?)\*\*(.+?)\*\*(.*)/s);
+    if (boldMatch) {
+      if (boldMatch[1]) parts.push(<span key={key++}>{boldMatch[1]}</span>);
+      parts.push(<strong key={key++}>{boldMatch[2]}</strong>);
+      remaining = boldMatch[3];
+      continue;
+    }
+    // Italic: *...*
+    const italicMatch = remaining.match(/^(.*?)\*(.+?)\*(.*)/s);
+    if (italicMatch) {
+      if (italicMatch[1]) parts.push(<span key={key++}>{italicMatch[1]}</span>);
+      parts.push(<em key={key++}>{italicMatch[2]}</em>);
+      remaining = italicMatch[3];
+      continue;
+    }
+    parts.push(<span key={key++}>{remaining}</span>);
+    break;
+  }
+
+  return <>{parts}</>;
+}
