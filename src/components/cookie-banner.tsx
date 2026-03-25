@@ -73,6 +73,8 @@ export function CookieBanner(): React.ReactNode {
           </button>
           <Link
             href="/cookies"
+            target="_blank"
+            rel="noopener noreferrer"
             className="px-2 text-xs text-muted-foreground underline transition-colors hover:text-foreground"
           >
             {t("cookie.readMore")}
