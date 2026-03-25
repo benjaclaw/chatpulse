@@ -195,21 +195,7 @@ export function HomePage(): React.ReactNode {
               {t('landing.pricing.description')}
             </p>
 
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              <PricingCard
-                name={t('landing.pricing.free')}
-                price={t('landing.pricing.freePrice')}
-                period={t('landing.pricing.perMonth')}
-                description={t('landing.pricing.freeDesc')}
-                features={[
-                  t('landing.pricing.freeF1'),
-                  t('landing.pricing.freeF2'),
-                  t('landing.pricing.freeF3'),
-                ]}
-                cta={t('landing.pricing.freeCta')}
-                ctaHref="/signup"
-                popularLabel={t('landing.pricing.popular')}
-              />
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <PricingCard
                 name={t('landing.pricing.basicName')}
                 price={t('landing.pricing.basicPrice')}

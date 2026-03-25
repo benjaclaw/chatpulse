@@ -49,6 +49,8 @@ export interface PlanDetail {
   priceNok: number;
   messageLimit: number;
   features: PlanFeature[];
+  /** Hidden plans are not shown on public pricing pages */
+  hidden?: boolean;
 }
 
 export const PLAN_DETAILS: PlanDetail[] = [
@@ -58,6 +60,7 @@ export const PLAN_DETAILS: PlanDetail[] = [
     priceNok: 0,
     messageLimit: 100,
     features: PLAN_FEATURES.free,
+    hidden: true,
   },
   {
     id: "basic",
@@ -82,6 +85,9 @@ export const PLAN_DETAILS: PlanDetail[] = [
   },
 ];
 
+/** Plans visible on public-facing pricing pages */
+export const VISIBLE_PLAN_DETAILS = PLAN_DETAILS.filter((p) => !p.hidden);
+
 export function hasFeature(planId: string, feature: PlanFeature): boolean {
   const features = PLAN_FEATURES[planId as PlanId];
   if (!features) return false;
@@ -93,10 +99,10 @@ export function getPlanLimit(planId: string): number {
 }
 
 export function getPlanDetail(planId: string): PlanDetail {
-  return PLAN_DETAILS.find((p) => p.id === planId) ?? PLAN_DETAILS[0];
+  return PLAN_DETAILS.find((p) => p.id === planId) ?? PLAN_DETAILS[1];
 }
 
-/** Returns the minimum plan required for a feature */
+/** Returns the minimum visible plan required for a feature */
 export function getRequiredPlan(feature: PlanFeature): PlanDetail {
-  return PLAN_DETAILS.find((p) => p.features.includes(feature)) ?? PLAN_DETAILS[0];
+  return VISIBLE_PLAN_DETAILS.find((p) => p.features.includes(feature)) ?? VISIBLE_PLAN_DETAILS[0];
 }

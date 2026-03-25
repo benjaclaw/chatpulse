@@ -281,7 +281,7 @@ function PlanCard({
           {t('plans.currentPlan')}
         </CardTitle>
         <CardDescription>
-          {plan.name} — {plan.priceNok > 0 ? `${plan.priceNok} kr${t('plans.perMonth')}` : t('plans.free')}
+          {workspace.plan_id === "free" ? "Intern plan" : `${plan.name} — ${plan.priceNok > 0 ? `${plan.priceNok} kr${t('plans.perMonth')}` : t('plans.free')}`}
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">

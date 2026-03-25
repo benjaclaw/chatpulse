@@ -37,22 +37,7 @@ export default function PricingPage(): React.ReactNode {
             </p>
           </div>
 
-          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-            {/* Free */}
-            <PlanCard
-              name={t("pricing.freeName")}
-              price={t("pricing.freePrice")}
-              period={t("pricing.perMonth")}
-              features={[
-                t("pricing.freeF1"),
-                t("pricing.freeF2"),
-                t("pricing.freeF3"),
-                t("pricing.freeF4"),
-              ]}
-              cta={t("pricing.freeCta")}
-              ctaHref="/signup"
-            />
-
+          <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             {/* Basic */}
             <PlanCard
               name={t("pricing.basicName")}

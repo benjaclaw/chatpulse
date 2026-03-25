@@ -71,7 +71,7 @@ export async function POST(request: Request): Promise<Response> {
       workspace.message_count = 0;
     }
 
-    const limit = getPlanLimit(workspace.plan_id ?? "free");
+    const limit = getPlanLimit(workspace.plan_id ?? "basic");
     if (workspace.message_count >= limit) {
       return Response.json(
         { error: "Meldingsgrensen er nådd for denne måneden" },
