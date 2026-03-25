@@ -27,7 +27,7 @@ export default async function DashboardLayout({
     .eq("user_id", user.id);
 
   if (!memberships || memberships.length === 0) {
-    redirect("/create-workspace");
+    redirect("/onboarding");
   }
 
   const workspaces = (memberships as unknown as WorkspaceMembership[]).map((m) => ({
