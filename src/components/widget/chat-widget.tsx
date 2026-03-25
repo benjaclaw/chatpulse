@@ -95,8 +95,13 @@ export function ChatWidget({
   const conversationIdRef = useRef<string | null>(null);
   const workspaceIdRef = useRef<string | null>(null);
 
+  const hasMounted = useRef(false);
   useEffect(() => {
-    // Scroll within the message container only, not the page
+    // Skip initial mount to prevent page scroll on landing page
+    if (!hasMounted.current) {
+      hasMounted.current = true;
+      return;
+    }
     const el = messagesEndRef.current;
     if (el?.parentElement) {
       el.parentElement.scrollTop = el.parentElement.scrollHeight;
