@@ -1,8 +1,10 @@
 "use client";
 
-import { useState } from "react";
-import { mockChatbotConfig } from "@/lib/mock-data";
+import { useState, useEffect } from "react";
+import { useWorkspace } from "@/contexts/workspace-context";
+import { createClient } from "@/lib/supabase/client";
 import { useClipboard } from "@/hooks/use-clipboard";
+import { useTemporaryFlag } from "@/hooks/use-temporary-flag";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -11,24 +13,119 @@ import { ChatWidget } from "@/components/widget/chat-widget";
 import { Bot, Eye, Code2, Copy, Check } from "lucide-react";
 import type { ChatbotConfig } from "@/lib/types";
 
-export function ChatbotPageClient(): React.ReactNode {
-  const [config, setConfig] = useState<ChatbotConfig>(mockChatbotConfig);
-  const { copied, copy } = useClipboard();
+const defaultConfig = (workspaceId: string): ChatbotConfig => ({
+  id: "",
+  workspace_id: workspaceId,
+  name: "Chatbot",
+  prompt: "Du er en hjelpsom kundeserviceassistent. Svar alltid på norsk. Vær vennlig og profesjonell.",
+  welcome_message: "Hei! Hvordan kan jeg hjelpe deg i dag?",
+  fallback_response: "Beklager, jeg fant ikke svaret på det. Vil du snakke med en av våre medarbeidere?",
+  widget_styling: {
+    primary_color: "#6366f1",
+    position: "right",
+  },
+});
 
-  function update<K extends keyof typeof config>(
+export function ChatbotPageClient(): React.ReactNode {
+  const workspace = useWorkspace();
+  const supabase = createClient();
+  const [config, setConfig] = useState<ChatbotConfig>(defaultConfig(workspace.id));
+  const [loading, setLoading] = useState(true);
+  const { copied, copy } = useClipboard();
+  const { active: saved, trigger: triggerSaved } = useTemporaryFlag();
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const { data } = await supabase
+        .from("chatbot_config")
+        .select("id, workspace_id, name, prompt, welcome_message, fallback_response, widget_styling")
+        .eq("workspace_id", workspace.id)
+        .limit(1)
+        .maybeSingle();
+      if (!cancelled) {
+        if (data) {
+          setConfig({
+            id: data.id,
+            workspace_id: data.workspace_id,
+            name: data.name,
+            prompt: data.prompt,
+            welcome_message: data.welcome_message,
+            fallback_response: data.fallback_response,
+            widget_styling: data.widget_styling ?? { primary_color: "#6366f1", position: "right" as const },
+          });
+        }
+        setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [workspace.id, supabase]);
+
+  function update<K extends keyof ChatbotConfig>(
     key: K,
-    value: (typeof config)[K]
+    value: ChatbotConfig[K]
   ) {
     setConfig((prev) => ({ ...prev, [key]: value }));
   }
 
   function updateStyling<
-    K extends keyof typeof config.widget_styling,
-  >(key: K, value: (typeof config.widget_styling)[K]) {
+    K extends keyof ChatbotConfig["widget_styling"],
+  >(key: K, value: ChatbotConfig["widget_styling"][K]) {
     setConfig((prev) => ({
       ...prev,
       widget_styling: { ...prev.widget_styling, [key]: value },
     }));
+  }
+
+  async function handleSave() {
+    const payload = {
+      name: config.name,
+      prompt: config.prompt,
+      welcome_message: config.welcome_message,
+      fallback_response: config.fallback_response,
+      widget_styling: config.widget_styling,
+    };
+
+    if (config.id) {
+      await supabase
+        .from("chatbot_config")
+        .update(payload)
+        .eq("id", config.id);
+    } else {
+      const { data } = await supabase
+        .from("chatbot_config")
+        .insert({ ...payload, workspace_id: workspace.id })
+        .select("id, workspace_id, name, prompt, welcome_message, fallback_response, widget_styling")
+        .single();
+      if (data) {
+        setConfig({
+          id: data.id,
+          workspace_id: data.workspace_id,
+          name: data.name,
+          prompt: data.prompt,
+          welcome_message: data.welcome_message,
+          fallback_response: data.fallback_response,
+          widget_styling: data.widget_styling ?? { primary_color: "#6366f1", position: "right" as const },
+        });
+      }
+    }
+    triggerSaved();
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">
+            Chatbot-konfigurasjon
+          </h1>
+          <p className="mt-1 text-muted-foreground">
+            Tilpass chatboten og se en live forhåndsvisning.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -160,7 +257,16 @@ export function ChatbotPageClient(): React.ReactNode {
             </div>
           </div>
 
-          <Button className="w-full sm:w-auto">Lagre endringer</Button>
+          <Button className="w-full sm:w-auto" onClick={handleSave}>
+            {saved ? (
+              <>
+                <Check className="mr-2 h-4 w-4" />
+                Lagret!
+              </>
+            ) : (
+              "Lagre endringer"
+            )}
+          </Button>
 
           {/* Embed code */}
           <div className="rounded-xl border bg-card p-6 shadow-sm">

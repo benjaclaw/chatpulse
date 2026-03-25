@@ -4,6 +4,7 @@ import { useState } from "react";
 import { Sidebar } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
 import type { UserInfo, Workspace } from "@/lib/types";
+import { WorkspaceProvider } from "@/contexts/workspace-context";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -49,7 +50,9 @@ export function DashboardShell({
 
         {/* Page content */}
         <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
-          {children}
+          <WorkspaceProvider workspace={activeWorkspace}>
+            {children}
+          </WorkspaceProvider>
         </main>
       </div>
     </div>

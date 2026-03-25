@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { mockQuestions } from "@/lib/mock-data";
+import { useState, useEffect } from "react";
+import { useWorkspace } from "@/contexts/workspace-context";
+import { createClient } from "@/lib/supabase/client";
 import type { Question } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,9 +17,30 @@ import {
 type Filter = "all" | "answered" | "unanswered";
 
 export function InsightsPageClient(): React.ReactNode {
+  const { id: workspaceId } = useWorkspace();
+  const supabase = createClient();
+  const [questions, setQuestions] = useState<Question[]>([]);
   const [filter, setFilter] = useState<Filter>("all");
+  const [loading, setLoading] = useState(true);
 
-  const filtered = mockQuestions
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const { data } = await supabase
+        .from("questions")
+        .select("id, question, count, last_asked_at, answered")
+        .eq("workspace_id", workspaceId)
+        .order("count", { ascending: false });
+      if (!cancelled) {
+        setQuestions(data ?? []);
+        setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [workspaceId, supabase]);
+
+  const filtered = questions
     .filter((q) => {
       if (filter === "answered") return q.answered;
       if (filter === "unanswered") return !q.answered;
@@ -26,8 +48,21 @@ export function InsightsPageClient(): React.ReactNode {
     })
     .sort((a, b) => b.count - a.count);
 
-  const totalAnswered = mockQuestions.filter((q) => q.answered).length;
-  const totalUnanswered = mockQuestions.filter((q) => !q.answered).length;
+  const totalAnswered = questions.filter((q) => q.answered).length;
+  const totalUnanswered = questions.filter((q) => !q.answered).length;
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Innsikt</h1>
+          <p className="mt-1 text-muted-foreground">
+            Se hva kundene dine spør om mest.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -46,7 +81,7 @@ export function InsightsPageClient(): React.ReactNode {
             <TrendingUp className="h-4 w-4" />
             Totalt spørsmål
           </div>
-          <p className="mt-2 text-2xl font-bold">{mockQuestions.length}</p>
+          <p className="mt-2 text-2xl font-bold">{questions.length}</p>
         </div>
         <div className="rounded-xl border bg-card p-5 shadow-sm">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">

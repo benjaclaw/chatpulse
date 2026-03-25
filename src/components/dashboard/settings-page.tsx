@@ -1,6 +1,9 @@
 "use client";
 
 import { useState } from "react";
+import { useRouter } from "next/navigation";
+import { useWorkspace } from "@/contexts/workspace-context";
+import { createClient } from "@/lib/supabase/client";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { useTemporaryFlag } from "@/hooks/use-temporary-flag";
 import { Button } from "@/components/ui/button";
@@ -42,12 +45,33 @@ function generateInviteCode(): string {
 }
 
 export function SettingsPageClient(): React.ReactNode {
-  const [workspaceName, setWorkspaceName] = useState("ChatPulse Demo");
+  const workspace = useWorkspace();
+  const supabase = createClient();
+  const router = useRouter();
+  const [workspaceName, setWorkspaceName] = useState(workspace.name);
   const { active: saved, trigger: triggerSaved } = useTemporaryFlag();
   const [inviteCode, setInviteCode] = useState(() => generateInviteCode());
   const { copied, copy } = useClipboard();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
+
+  async function handleSave() {
+    await supabase
+      .from("workspaces")
+      .update({ name: workspaceName })
+      .eq("id", workspace.id);
+    triggerSaved();
+    router.refresh();
+  }
+
+  async function handleDelete() {
+    await supabase
+      .from("workspaces")
+      .delete()
+      .eq("id", workspace.id);
+    router.push("/dashboard");
+    router.refresh();
+  }
 
   return (
     <div className="space-y-6">
@@ -81,7 +105,7 @@ export function SettingsPageClient(): React.ReactNode {
           </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={triggerSaved} disabled={!workspaceName.trim()}>
+          <Button onClick={handleSave} disabled={!workspaceName.trim()}>
             {saved ? (
               <>
                 <Check className="mr-2 h-4 w-4" />
@@ -187,7 +211,7 @@ export function SettingsPageClient(): React.ReactNode {
                   <Button
                     variant="destructive"
                     disabled={deleteConfirm !== workspaceName}
-                    onClick={() => setDeleteDialogOpen(false)}
+                    onClick={handleDelete}
                   >
                     Slett permanent
                   </Button>

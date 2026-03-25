@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { mockKnowledgeItems } from "@/lib/mock-data";
+import { useState, useEffect } from "react";
+import { useWorkspace } from "@/contexts/workspace-context";
+import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -19,11 +20,32 @@ import {
 import { EmptyState } from "./empty-state";
 import { SearchInput } from "./search-input";
 import { Plus, BookOpen, Calendar } from "lucide-react";
+import type { KnowledgeItem } from "@/lib/types";
 
 export function KnowledgePageClient(): React.ReactNode {
+  const { id: workspaceId } = useWorkspace();
+  const supabase = createClient();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [items, setItems] = useState(mockKnowledgeItems);
+  const [items, setItems] = useState<KnowledgeItem[]>([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const { data } = await supabase
+        .from("knowledge")
+        .select("id, title, content, category, created_at")
+        .eq("workspace_id", workspaceId)
+        .order("created_at", { ascending: false });
+      if (!cancelled) {
+        setItems(data ?? []);
+        setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [workspaceId, supabase]);
 
   const filtered = items.filter(
     (item) =>
@@ -32,24 +54,41 @@ export function KnowledgePageClient(): React.ReactNode {
       item.category.toLowerCase().includes(search.toLowerCase())
   );
 
-  function handleAdd(e: React.FormEvent<HTMLFormElement>) {
+  async function handleAdd(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const title = fd.get("title") as string;
     const content = fd.get("content") as string;
     const category = fd.get("category") as string;
 
-    setItems((prev) => [
-      {
-        id: `k${Date.now()}`,
+    const { data } = await supabase
+      .from("knowledge")
+      .insert({
+        workspace_id: workspaceId,
         title,
         content,
         category: category || "Generelt",
-        created_at: new Date().toISOString(),
-      },
-      ...prev,
-    ]);
+      })
+      .select("id, title, content, category, created_at")
+      .single();
+
+    if (data) {
+      setItems((prev) => [data, ...prev]);
+    }
     setDialogOpen(false);
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Kunnskapsbase</h1>
+          <p className="mt-1 text-muted-foreground">
+            Legg til innhold som chatboten kan bruke til å svare kunder.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (

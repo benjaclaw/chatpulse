@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { mockConversations } from "@/lib/mock-data";
+import { useState, useEffect } from "react";
+import { useWorkspace } from "@/contexts/workspace-context";
+import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "./empty-state";
@@ -13,11 +14,53 @@ import {
   Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import type { Conversation } from "@/lib/types";
+import type { Conversation, ChatMessage } from "@/lib/types";
 
 export function ConversationsPageClient(): React.ReactNode {
+  const { id: workspaceId } = useWorkspace();
+  const supabase = createClient();
+  const [conversations, setConversations] = useState<Conversation[]>([]);
   const [selectedId, setSelectedId] = useState<string | null>(null);
-  const selected = mockConversations.find((c) => c.id === selectedId);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const { data } = await supabase
+        .from("conversations")
+        .select("id, visitor_id, started_at, messages(id, role, content, created_at)")
+        .eq("workspace_id", workspaceId)
+        .order("started_at", { ascending: false });
+      if (!cancelled) {
+        const mapped: Conversation[] = (data ?? []).map((c: { id: string; visitor_id: string; started_at: string; messages: ChatMessage[] }) => ({
+          id: c.id,
+          visitor_id: c.visitor_id,
+          started_at: c.started_at,
+          message_count: c.messages?.length ?? 0,
+          messages: c.messages ?? [],
+        }));
+        setConversations(mapped);
+        setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [workspaceId, supabase]);
+
+  const selected = conversations.find((c) => c.id === selectedId);
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Samtaler</h1>
+          <p className="mt-1 text-muted-foreground">
+            Se samtaleloggen fra chatboten din.
+          </p>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="space-y-6">
@@ -36,7 +79,7 @@ export function ConversationsPageClient(): React.ReactNode {
         />
       ) : (
         <ConversationList
-          conversations={mockConversations}
+          conversations={conversations}
           onSelect={setSelectedId}
         />
       )}

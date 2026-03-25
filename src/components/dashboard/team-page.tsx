@@ -1,7 +1,8 @@
 "use client";
 
-import { useState } from "react";
-import { mockTeamMembers } from "@/lib/mock-data";
+import { useState, useEffect } from "react";
+import { useWorkspace } from "@/contexts/workspace-context";
+import { createClient } from "@/lib/supabase/client";
 import { useTemporaryFlag } from "@/hooks/use-temporary-flag";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -26,15 +27,78 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { UserPlus, CheckCircle2 } from "lucide-react";
 import { ROLE_BADGE_VARIANT, ROLE_LABEL } from "@/lib/types";
+import type { TeamMember, MemberRole } from "@/lib/types";
 
 export function TeamPageClient(): React.ReactNode {
+  const { id: workspaceId } = useWorkspace();
+  const supabase = createClient();
+  const [members, setMembers] = useState<TeamMember[]>([]);
+  const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
   const { active: success, trigger: triggerSuccess } = useTemporaryFlag(1500);
 
-  function handleInvite(e: React.FormEvent<HTMLFormElement>): void {
+  useEffect(() => {
+    let cancelled = false;
+    async function load() {
+      const { data } = await supabase
+        .from("members")
+        .select("id, user_id, role, created_at, profiles(email)")
+        .eq("workspace_id", workspaceId);
+      if (!cancelled) {
+        const mapped: TeamMember[] = (data ?? []).map((m: Record<string, unknown>) => {
+          const profiles = m.profiles as { email: string }[] | { email: string } | null;
+          const email = Array.isArray(profiles) ? profiles[0]?.email ?? "" : profiles?.email ?? "";
+          const name = email.split("@")[0] || "Ukjent";
+          const initials = name.slice(0, 2).toUpperCase();
+          return {
+            id: m.id as string,
+            name,
+            email,
+            role: m.role as MemberRole,
+            avatar_initials: initials,
+          };
+        });
+        setMembers(mapped);
+        setLoading(false);
+      }
+    }
+    load();
+    return () => { cancelled = true; };
+  }, [workspaceId, supabase]);
+
+  async function handleInvite(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
+    const fd = new FormData(e.currentTarget);
+    const email = fd.get("email") as string;
+    const role = fd.get("role") as string;
+
+    const { data: { user } } = await supabase.auth.getUser();
+    if (!user) return;
+
+    await supabase.from("invites").insert({
+      workspace_id: workspaceId,
+      email,
+      role,
+      token: crypto.randomUUID(),
+      invited_by: user.id,
+      expires_at: new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString(),
+    });
+
     triggerSuccess();
     setTimeout(() => setDialogOpen(false), 1500);
+  }
+
+  if (loading) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">Team</h1>
+          <p className="mt-1 text-muted-foreground">
+            Administrer teammedlemmer og invitasjoner.
+          </p>
+        </div>
+      </div>
+    );
   }
 
   return (
@@ -106,29 +170,35 @@ export function TeamPageClient(): React.ReactNode {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="space-y-2">
-            {mockTeamMembers.map((member) => (
-              <div
-                key={member.id}
-                className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50"
-              >
-                <Avatar>
-                  <AvatarFallback className="bg-primary/10 text-primary">
-                    {member.avatar_initials}
-                  </AvatarFallback>
-                </Avatar>
-                <div className="flex-1 min-w-0">
-                  <p className="text-sm font-medium">{member.name}</p>
-                  <p className="text-xs text-muted-foreground truncate">
-                    {member.email}
-                  </p>
+          {members.length === 0 ? (
+            <p className="py-4 text-center text-sm text-muted-foreground">
+              Ingen medlemmer funnet.
+            </p>
+          ) : (
+            <div className="space-y-2">
+              {members.map((member) => (
+                <div
+                  key={member.id}
+                  className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50"
+                >
+                  <Avatar>
+                    <AvatarFallback className="bg-primary/10 text-primary">
+                      {member.avatar_initials}
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-sm font-medium">{member.name}</p>
+                    <p className="text-xs text-muted-foreground truncate">
+                      {member.email}
+                    </p>
+                  </div>
+                  <Badge variant={ROLE_BADGE_VARIANT[member.role] ?? "outline"}>
+                    {ROLE_LABEL[member.role] ?? member.role}
+                  </Badge>
                 </div>
-                <Badge variant={ROLE_BADGE_VARIANT[member.role] ?? "outline"}>
-                  {ROLE_LABEL[member.role] ?? member.role}
-                </Badge>
-              </div>
-            ))}
-          </div>
+              ))}
+            </div>
+          )}
         </CardContent>
       </Card>
     </div>
