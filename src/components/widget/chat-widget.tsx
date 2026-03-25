@@ -78,7 +78,11 @@ export function ChatWidget({
   const workspaceIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    // Scroll within the message container only, not the page
+    const el = messagesEndRef.current;
+    if (el?.parentElement) {
+      el.parentElement.scrollTop = el.parentElement.scrollHeight;
+    }
   }, [messages, isTyping]);
 
   useEffect(() => {
