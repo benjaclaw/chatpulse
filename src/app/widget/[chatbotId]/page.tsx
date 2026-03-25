@@ -29,6 +29,7 @@ export default async function WidgetPage({
     <div className="flex h-dvh w-full flex-col">
       <ChatWidget
         inline
+        chatbotId={chatbotId}
         botName={botName}
         welcomeMessage={welcomeMessage}
         primaryColor={primaryColor}

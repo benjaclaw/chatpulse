@@ -19,7 +19,7 @@ import {
 } from "@/components/ui/dialog";
 import { EmptyState } from "./empty-state";
 import { SearchInput } from "./search-input";
-import { Plus, BookOpen, Calendar } from "lucide-react";
+import { Plus, BookOpen, Calendar, Pencil } from "lucide-react";
 import type { KnowledgeItem } from "@/lib/types";
 
 export function KnowledgePageClient(): React.ReactNode {
@@ -27,6 +27,7 @@ export function KnowledgePageClient(): React.ReactNode {
   const supabase = createClient();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [editingItem, setEditingItem] = useState<KnowledgeItem | null>(null);
   const [items, setItems] = useState<KnowledgeItem[]>([]);
   const [loading, setLoading] = useState(true);
 
@@ -54,28 +55,57 @@ export function KnowledgePageClient(): React.ReactNode {
       item.category.toLowerCase().includes(search.toLowerCase())
   );
 
-  async function handleAdd(e: React.FormEvent<HTMLFormElement>) {
+  function openCreate() {
+    setEditingItem(null);
+    setDialogOpen(true);
+  }
+
+  function openEdit(item: KnowledgeItem) {
+    setEditingItem(item);
+    setDialogOpen(true);
+  }
+
+  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault();
     const fd = new FormData(e.currentTarget);
     const title = fd.get("title") as string;
     const content = fd.get("content") as string;
     const category = fd.get("category") as string;
 
-    const { data } = await supabase
-      .from("knowledge")
-      .insert({
-        workspace_id: workspaceId,
-        title,
-        content,
-        category: category || "Generelt",
-      })
-      .select("id, title, content, category, created_at")
-      .single();
+    if (editingItem) {
+      const { data } = await supabase
+        .from("knowledge")
+        .update({
+          title,
+          content,
+          category: category || "Generelt",
+        })
+        .eq("id", editingItem.id)
+        .select("id, title, content, category, created_at")
+        .single();
 
-    if (data) {
-      setItems((prev) => [data, ...prev]);
+      if (data) {
+        setItems((prev) => prev.map((item) => (item.id === data.id ? data : item)));
+      }
+    } else {
+      const { data } = await supabase
+        .from("knowledge")
+        .insert({
+          workspace_id: workspaceId,
+          title,
+          content,
+          category: category || "Generelt",
+        })
+        .select("id, title, content, category, created_at")
+        .single();
+
+      if (data) {
+        setItems((prev) => [data, ...prev]);
+      }
     }
+
     setDialogOpen(false);
+    setEditingItem(null);
   }
 
   if (loading) {
@@ -101,19 +131,21 @@ export function KnowledgePageClient(): React.ReactNode {
             Legg til innhold som chatboten kan bruke til å svare kunder.
           </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-          <DialogTrigger render={<Button className="shrink-0" />}>
+        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingItem(null); }}>
+          <DialogTrigger render={<Button className="shrink-0" onClick={openCreate} />}>
             <Plus className="mr-2 h-4 w-4" />
             Legg til
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Ny artikkel</DialogTitle>
+              <DialogTitle>{editingItem ? "Rediger artikkel" : "Ny artikkel"}</DialogTitle>
               <DialogDescription>
-                Legg til en ny artikkel i kunnskapsbasen.
+                {editingItem
+                  ? "Oppdater artikkelen i kunnskapsbasen."
+                  : "Legg til en ny artikkel i kunnskapsbasen."}
               </DialogDescription>
             </DialogHeader>
-            <form onSubmit={handleAdd}>
+            <form onSubmit={handleSubmit}>
               <div className="space-y-4 py-4">
                 <div className="space-y-2">
                   <Label htmlFor="kb-title">Tittel</Label>
@@ -122,6 +154,8 @@ export function KnowledgePageClient(): React.ReactNode {
                     name="title"
                     placeholder="F.eks. Returpolicy"
                     required
+                    defaultValue={editingItem?.title ?? ""}
+                    key={editingItem?.id ?? "new"}
                   />
                 </div>
                 <div className="space-y-2">
@@ -130,6 +164,8 @@ export function KnowledgePageClient(): React.ReactNode {
                     id="kb-category"
                     name="category"
                     placeholder="F.eks. Frakt, Betaling, Generelt"
+                    defaultValue={editingItem?.category ?? ""}
+                    key={`cat-${editingItem?.id ?? "new"}`}
                   />
                 </div>
                 <div className="space-y-2">
@@ -140,11 +176,13 @@ export function KnowledgePageClient(): React.ReactNode {
                     placeholder="Skriv innholdet her..."
                     rows={5}
                     required
+                    defaultValue={editingItem?.content ?? ""}
+                    key={`con-${editingItem?.id ?? "new"}`}
                   />
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit">Lagre</Button>
+                <Button type="submit">{editingItem ? "Oppdater" : "Lagre"}</Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -160,7 +198,7 @@ export function KnowledgePageClient(): React.ReactNode {
 
       {/* Items list */}
       {filtered.length === 0 ? (
-        <KnowledgeEmptyState search={search} onAdd={() => setDialogOpen(true)} />
+        <KnowledgeEmptyState search={search} onAdd={openCreate} />
       ) : (
         <div className="space-y-3">
           {filtered.map((item) => (
@@ -182,6 +220,14 @@ export function KnowledgePageClient(): React.ReactNode {
                     {new Date(item.created_at).toLocaleDateString("nb-NO")}
                   </div>
                 </div>
+                <Button
+                  variant="ghost"
+                  size="icon-sm"
+                  className="opacity-0 group-hover:opacity-100 transition-opacity"
+                  onClick={() => openEdit(item)}
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
               </div>
             </div>
           ))}

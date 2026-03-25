@@ -1,8 +1,9 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { MessageSquare, X, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createClient } from "@/lib/supabase/client";
 
 interface Message {
   id: string;
@@ -18,6 +19,8 @@ interface ChatWidgetProps {
   /** Render inline (no floating button, always open) for previews */
   inline?: boolean;
   className?: string;
+  /** When provided, messages are persisted to the DB */
+  chatbotId?: string;
 }
 
 const defaultMessages: Message[] = [
@@ -35,6 +38,16 @@ const demoReplies = [
   "Fri frakt på bestillinger over 500 kr!",
 ];
 
+function getVisitorId(): string {
+  const key = "chatpulse_visitor_id";
+  let id = localStorage.getItem(key);
+  if (!id) {
+    id = crypto.randomUUID();
+    localStorage.setItem(key, id);
+  }
+  return id;
+}
+
 export function ChatWidget({
   primaryColor = "#6366f1",
   position = "right",
@@ -42,6 +55,7 @@ export function ChatWidget({
   botName = "ChatPulse",
   inline = false,
   className,
+  chatbotId,
 }: ChatWidgetProps): React.ReactNode {
   const [isOpen, setIsOpen] = useState(inline);
   const [messages, setMessages] = useState<Message[]>(() => {
@@ -54,6 +68,8 @@ export function ChatWidget({
   const [isTyping, setIsTyping] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
+  const conversationIdRef = useRef<string | null>(null);
+  const workspaceIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -74,7 +90,54 @@ export function ChatWidget({
     }
   }, [welcomeMessage]);
 
-  function handleSend() {
+  // Fetch workspace_id from chatbot_config on mount
+  useEffect(() => {
+    if (!chatbotId) return;
+    const supabase = createClient();
+    supabase
+      .from("chatbot_config")
+      .select("workspace_id")
+      .eq("id", chatbotId)
+      .single()
+      .then(({ data }) => {
+        if (data) workspaceIdRef.current = data.workspace_id;
+      });
+  }, [chatbotId]);
+
+  const ensureConversation = useCallback(async (): Promise<string | null> => {
+    if (conversationIdRef.current) return conversationIdRef.current;
+    if (!chatbotId || !workspaceIdRef.current) return null;
+
+    const supabase = createClient();
+    const visitorId = getVisitorId();
+
+    const { data } = await supabase
+      .from("conversations")
+      .insert({
+        workspace_id: workspaceIdRef.current,
+        chatbot_config_id: chatbotId,
+        visitor_id: visitorId,
+      })
+      .select("id")
+      .single();
+
+    if (data) {
+      conversationIdRef.current = data.id;
+      return data.id;
+    }
+    return null;
+  }, [chatbotId]);
+
+  async function saveMessage(conversationId: string, role: "user" | "assistant", content: string) {
+    const supabase = createClient();
+    await supabase.from("messages").insert({
+      conversation_id: conversationId,
+      role,
+      content,
+    });
+  }
+
+  async function handleSend() {
     const text = input.trim();
     if (!text) return;
 
@@ -87,14 +150,25 @@ export function ChatWidget({
     setInput("");
     setIsTyping(true);
 
+    // Persist user message
+    const convoId = chatbotId ? await ensureConversation() : null;
+    if (convoId) {
+      await saveMessage(convoId, "user", text);
+    }
+
     // Simulate bot response
-    setTimeout(() => {
+    setTimeout(async () => {
       const reply = demoReplies[Math.floor(Math.random() * demoReplies.length)];
       setMessages((prev) => [
         ...prev,
         { id: `bot-${Date.now()}`, role: "assistant", content: reply },
       ]);
       setIsTyping(false);
+
+      // Persist bot reply
+      if (convoId) {
+        await saveMessage(convoId, "assistant", reply);
+      }
     }, 1000 + Math.random() * 500);
   }
 
