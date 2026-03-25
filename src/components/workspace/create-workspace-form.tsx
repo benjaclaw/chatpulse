@@ -14,7 +14,8 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Building2, Loader2 } from "lucide-react";
+import { Building2, Loader2, LogOut } from "lucide-react";
+import { signOut } from "@/lib/auth-actions";
 
 export function CreateWorkspaceForm(): React.ReactNode {
   const { error, pending, handleSubmit } = useFormAction();
@@ -57,11 +58,19 @@ export function CreateWorkspaceForm(): React.ReactNode {
             </p>
           </div>
         </CardContent>
-        <CardFooter>
+        <CardFooter className="flex-col gap-3">
           <Button type="submit" className="w-full" disabled={pending}>
             {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {pending ? "Creating..." : "Create workspace"}
           </Button>
+          <button
+            type="button"
+            onClick={() => signOut()}
+            className="inline-flex items-center gap-1.5 text-xs text-muted-foreground hover:text-foreground transition-colors"
+          >
+            <LogOut className="h-3 w-3" />
+            Logg ut
+          </button>
         </CardFooter>
       </form>
     </Card>
