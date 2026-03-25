@@ -112,7 +112,8 @@ export async function POST(request: Request): Promise<Response> {
     const buffer = Buffer.from(await file.arrayBuffer());
 
     // Upload to Supabase Storage
-    const storagePath = `${workspaceId}/${crypto.randomUUID()}-${file.name}`;
+    const safeName = file.name.replace(/[^a-zA-Z0-9._-]/g, "_");
+    const storagePath = `${workspaceId}/${crypto.randomUUID()}-${safeName}`;
     const { error: uploadError } = await supabase.storage
       .from("documents")
       .upload(storagePath, buffer, {
