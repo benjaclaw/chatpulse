@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { forgotPassword } from "@/lib/auth-actions";
+import { useFormAction } from "@/hooks/use-form-action";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FormError } from "@/components/ui/form-error";
 import {
   Card,
   CardContent,
@@ -16,27 +18,21 @@ import {
 } from "@/components/ui/card";
 import { Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
 
-export function ForgotPasswordForm() {
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
+export function ForgotPasswordForm(): React.ReactNode {
+  const { error, pending, handleSubmit } = useFormAction();
   const [sent, setSent] = useState(false);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
-    setPending(true);
-    setError(null);
-
     const formData = new FormData(e.currentTarget);
     const email = formData.get("email") as string;
-    const result = await forgotPassword(email);
-
-    if (result?.error) {
-      setError(result.error);
-      setPending(false);
-    } else {
-      setSent(true);
-      setPending(false);
-    }
+    await handleSubmit(async () => {
+      const result = await forgotPassword(email);
+      if (result?.success) {
+        setSent(true);
+      }
+      return result;
+    });
   }
 
   if (sent) {
@@ -48,7 +44,7 @@ export function ForgotPasswordForm() {
           </div>
           <CardTitle className="text-2xl font-bold">Sjekk e-posten din</CardTitle>
           <CardDescription>
-            Vi har sendt en lenke for å tilbakestille passordet ditt. Sjekk innboksen din.
+            Vi har sendt en lenke for &#229; tilbakestille passordet ditt. Sjekk innboksen din.
           </CardDescription>
         </CardHeader>
         <CardFooter className="flex justify-center">
@@ -69,16 +65,12 @@ export function ForgotPasswordForm() {
       <CardHeader className="text-center">
         <CardTitle className="text-2xl font-bold">Glemt passord?</CardTitle>
         <CardDescription>
-          Skriv inn e-posten din, så sender vi deg en lenke for å tilbakestille passordet.
+          Skriv inn e-posten din, s&#229; sender vi deg en lenke for &#229; tilbakestille passordet.
         </CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={onSubmit}>
         <CardContent className="space-y-4">
-          {error && (
-            <div className="animate-in fade-in slide-in-from-top-1 rounded-lg bg-destructive/10 p-3 text-sm text-destructive dark:bg-destructive/20">
-              {error}
-            </div>
-          )}
+          <FormError message={error} />
           <div className="space-y-2">
             <Label htmlFor="email">E-post</Label>
             <Input

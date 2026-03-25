@@ -13,7 +13,7 @@ import {
 
 type Filter = "all" | "answered" | "unanswered";
 
-export function InsightsPageClient() {
+export function InsightsPageClient(): React.ReactNode {
   const [filter, setFilter] = useState<Filter>("all");
 
   const filtered = mockQuestions
@@ -86,8 +86,10 @@ export function InsightsPageClient() {
       <div className="rounded-xl border bg-card p-6 shadow-sm">
         <h3 className="text-base font-semibold mb-4">Topp-spørsmål</h3>
         <div className="space-y-3">
-          {filtered.slice(0, 8).map((q) => {
+          {(() => {
+            const topQuestions = filtered.slice(0, 8);
             const maxCount = Math.max(...filtered.map((x) => x.count));
+            return topQuestions.map((q) => {
             const pct = maxCount > 0 ? (q.count / maxCount) * 100 : 0;
             return (
               <div key={q.id} className="space-y-1">
@@ -108,7 +110,8 @@ export function InsightsPageClient() {
                 </div>
               </div>
             );
-          })}
+          });
+          })()}
         </div>
         <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">

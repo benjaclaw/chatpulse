@@ -1,11 +1,12 @@
 "use client";
 
-import { useState } from "react";
 import Link from "next/link";
 import { login } from "@/lib/auth-actions";
+import { useFormAction } from "@/hooks/use-form-action";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FormError } from "@/components/ui/form-error";
 import {
   Card,
   CardContent,
@@ -16,22 +17,13 @@ import {
 } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 
-export function LoginForm() {
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
+export function LoginForm(): React.ReactNode {
+  const { error, pending, handleSubmit } = useFormAction();
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
-    setPending(true);
-    setError(null);
-
     const formData = new FormData(e.currentTarget);
-    const result = await login(formData);
-
-    if (result?.error) {
-      setError(result.error);
-      setPending(false);
-    }
+    await handleSubmit(() => login(formData));
   }
 
   return (
@@ -40,13 +32,9 @@ export function LoginForm() {
         <CardTitle className="text-2xl font-bold">Welcome back</CardTitle>
         <CardDescription>Sign in to your ChatPulse account</CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={onSubmit}>
         <CardContent className="space-y-4">
-          {error && (
-            <div className="animate-in fade-in slide-in-from-top-1 rounded-lg bg-destructive/10 p-3 text-sm text-destructive dark:bg-destructive/20">
-              {error}
-            </div>
-          )}
+          <FormError message={error} />
           <div className="space-y-2">
             <Label htmlFor="email">Email</Label>
             <Input

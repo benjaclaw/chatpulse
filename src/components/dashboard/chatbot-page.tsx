@@ -2,16 +2,18 @@
 
 import { useState } from "react";
 import { mockChatbotConfig } from "@/lib/mock-data";
+import { useClipboard } from "@/hooks/use-clipboard";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatWidget } from "@/components/widget/chat-widget";
 import { Bot, Eye, Code2, Copy, Check } from "lucide-react";
+import type { ChatbotConfig } from "@/lib/types";
 
-export function ChatbotPageClient() {
-  const [config, setConfig] = useState(mockChatbotConfig);
-  const [copied, setCopied] = useState(false);
+export function ChatbotPageClient(): React.ReactNode {
+  const [config, setConfig] = useState<ChatbotConfig>(mockChatbotConfig);
+  const { copied, copy } = useClipboard();
 
   function update<K extends keyof typeof config>(
     key: K,
@@ -186,13 +188,11 @@ export function ChatbotPageClient() {
                 variant="outline"
                 size="sm"
                 className="absolute right-2 top-2"
-                onClick={() => {
-                  navigator.clipboard.writeText(
+                onClick={() =>
+                  copy(
                     `<script src="https://chatpulse.vercel.app/widget.js" data-chatbot-id="${config.id}" data-primary-color="${config.widget_styling.primary_color}" data-position="${config.widget_styling.position}"></script>`
-                  );
-                  setCopied(true);
-                  setTimeout(() => setCopied(false), 2000);
-                }}
+                  )
+                }
               >
                 {copied ? (
                   <>

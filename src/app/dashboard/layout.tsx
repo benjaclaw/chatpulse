@@ -1,12 +1,13 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardShell } from "@/components/dashboard/shell";
+import type { MemberRole } from "@/lib/types";
 
 export default async function DashboardLayout({
   children,
 }: {
   children: React.ReactNode;
-}) {
+}): Promise<React.ReactNode> {
   const supabase = await createClient();
 
   const {
@@ -20,7 +21,7 @@ export default async function DashboardLayout({
   // Get user's workspaces
   const { data: memberships } = await supabase
     .from("members")
-    .select("workspace:workspaces(*), role")
+    .select("workspace:workspaces(id, name, slug), role")
     .eq("user_id", user.id);
 
   if (!memberships || memberships.length === 0) {
@@ -29,7 +30,7 @@ export default async function DashboardLayout({
 
   const workspaces = memberships.map((m) => {
     const ws = m.workspace as unknown as { id: string; name: string; slug: string };
-    return { ...ws, role: m.role as string };
+    return { ...ws, role: m.role as MemberRole };
   });
 
   return (

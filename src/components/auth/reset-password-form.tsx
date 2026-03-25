@@ -3,9 +3,11 @@
 import { useState } from "react";
 import Link from "next/link";
 import { resetPassword } from "@/lib/auth-actions";
+import { useFormAction } from "@/hooks/use-form-action";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
+import { FormError } from "@/components/ui/form-error";
 import {
   Card,
   CardContent,
@@ -16,37 +18,29 @@ import {
 } from "@/components/ui/card";
 import { Loader2, ArrowLeft, KeyRound } from "lucide-react";
 
-export function ResetPasswordForm() {
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
+export function ResetPasswordForm(): React.ReactNode {
+  const { error, pending, handleSubmit } = useFormAction();
+  const [clientError, setClientError] = useState<string | null>(null);
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
-    setPending(true);
-    setError(null);
+    setClientError(null);
 
     const formData = new FormData(e.currentTarget);
     const password = formData.get("password") as string;
     const confirmPassword = formData.get("confirmPassword") as string;
 
     if (password !== confirmPassword) {
-      setError("Passordene samsvarer ikke.");
-      setPending(false);
+      setClientError("Passordene samsvarer ikke.");
       return;
     }
 
     if (password.length < 6) {
-      setError("Passordet må være minst 6 tegn.");
-      setPending(false);
+      setClientError("Passordet m\u00E5 v\u00E6re minst 6 tegn.");
       return;
     }
 
-    const result = await resetPassword(password);
-
-    if (result?.error) {
-      setError(result.error);
-      setPending(false);
-    }
+    await handleSubmit(() => resetPassword(password));
   }
 
   return (
@@ -60,13 +54,9 @@ export function ResetPasswordForm() {
           Velg et nytt passord for kontoen din.
         </CardDescription>
       </CardHeader>
-      <form onSubmit={handleSubmit}>
+      <form onSubmit={onSubmit}>
         <CardContent className="space-y-4">
-          {error && (
-            <div className="animate-in fade-in slide-in-from-top-1 rounded-lg bg-destructive/10 p-3 text-sm text-destructive dark:bg-destructive/20">
-              {error}
-            </div>
-          )}
+          <FormError message={clientError ?? error} />
           <div className="space-y-2">
             <Label htmlFor="password">Nytt passord</Label>
             <Input

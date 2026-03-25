@@ -3,19 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import {
-  LayoutDashboard,
-  BookOpen,
-  Building2,
-  Bot,
-  MessageSquare,
-  BarChart3,
-  Settings,
-  Users,
-  Menu,
-  LogOut,
-} from "lucide-react";
+import { Menu, LogOut } from "lucide-react";
 import { signOut } from "@/lib/auth-actions";
+import { NAV_ITEMS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
 import {
   Sheet,
@@ -26,18 +16,7 @@ import {
 } from "@/components/ui/sheet";
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import type { UserInfo, Workspace } from "./shell";
-
-const navItems = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Knowledge Base", href: "/dashboard/knowledge", icon: BookOpen },
-  { label: "Company Info", href: "/dashboard/company", icon: Building2 },
-  { label: "Chatbot", href: "/dashboard/chatbot", icon: Bot },
-  { label: "Conversations", href: "/dashboard/conversations", icon: MessageSquare },
-  { label: "Insights", href: "/dashboard/insights", icon: BarChart3 },
-  { label: "Team", href: "/dashboard/team", icon: Users },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings },
-];
+import type { UserInfo, Workspace } from "@/lib/types";
 
 interface MobileNavProps {
   user: UserInfo;
@@ -51,7 +30,7 @@ export function MobileNav({
   workspaces,
   activeWorkspace,
   onWorkspaceChange,
-}: MobileNavProps) {
+}: MobileNavProps): React.ReactNode {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
 
@@ -101,7 +80,7 @@ export function MobileNav({
 
         <nav className="flex-1 p-2">
           <ul className="space-y-1">
-            {navItems.map((item) => {
+            {NAV_ITEMS.map((item) => {
               const isActive =
                 item.href === "/dashboard"
                   ? pathname === "/dashboard"

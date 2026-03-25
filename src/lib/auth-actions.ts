@@ -2,8 +2,9 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import type { ActionResult } from "@/lib/types";
 
-export async function login(formData: FormData) {
+export async function login(formData: FormData): Promise<ActionResult> {
   const supabase = await createClient();
 
   const { error } = await supabase.auth.signInWithPassword({
@@ -18,7 +19,7 @@ export async function login(formData: FormData) {
   redirect("/dashboard");
 }
 
-export async function signup(formData: FormData) {
+export async function signup(formData: FormData): Promise<ActionResult> {
   const supabase = await createClient();
 
   const email = formData.get("email") as string;
@@ -40,7 +41,7 @@ export async function signup(formData: FormData) {
   redirect("/create-workspace");
 }
 
-export async function forgotPassword(email: string) {
+export async function forgotPassword(email: string): Promise<ActionResult> {
   const supabase = await createClient();
 
   const { error } = await supabase.auth.resetPasswordForEmail(email, {
@@ -54,7 +55,7 @@ export async function forgotPassword(email: string) {
   return { success: true };
 }
 
-export async function resetPassword(password: string) {
+export async function resetPassword(password: string): Promise<ActionResult> {
   const supabase = await createClient();
 
   const { error } = await supabase.auth.updateUser({ password });
@@ -66,7 +67,7 @@ export async function resetPassword(password: string) {
   redirect("/login");
 }
 
-export async function signOut() {
+export async function signOut(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
   redirect("/login");

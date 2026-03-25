@@ -1,8 +1,9 @@
 "use client";
 
-import { useState } from "react";
 import { acceptInvite } from "@/lib/invite-actions";
+import { useFormAction } from "@/hooks/use-form-action";
 import { Button } from "@/components/ui/button";
+import { FormError } from "@/components/ui/form-error";
 import {
   Card,
   CardContent,
@@ -13,20 +14,11 @@ import {
 } from "@/components/ui/card";
 import { Loader2, Mail } from "lucide-react";
 
-export function AcceptInviteClient({ token }: { token: string }) {
-  const [error, setError] = useState<string | null>(null);
-  const [pending, setPending] = useState(false);
+export function AcceptInviteClient({ token }: { token: string }): React.ReactNode {
+  const { error, pending, handleSubmit } = useFormAction();
 
-  async function handleAccept() {
-    setPending(true);
-    setError(null);
-
-    const result = await acceptInvite(token);
-
-    if (result?.error) {
-      setError(result.error);
-      setPending(false);
-    }
+  async function handleAccept(): Promise<void> {
+    await handleSubmit(() => acceptInvite(token));
   }
 
   return (
@@ -43,11 +35,7 @@ export function AcceptInviteClient({ token }: { token: string }) {
         </CardDescription>
       </CardHeader>
       <CardContent>
-        {error && (
-          <div className="animate-in fade-in slide-in-from-top-1 rounded-lg bg-destructive/10 p-3 text-sm text-destructive dark:bg-destructive/20">
-            {error}
-          </div>
-        )}
+        <FormError message={error} />
       </CardContent>
       <CardFooter>
         <Button

@@ -18,7 +18,7 @@ import {
 } from "@/components/ui/dialog";
 import { Plus, Search, BookOpen, Calendar } from "lucide-react";
 
-export function KnowledgePageClient() {
+export function KnowledgePageClient(): React.ReactNode {
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [items, setItems] = useState(mockKnowledgeItems);

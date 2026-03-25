@@ -3,19 +3,9 @@
 import { useState } from "react";
 import { Sidebar } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
+import type { UserInfo, Workspace } from "@/lib/types";
 
-export type Workspace = {
-  id: string;
-  name: string;
-  slug: string;
-  role: string;
-};
-
-export type UserInfo = {
-  id: string;
-  email: string;
-  name?: string;
-};
+export type { UserInfo, Workspace };
 
 interface DashboardShellProps {
   children: React.ReactNode;

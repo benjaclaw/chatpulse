@@ -2,29 +2,7 @@
 
 import { use } from "react";
 import { ChatWidget } from "@/components/widget/chat-widget";
-
-// Mock chatbot configs — will be replaced with real DB lookups
-const mockConfigs: Record<
-  string,
-  { name: string; welcomeMessage: string; primaryColor: string }
-> = {
-  abc123: {
-    name: "Kundeservice Bot",
-    welcomeMessage: "Hei! Hvordan kan jeg hjelpe deg i dag? 👋",
-    primaryColor: "#6366f1",
-  },
-  demo: {
-    name: "ChatPulse Demo",
-    welcomeMessage: "Hei! Prøv å stille meg et spørsmål 😊",
-    primaryColor: "#6366f1",
-  },
-};
-
-const fallbackConfig = {
-  name: "ChatPulse",
-  welcomeMessage: "Hei! Hvordan kan jeg hjelpe deg? 👋",
-  primaryColor: "#6366f1",
-};
+import { mockWidgetConfigs, fallbackWidgetConfig } from "@/lib/mock-data";
 
 export default function WidgetPage({
   params,
@@ -32,12 +10,12 @@ export default function WidgetPage({
 }: {
   params: Promise<{ chatbotId: string }>;
   searchParams: Promise<{ color?: string; position?: string }>;
-}) {
+}): React.ReactNode {
   const { chatbotId } = use(params);
   const query = use(searchParams);
 
-  const config = mockConfigs[chatbotId] || fallbackConfig;
-  const primaryColor = query.color || config.primaryColor;
+  const config = mockWidgetConfigs[chatbotId] ?? fallbackWidgetConfig;
+  const primaryColor = query.color ?? config.primaryColor;
 
   return (
     <div className="flex h-dvh w-full flex-col">

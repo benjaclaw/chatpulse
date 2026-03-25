@@ -1,6 +1,8 @@
 "use client";
 
 import { useState } from "react";
+import { useClipboard } from "@/hooks/use-clipboard";
+import { useTemporaryFlag } from "@/hooks/use-temporary-flag";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -30,7 +32,7 @@ import {
   AlertTriangle,
 } from "lucide-react";
 
-function generateInviteCode() {
+function generateInviteCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
   let code = "";
   for (let i = 0; i < 8; i++) {
@@ -39,28 +41,13 @@ function generateInviteCode() {
   return code;
 }
 
-export function SettingsPageClient() {
+export function SettingsPageClient(): React.ReactNode {
   const [workspaceName, setWorkspaceName] = useState("ChatPulse Demo");
-  const [saved, setSaved] = useState(false);
+  const { active: saved, trigger: triggerSaved } = useTemporaryFlag();
   const [inviteCode, setInviteCode] = useState(() => generateInviteCode());
-  const [copied, setCopied] = useState(false);
+  const { copied, copy } = useClipboard();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
-
-  function handleSaveName() {
-    setSaved(true);
-    setTimeout(() => setSaved(false), 2000);
-  }
-
-  function handleCopy() {
-    navigator.clipboard.writeText(inviteCode);
-    setCopied(true);
-    setTimeout(() => setCopied(false), 2000);
-  }
-
-  function handleRegenerateCode() {
-    setInviteCode(generateInviteCode());
-  }
 
   return (
     <div className="space-y-6">
@@ -94,7 +81,7 @@ export function SettingsPageClient() {
           </div>
         </CardContent>
         <CardFooter>
-          <Button onClick={handleSaveName} disabled={!workspaceName.trim()}>
+          <Button onClick={triggerSaved} disabled={!workspaceName.trim()}>
             {saved ? (
               <>
                 <Check className="mr-2 h-4 w-4" />
@@ -112,7 +99,7 @@ export function SettingsPageClient() {
         <CardHeader>
           <CardTitle className="text-lg">Invitasjonskode</CardTitle>
           <CardDescription>
-            Del denne koden med kollegaer for å gi dem tilgang til workspacen.
+            Del denne koden med kollegaer for &#229; gi dem tilgang til workspacen.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -120,7 +107,7 @@ export function SettingsPageClient() {
             <code className="flex h-10 items-center rounded-lg border bg-muted px-4 font-mono text-sm tracking-widest">
               {inviteCode}
             </code>
-            <Button variant="outline" size="icon" onClick={handleCopy}>
+            <Button variant="outline" size="icon" onClick={() => copy(inviteCode)}>
               {copied ? (
                 <Check className="h-4 w-4 text-green-600" />
               ) : (
@@ -130,7 +117,7 @@ export function SettingsPageClient() {
             <Button
               variant="outline"
               size="icon"
-              onClick={handleRegenerateCode}
+              onClick={() => setInviteCode(generateInviteCode())}
             >
               <RefreshCw className="h-4 w-4" />
             </Button>
@@ -146,7 +133,7 @@ export function SettingsPageClient() {
             Faresone
           </CardTitle>
           <CardDescription>
-            Irreversible handlinger. Vær forsiktig.
+            Irreversible handlinger. V&#230;r forsiktig.
           </CardDescription>
         </CardHeader>
         <CardContent>
@@ -181,7 +168,7 @@ export function SettingsPageClient() {
                 </DialogHeader>
                 <div className="space-y-2 py-4">
                   <Label htmlFor="delete-confirm">
-                    Skriv <strong>{workspaceName}</strong> for å bekrefte
+                    Skriv <strong>{workspaceName}</strong> for &#229; bekrefte
                   </Label>
                   <Input
                     id="delete-confirm"

@@ -12,10 +12,9 @@ import {
   Clock,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { Conversation } from "@/lib/types";
 
-type Conversation = (typeof mockConversations)[number];
-
-export function ConversationsPageClient() {
+export function ConversationsPageClient(): React.ReactNode {
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const selected = mockConversations.find((c) => c.id === selectedId);
 

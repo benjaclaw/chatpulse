@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useRef, useEffect } from "react";
 import { mockTeamMembers } from "@/lib/mock-data";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -24,27 +24,36 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { UserPlus, CheckCircle2 } from "lucide-react";
+import type { MemberRole } from "@/lib/types";
 
-const roleBadgeVariant: Record<string, "default" | "secondary" | "outline"> = {
+const roleBadgeVariant: Record<MemberRole, "default" | "secondary" | "outline"> = {
   owner: "default",
   admin: "secondary",
   member: "outline",
 };
 
-const roleLabel: Record<string, string> = {
+const roleLabel: Record<MemberRole, string> = {
   owner: "Eier",
   admin: "Admin",
   member: "Medlem",
 };
 
-export function TeamPageClient() {
+export function TeamPageClient(): React.ReactNode {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [success, setSuccess] = useState(false);
+  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
-  function handleInvite(e: React.FormEvent<HTMLFormElement>) {
+  useEffect(() => {
+    return () => {
+      if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    };
+  }, []);
+
+  function handleInvite(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
     setSuccess(true);
-    setTimeout(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    timeoutRef.current = setTimeout(() => {
       setDialogOpen(false);
       setSuccess(false);
     }, 1500);

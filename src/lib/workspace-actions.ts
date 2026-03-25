@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import type { ActionResult } from "@/lib/types";
 
 function slugify(text: string): string {
   return text
@@ -13,7 +14,7 @@ function slugify(text: string): string {
     .replace(/^-+|-+$/g, "");
 }
 
-export async function createWorkspace(formData: FormData) {
+export async function createWorkspace(formData: FormData): Promise<ActionResult> {
   const supabase = await createClient();
 
   const {

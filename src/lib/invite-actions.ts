@@ -2,8 +2,9 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
+import type { ActionResult } from "@/lib/types";
 
-export async function sendInvite(workspaceId: string, formData: FormData) {
+export async function sendInvite(workspaceId: string, formData: FormData): Promise<ActionResult> {
   const supabase = await createClient();
 
   const {
@@ -33,12 +34,6 @@ export async function sendInvite(workspaceId: string, formData: FormData) {
     return { error: "Email is required" };
   }
 
-  // Check if already a member
-  const { data: existingUsers } = await supabase
-    .from("members")
-    .select("user_id, workspace_id, users:user_id(email)")
-    .eq("workspace_id", workspaceId);
-
   // Check for existing invite
   const { data: existingInvite } = await supabase
     .from("invites")
@@ -66,7 +61,7 @@ export async function sendInvite(workspaceId: string, formData: FormData) {
   return { success: true };
 }
 
-export async function acceptInvite(token: string) {
+export async function acceptInvite(token: string): Promise<ActionResult> {
   const supabase = await createClient();
 
   const {
@@ -108,17 +103,20 @@ export async function acceptInvite(token: string) {
 
   if (memberError) {
     if (memberError.code === "23505") {
-      // Already a member
       return { error: "You are already a member of this workspace" };
     }
     return { error: memberError.message };
   }
 
   // Mark invite as accepted
-  await supabase
+  const { error: updateError } = await supabase
     .from("invites")
     .update({ accepted_at: new Date().toISOString() })
     .eq("id", invite.id);
+
+  if (updateError) {
+    return { error: updateError.message };
+  }
 
   redirect("/dashboard");
 }

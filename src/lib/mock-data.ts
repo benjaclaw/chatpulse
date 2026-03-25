@@ -1,6 +1,38 @@
 // Mock data for ChatPulse dashboard pages
 
-export const mockKnowledgeItems = [
+import type {
+  KnowledgeItem,
+  ChatbotConfig,
+  Conversation,
+  Question,
+  TeamMember,
+  AdminUser,
+  AdminWorkspace,
+  ActivityItem,
+  DashboardStats,
+  WidgetConfig,
+} from "./types";
+
+export const mockWidgetConfigs: Record<string, WidgetConfig> = {
+  abc123: {
+    name: "Kundeservice Bot",
+    welcomeMessage: "Hei! Hvordan kan jeg hjelpe deg i dag? \u{1F44B}",
+    primaryColor: "#6366f1",
+  },
+  demo: {
+    name: "ChatPulse Demo",
+    welcomeMessage: "Hei! Pr\u00F8v \u00E5 stille meg et sp\u00F8rsm\u00E5l \u{1F60A}",
+    primaryColor: "#6366f1",
+  },
+};
+
+export const fallbackWidgetConfig: WidgetConfig = {
+  name: "ChatPulse",
+  welcomeMessage: "Hei! Hvordan kan jeg hjelpe deg? \u{1F44B}",
+  primaryColor: "#6366f1",
+};
+
+export const mockKnowledgeItems: KnowledgeItem[] = [
   {
     id: "k1",
     title: "Returpolicy",
@@ -43,7 +75,7 @@ export const mockKnowledgeItems = [
   },
 ];
 
-export const mockChatbotConfig = {
+export const mockChatbotConfig: ChatbotConfig = {
   id: "cb1",
   workspace_id: "ws1",
   name: "Kundeservice Bot",
@@ -54,11 +86,11 @@ export const mockChatbotConfig = {
     "Beklager, jeg fant ikke svaret på det. Vil du snakke med en av våre medarbeidere?",
   widget_styling: {
     primary_color: "#6366f1",
-    position: "right" as "left" | "right",
+    position: "right",
   },
 };
 
-export const mockConversations = [
+export const mockConversations: Conversation[] = [
   {
     id: "c1",
     visitor_id: "visitor_a3f2",
@@ -67,39 +99,39 @@ export const mockConversations = [
     messages: [
       {
         id: "m1",
-        role: "assistant" as const,
+        role: "assistant",
         content: "Hei! Hvordan kan jeg hjelpe deg i dag? 👋",
         created_at: "2026-03-24T09:12:00Z",
       },
       {
         id: "m2",
-        role: "user" as const,
+        role: "user",
         content: "Hei! Jeg lurer på returpolicyen deres.",
         created_at: "2026-03-24T09:12:30Z",
       },
       {
         id: "m3",
-        role: "assistant" as const,
+        role: "assistant",
         content:
           "Vi tilbyr 30 dagers åpent kjøp på alle produkter. Produktet må være ubrukt og i originalemballasje. Kontakt kundeservice for å starte en retur.",
         created_at: "2026-03-24T09:12:45Z",
       },
       {
         id: "m4",
-        role: "user" as const,
+        role: "user",
         content: "Hva med frakt ved retur?",
         created_at: "2026-03-24T09:13:10Z",
       },
       {
         id: "m5",
-        role: "assistant" as const,
+        role: "assistant",
         content:
           "Ved retur dekker vi fraktkostnadene dersom produktet er defekt. For angre-rett returer betaler kunden returfrakt.",
         created_at: "2026-03-24T09:13:25Z",
       },
       {
         id: "m6",
-        role: "user" as const,
+        role: "user",
         content: "Ok, takk for hjelpen!",
         created_at: "2026-03-24T09:13:45Z",
       },
@@ -113,26 +145,26 @@ export const mockConversations = [
     messages: [
       {
         id: "m7",
-        role: "assistant" as const,
+        role: "assistant",
         content: "Hei! Hvordan kan jeg hjelpe deg i dag? 👋",
         created_at: "2026-03-23T14:05:00Z",
       },
       {
         id: "m8",
-        role: "user" as const,
+        role: "user",
         content: "Hvilke betalingsmetoder har dere?",
         created_at: "2026-03-23T14:05:20Z",
       },
       {
         id: "m9",
-        role: "assistant" as const,
+        role: "assistant",
         content:
           "Vi aksepterer Visa, Mastercard, Vipps og faktura via Klarna. Alle betalinger er sikret med SSL-kryptering.",
         created_at: "2026-03-23T14:05:35Z",
       },
       {
         id: "m10",
-        role: "user" as const,
+        role: "user",
         content: "Perfekt, takk!",
         created_at: "2026-03-23T14:06:00Z",
       },
@@ -146,19 +178,19 @@ export const mockConversations = [
     messages: [
       {
         id: "m11",
-        role: "assistant" as const,
+        role: "assistant",
         content: "Hei! Hvordan kan jeg hjelpe deg i dag? 👋",
         created_at: "2026-03-22T11:30:00Z",
       },
       {
         id: "m12",
-        role: "user" as const,
+        role: "user",
         content: "Kan dere levere til Svalbard?",
         created_at: "2026-03-22T11:30:15Z",
       },
       {
         id: "m13",
-        role: "assistant" as const,
+        role: "assistant",
         content:
           "Beklager, jeg fant ikke svaret på det. Vil du snakke med en av våre medarbeidere?",
         created_at: "2026-03-22T11:30:30Z",
@@ -173,32 +205,32 @@ export const mockConversations = [
     messages: [
       {
         id: "m14",
-        role: "assistant" as const,
+        role: "assistant",
         content: "Hei! Hvordan kan jeg hjelpe deg i dag? 👋",
         created_at: "2026-03-21T16:45:00Z",
       },
       {
         id: "m15",
-        role: "user" as const,
+        role: "user",
         content: "Hva er åpningstidene deres?",
         created_at: "2026-03-21T16:45:10Z",
       },
       {
         id: "m16",
-        role: "assistant" as const,
+        role: "assistant",
         content:
           "Kundeservice er tilgjengelig mandag til fredag kl. 08:00-16:00. Chat-boten vår er tilgjengelig 24/7.",
         created_at: "2026-03-21T16:45:25Z",
       },
       {
         id: "m17",
-        role: "user" as const,
+        role: "user",
         content: "Har dere helgeåpent?",
         created_at: "2026-03-21T16:45:40Z",
       },
       {
         id: "m18",
-        role: "assistant" as const,
+        role: "assistant",
         content:
           "Nei, kundeservice holder stengt i helger og på helligdager. Men chat-boten vår er alltid tilgjengelig!",
         created_at: "2026-03-21T16:45:55Z",
@@ -213,26 +245,26 @@ export const mockConversations = [
     messages: [
       {
         id: "m19",
-        role: "assistant" as const,
+        role: "assistant",
         content: "Hei! Hvordan kan jeg hjelpe deg i dag? 👋",
         created_at: "2026-03-20T10:20:00Z",
       },
       {
         id: "m20",
-        role: "user" as const,
+        role: "user",
         content: "Hei, kan jeg endre bestillingen min etter at den er lagt inn?",
         created_at: "2026-03-20T10:20:15Z",
       },
       {
         id: "m21",
-        role: "assistant" as const,
+        role: "assistant",
         content:
           "Ja, du kan endre bestillingen din inntil den er sendt fra vårt lager. Gå til \"Mine bestillinger\" eller kontakt kundeservice for hjelp.",
         created_at: "2026-03-20T10:20:30Z",
       },
       {
         id: "m22",
-        role: "user" as const,
+        role: "user",
         content: "Supert, takk for info!",
         created_at: "2026-03-20T10:20:50Z",
       },
@@ -240,7 +272,7 @@ export const mockConversations = [
   },
 ];
 
-export const mockQuestions = [
+export const mockQuestions: Question[] = [
   {
     id: "q1",
     question: "Hva er returpolicyen?",
@@ -313,42 +345,31 @@ export const mockQuestions = [
   },
 ];
 
-export const mockTeamMembers = [
+export const mockTeamMembers: TeamMember[] = [
   {
     id: "u1",
     name: "Ola Nordmann",
     email: "ola@chatpulse.no",
-    role: "owner" as const,
+    role: "owner",
     avatar_initials: "ON",
   },
   {
     id: "u2",
     name: "Kari Hansen",
     email: "kari@chatpulse.no",
-    role: "admin" as const,
+    role: "admin",
     avatar_initials: "KH",
   },
   {
     id: "u3",
     name: "Erik Johansen",
     email: "erik@chatpulse.no",
-    role: "member" as const,
+    role: "member",
     avatar_initials: "EJ",
   },
 ];
 
 // --- Super Admin mock data ---
-
-export type AdminUser = {
-  id: string;
-  name: string;
-  email: string;
-  role: "owner" | "admin" | "member";
-  is_super_admin: boolean;
-  workspace_id: string;
-  workspace_name: string;
-  created_at: string;
-};
 
 export const mockAdminUsers: AdminUser[] = [
   {
@@ -403,15 +424,6 @@ export const mockAdminUsers: AdminUser[] = [
   },
 ];
 
-export type AdminWorkspace = {
-  id: string;
-  name: string;
-  slug: string;
-  member_count: number;
-  created_at: string;
-  members: { id: string; name: string; email: string; role: string }[];
-};
-
 export const mockAdminWorkspaces: AdminWorkspace[] = [
   {
     id: "ws1",
@@ -447,14 +459,19 @@ export const mockAdminWorkspaces: AdminWorkspace[] = [
   },
 ];
 
-export const mockAdminStats = {
+export const mockAdminStats: {
+  totalUsers: number;
+  totalWorkspaces: number;
+  totalConversations: number;
+  totalMessages: number;
+} = {
   totalUsers: 5,
   totalWorkspaces: 3,
   totalConversations: 128,
   totalMessages: 847,
 };
 
-export const mockDashboardStats = {
+export const mockDashboardStats: DashboardStats = {
   totalConversations: 47,
   messagesToday: 12,
   unansweredQuestions: 3,
@@ -462,28 +479,28 @@ export const mockDashboardStats = {
   knowledgeArticles: 5,
 };
 
-export const mockRecentActivity = [
+export const mockRecentActivity: ActivityItem[] = [
   {
     id: "a1",
-    type: "conversation" as const,
+    type: "conversation",
     description: "Ny samtale startet av visitor_a3f2",
     time: "2026-03-24T09:12:00Z",
   },
   {
     id: "a2",
-    type: "knowledge" as const,
+    type: "knowledge",
     description: 'Artikkel "Returpolicy" ble oppdatert',
     time: "2026-03-24T08:30:00Z",
   },
   {
     id: "a3",
-    type: "question" as const,
+    type: "question",
     description: 'Nytt ubesvart spørsmål: "Kan dere levere til Svalbard?"',
     time: "2026-03-22T11:30:15Z",
   },
   {
     id: "a4",
-    type: "team" as const,
+    type: "team",
     description: "Erik Johansen ble lagt til i teamet",
     time: "2026-03-20T10:00:00Z",
   },
