@@ -14,19 +14,20 @@ import {
   mockDashboardStats,
   mockRecentActivity,
 } from "@/lib/mock-data";
+import type { ActivityType } from "@/lib/types";
 
 export const metadata = {
   title: "Dashboard — ChatPulse",
 };
 
-const activityIcons: Record<string, React.ComponentType<{ className?: string }>> = {
+const activityIcons: Record<ActivityType, React.ComponentType<{ className?: string }>> = {
   conversation: MessageCircle,
   knowledge: FileText,
   question: HelpCircle,
   team: UserPlus,
 };
 
-export default function DashboardPage() {
+export default function DashboardPage(): React.ReactNode {
   const stats = mockDashboardStats;
 
   return (
@@ -163,7 +164,7 @@ function StatCard({
   title: string;
   value: number;
   href?: string;
-}) {
+}): React.ReactNode {
   const content = (
     <div className="group rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md">
       <div className="flex items-center gap-3">
@@ -192,7 +193,7 @@ function QuickAction({
   title: string;
   description: string;
   href: string;
-}) {
+}): React.ReactNode {
   return (
     <Link
       href={href}

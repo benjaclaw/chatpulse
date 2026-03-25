@@ -11,7 +11,7 @@ const adminNav = [
   { label: "Workspaces", href: "/admin/workspaces", icon: Building2 },
 ];
 
-export default function AdminLayout({ children }: { children: React.ReactNode }) {
+export default function AdminLayout({ children }: { children: React.ReactNode }): React.ReactNode {
   const pathname = usePathname();
 
   return (

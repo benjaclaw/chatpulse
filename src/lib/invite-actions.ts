@@ -121,7 +121,7 @@ export async function acceptInvite(token: string): Promise<ActionResult> {
   redirect("/dashboard");
 }
 
-export async function getWorkspaceInvites(workspaceId: string) {
+export async function getWorkspaceInvites(workspaceId: string): Promise<Record<string, unknown>[]> {
   const supabase = await createClient();
 
   const { data } = await supabase
@@ -134,7 +134,7 @@ export async function getWorkspaceInvites(workspaceId: string) {
   return data ?? [];
 }
 
-export async function getWorkspaceMembers(workspaceId: string) {
+export async function getWorkspaceMembers(workspaceId: string): Promise<Record<string, unknown>[]> {
   const supabase = await createClient();
 
   const { data } = await supabase

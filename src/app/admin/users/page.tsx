@@ -13,19 +13,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import { mockAdminUsers } from "@/lib/mock-data";
+import { ROLE_BADGE_VARIANT } from "@/lib/types";
 
-function roleBadgeVariant(role: string) {
-  switch (role) {
-    case "owner":
-      return "default";
-    case "admin":
-      return "secondary";
-    default:
-      return "outline";
-  }
-}
-
-export default function AdminUsersPage() {
+export default function AdminUsersPage(): React.ReactNode {
   const [search, setSearch] = useState("");
 
   const filtered = mockAdminUsers.filter(
@@ -78,7 +68,7 @@ export default function AdminUsersPage() {
                   <TableCell className="font-medium">{user.name}</TableCell>
                   <TableCell>{user.email}</TableCell>
                   <TableCell>
-                    <Badge variant={roleBadgeVariant(user.role)}>{user.role}</Badge>
+                    <Badge variant={ROLE_BADGE_VARIANT[user.role]}>{user.role}</Badge>
                   </TableCell>
                   <TableCell>{user.workspace_name}</TableCell>
                   <TableCell>

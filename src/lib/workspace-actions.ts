@@ -56,7 +56,7 @@ export async function createWorkspace(formData: FormData): Promise<ActionResult>
   redirect(`/dashboard`);
 }
 
-export async function getUserWorkspaces() {
+export async function getUserWorkspaces(): Promise<Record<string, unknown>[]> {
   const supabase = await createClient();
 
   const {

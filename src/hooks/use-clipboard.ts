@@ -1,26 +1,18 @@
-import { useState, useCallback, useRef, useEffect } from "react";
+import { useCallback } from "react";
+import { useTemporaryFlag } from "./use-temporary-flag";
 
 export function useClipboard(resetDelay = 2000): {
   copied: boolean;
   copy: (text: string) => void;
 } {
-  const [copied, setCopied] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
+  const { active: copied, trigger } = useTemporaryFlag(resetDelay);
 
   const copy = useCallback(
-    (text: string) => {
+    (text: string): void => {
       navigator.clipboard.writeText(text);
-      setCopied(true);
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-      timeoutRef.current = setTimeout(() => setCopied(false), resetDelay);
+      trigger();
     },
-    [resetDelay]
+    [trigger]
   );
 
   return { copied, copy };

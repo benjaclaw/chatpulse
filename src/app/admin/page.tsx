@@ -31,7 +31,7 @@ const stats = [
   },
 ];
 
-export default function AdminDashboardPage() {
+export default function AdminDashboardPage(): React.ReactNode {
   return (
     <div className="space-y-6">
       <div>

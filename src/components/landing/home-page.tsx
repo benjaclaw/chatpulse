@@ -18,7 +18,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { ChatWidget } from "@/components/widget/chat-widget";
 import { cn } from "@/lib/utils";
 
-export function HomePage() {
+export function HomePage(): React.ReactNode {
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
@@ -279,7 +279,7 @@ export function HomePage() {
 
 /* ─── Sub-components ─── */
 
-function WidgetMockup() {
+function WidgetMockup(): React.ReactNode {
   return (
     <div className="rounded-xl border bg-card p-0 shadow-lg">
       {/* Header bar */}
@@ -321,7 +321,7 @@ function FeatureCard({
   icon: React.ComponentType<{ className?: string }>;
   title: string;
   description: string;
-}) {
+}): React.ReactNode {
   return (
     <div className="group rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md dark:hover:border-primary/20">
       <div className="mb-4 inline-flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/20">
@@ -345,7 +345,7 @@ function StepCard({
   icon: React.ComponentType<{ className?: string }>;
   title: string;
   description: string;
-}) {
+}): React.ReactNode {
   return (
     <div className="relative text-center">
       <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
@@ -378,7 +378,7 @@ function PricingCard({
   cta: string;
   ctaHref: string;
   highlighted?: boolean;
-}) {
+}): React.ReactNode {
   return (
     <div
       className={cn(

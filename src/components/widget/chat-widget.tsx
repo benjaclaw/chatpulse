@@ -42,7 +42,7 @@ export function ChatWidget({
   botName = "ChatPulse",
   inline = false,
   className,
-}: ChatWidgetProps) {
+}: ChatWidgetProps): React.ReactNode {
   const [isOpen, setIsOpen] = useState(inline);
   const [messages, setMessages] = useState<Message[]>(() => {
     if (welcomeMessage) {
@@ -196,7 +196,7 @@ function WidgetHeader({
   primaryColor: string;
   onClose: () => void;
   showClose: boolean;
-}) {
+}): React.ReactNode {
   return (
     <div
       className="flex items-center justify-between px-4 py-3"
@@ -234,7 +234,7 @@ const MessageList = ({
   isTyping: boolean;
   primaryColor: string;
   ref: React.RefObject<HTMLDivElement | null>;
-}) => {
+}): React.ReactNode => {
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
       {messages.map((msg) => (
@@ -288,7 +288,7 @@ const WidgetInput = ({
   onSend: () => void;
   primaryColor: string;
   ref: React.RefObject<HTMLInputElement | null>;
-}) => {
+}): React.ReactNode => {
   return (
     <div className="border-t p-3">
       <form

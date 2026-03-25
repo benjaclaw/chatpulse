@@ -8,6 +8,7 @@ import type {
   TeamMember,
   AdminUser,
   AdminWorkspace,
+  AdminStats,
   ActivityItem,
   DashboardStats,
   WidgetConfig,
@@ -459,12 +460,7 @@ export const mockAdminWorkspaces: AdminWorkspace[] = [
   },
 ];
 
-export const mockAdminStats: {
-  totalUsers: number;
-  totalWorkspaces: number;
-  totalConversations: number;
-  totalMessages: number;
-} = {
+export const mockAdminStats: AdminStats = {
   totalUsers: 5,
   totalWorkspaces: 3,
   totalConversations: 128,
@@ -506,7 +502,7 @@ export const mockRecentActivity: ActivityItem[] = [
   },
   {
     id: "a5",
-    type: "conversation" as const,
+    type: "conversation",
     description: "Ny samtale startet av visitor_d2a8",
     time: "2026-03-21T16:45:00Z",
   },

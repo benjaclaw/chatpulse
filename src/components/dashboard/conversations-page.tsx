@@ -49,7 +49,7 @@ function ConversationList({
 }: {
   conversations: Conversation[];
   onSelect: (id: string) => void;
-}) {
+}): React.ReactNode {
   if (conversations.length === 0) {
     return (
       <div className="rounded-xl border border-dashed bg-card/50 p-8 text-center dark:bg-card/20">
@@ -106,7 +106,7 @@ function ConversationDetail({
 }: {
   conversation: Conversation;
   onBack: () => void;
-}) {
+}): React.ReactNode {
   return (
     <div>
       <Button variant="ghost" size="sm" onClick={onBack} className="mb-4">

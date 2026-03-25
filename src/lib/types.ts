@@ -88,9 +88,11 @@ export interface TeamMember {
   avatar_initials: string;
 }
 
+export type ActivityType = "conversation" | "knowledge" | "question" | "team";
+
 export interface ActivityItem {
   id: string;
-  type: "conversation" | "knowledge" | "question" | "team";
+  type: ActivityType;
   description: string;
   time: string;
 }
@@ -127,4 +129,23 @@ export type AdminWorkspace = {
   member_count: number;
   created_at: string;
   members: { id: string; name: string; email: string; role: string }[];
+};
+
+export interface AdminStats {
+  totalUsers: number;
+  totalWorkspaces: number;
+  totalConversations: number;
+  totalMessages: number;
+}
+
+export const ROLE_BADGE_VARIANT: Record<MemberRole, "default" | "secondary" | "outline"> = {
+  owner: "default",
+  admin: "secondary",
+  member: "outline",
+};
+
+export const ROLE_LABEL: Record<MemberRole, string> = {
+  owner: "Eier",
+  admin: "Admin",
+  member: "Medlem",
 };

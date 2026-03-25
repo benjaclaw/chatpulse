@@ -24,19 +24,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { UserPlus, CheckCircle2 } from "lucide-react";
-import type { MemberRole } from "@/lib/types";
-
-const roleBadgeVariant: Record<MemberRole, "default" | "secondary" | "outline"> = {
-  owner: "default",
-  admin: "secondary",
-  member: "outline",
-};
-
-const roleLabel: Record<MemberRole, string> = {
-  owner: "Eier",
-  admin: "Admin",
-  member: "Medlem",
-};
+import { ROLE_BADGE_VARIANT, ROLE_LABEL } from "@/lib/types";
 
 export function TeamPageClient(): React.ReactNode {
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -145,8 +133,8 @@ export function TeamPageClient(): React.ReactNode {
                     {member.email}
                   </p>
                 </div>
-                <Badge variant={roleBadgeVariant[member.role] ?? "outline"}>
-                  {roleLabel[member.role] ?? member.role}
+                <Badge variant={ROLE_BADGE_VARIANT[member.role] ?? "outline"}>
+                  {ROLE_LABEL[member.role] ?? member.role}
                 </Badge>
               </div>
             ))}

@@ -5,8 +5,6 @@ import { Sidebar } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
 import type { UserInfo, Workspace } from "@/lib/types";
 
-export type { UserInfo, Workspace };
-
 interface DashboardShellProps {
   children: React.ReactNode;
   user: UserInfo;
@@ -17,7 +15,7 @@ export function DashboardShell({
   children,
   user,
   workspaces,
-}: DashboardShellProps) {
+}: DashboardShellProps): React.ReactNode {
   const [activeWorkspaceId, setActiveWorkspaceId] = useState(workspaces[0]?.id);
 
   const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId) ?? workspaces[0];

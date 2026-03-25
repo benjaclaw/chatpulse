@@ -14,7 +14,7 @@ import {
 } from "@/components/ui/table";
 import { mockAdminWorkspaces } from "@/lib/mock-data";
 
-export default function AdminWorkspacesPage() {
+export default function AdminWorkspacesPage(): React.ReactNode {
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
 
