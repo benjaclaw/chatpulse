@@ -1,0 +1,98 @@
+import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
+
+export const runtime = "nodejs";
+
+interface LiveChatRequest {
+  conversationId: string;
+  content: string;
+  role: "user" | "agent";
+}
+
+export async function POST(request: Request): Promise<Response> {
+  let body: LiveChatRequest;
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  const { conversationId, content, role } = body;
+  if (!conversationId || !content?.trim() || !role) {
+    return Response.json({ error: "Missing required fields" }, { status: 400 });
+  }
+
+  if (role === "agent") {
+    // Agent messages require authentication + assignment check
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (!user) {
+      return Response.json({ error: "Unauthorized" }, { status: 401 });
+    }
+
+    // Verify agent is assigned to this conversation
+    const serviceClient = createServiceClient();
+    const { data: conversation } = await serviceClient
+      .from("conversations")
+      .select("id, assigned_to, workspace_id")
+      .eq("id", conversationId)
+      .single();
+
+    if (!conversation) {
+      return Response.json({ error: "Conversation not found" }, { status: 404 });
+    }
+
+    if (conversation.assigned_to !== user.id) {
+      return Response.json({ error: "Not assigned to this conversation" }, { status: 403 });
+    }
+
+    // Insert agent message
+    const { error } = await serviceClient
+      .from("messages")
+      .insert({
+        conversation_id: conversationId,
+        role: "agent",
+        content: content.trim(),
+      });
+
+    if (error) {
+      console.error("Agent message insert error:", error);
+      return Response.json({ error: "Failed to send message" }, { status: 500 });
+    }
+
+    return Response.json({ ok: true });
+  }
+
+  if (role === "user") {
+    // Visitor messages use service client (unauthenticated)
+    const serviceClient = createServiceClient();
+
+    const { data: conversation } = await serviceClient
+      .from("conversations")
+      .select("id, status")
+      .eq("id", conversationId)
+      .single();
+
+    if (!conversation) {
+      return Response.json({ error: "Conversation not found" }, { status: 404 });
+    }
+
+    const { error } = await serviceClient
+      .from("messages")
+      .insert({
+        conversation_id: conversationId,
+        role: "user",
+        content: content.trim(),
+      });
+
+    if (error) {
+      console.error("Visitor message insert error:", error);
+      return Response.json({ error: "Failed to send message" }, { status: 500 });
+    }
+
+    return Response.json({ ok: true });
+  }
+
+  return Response.json({ error: "Invalid role" }, { status: 400 });
+}

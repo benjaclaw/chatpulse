@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
@@ -37,9 +37,43 @@ import {
   AlertTriangle,
   CreditCard,
   Zap,
+  Clock,
+  Plus,
+  X,
+  MessageSquare,
 } from "lucide-react";
 import { getPlanDetail, getPlanLimit } from "@/lib/plans";
 import type { PlanFeature } from "@/lib/plans";
+
+type DaySchedule = { start: string; end: string } | null;
+type BusinessHours = {
+  enabled: boolean;
+  timezone: string;
+  schedule: Record<string, DaySchedule>;
+};
+
+const DAYS = ["mon", "tue", "wed", "thu", "fri", "sat", "sun"] as const;
+
+const DEFAULT_BH: BusinessHours = {
+  enabled: false,
+  timezone: "Europe/Oslo",
+  schedule: {
+    mon: { start: "09:00", end: "16:00" },
+    tue: { start: "09:00", end: "16:00" },
+    wed: { start: "09:00", end: "16:00" },
+    thu: { start: "09:00", end: "16:00" },
+    fri: { start: "09:00", end: "16:00" },
+    sat: null,
+    sun: null,
+  },
+};
+
+interface CannedResponseItem {
+  id: string;
+  shortcut: string;
+  title: string;
+  content: string;
+}
 
 function generateInviteCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -187,6 +221,12 @@ export function SettingsPageClient(): React.ReactNode {
         </CardContent>
       </Card>
 
+      {/* Business Hours */}
+      <BusinessHoursCard workspaceId={workspace.id} t={t} />
+
+      {/* Canned Responses */}
+      <CannedResponsesCard workspaceId={workspace.id} t={t} />
+
       {/* Danger zone */}
       <Card className="border-destructive/30">
         <CardHeader>
@@ -318,6 +358,270 @@ function PlanCard({
             {t('plans.upgradePlan')}
           </Button>
         )}
+      </CardContent>
+    </Card>
+  );
+}
+
+function BusinessHoursCard({
+  workspaceId,
+  t,
+}: {
+  workspaceId: string;
+  t: (key: string) => string;
+}): React.ReactNode {
+  const supabase = createClient();
+  const [bh, setBh] = useState<BusinessHours>(DEFAULT_BH);
+  const { active: saved, trigger: triggerSaved } = useTemporaryFlag();
+
+  useEffect(() => {
+    supabase
+      .from("workspaces")
+      .select("business_hours")
+      .eq("id", workspaceId)
+      .single()
+      .then(({ data }) => {
+        if (data?.business_hours) {
+          setBh(data.business_hours as BusinessHours);
+        }
+      });
+  }, [workspaceId]);
+
+  async function handleSave() {
+    await supabase
+      .from("workspaces")
+      .update({ business_hours: bh as unknown as Record<string, unknown> })
+      .eq("id", workspaceId);
+    triggerSaved();
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <Clock className="h-4 w-4 text-primary" />
+          {t('settings.businessHours.title')}
+        </CardTitle>
+        <CardDescription>{t('settings.businessHours.description')}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        <div className="flex items-center gap-3">
+          <button
+            onClick={() => setBh({ ...bh, enabled: !bh.enabled })}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+              bh.enabled ? "bg-primary" : "bg-muted"
+            }`}
+          >
+            <span
+              className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
+                bh.enabled ? "translate-x-6" : "translate-x-1"
+              }`}
+            />
+          </button>
+          <span className="text-sm">
+            {bh.enabled ? t('settings.businessHours.enabled') : t('settings.businessHours.disabled')}
+          </span>
+        </div>
+
+        {bh.enabled && (
+          <div className="space-y-2">
+            {DAYS.map((day) => {
+              const schedule = bh.schedule[day];
+              const isClosed = schedule === null;
+              return (
+                <div key={day} className="flex items-center gap-2">
+                  <span className="w-20 text-sm font-medium">
+                    {t(`settings.businessHours.day.${day}`)}
+                  </span>
+                  <button
+                    onClick={() => {
+                      const newSchedule = { ...bh.schedule };
+                      newSchedule[day] = isClosed ? { start: "09:00", end: "16:00" } : null;
+                      setBh({ ...bh, schedule: newSchedule });
+                    }}
+                    className={`rounded px-2 py-0.5 text-xs font-medium transition-colors ${
+                      isClosed
+                        ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
+                        : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                    }`}
+                  >
+                    {isClosed ? t('settings.businessHours.closedLabel') : t('settings.businessHours.enabled')}
+                  </button>
+                  {!isClosed && (
+                    <>
+                      <Input
+                        type="time"
+                        value={schedule.start}
+                        onChange={(e) => {
+                          const newSchedule = { ...bh.schedule };
+                          newSchedule[day] = { ...schedule, start: e.target.value };
+                          setBh({ ...bh, schedule: newSchedule });
+                        }}
+                        className="h-8 w-28 text-xs"
+                      />
+                      <span className="text-xs text-muted-foreground">–</span>
+                      <Input
+                        type="time"
+                        value={schedule.end}
+                        onChange={(e) => {
+                          const newSchedule = { ...bh.schedule };
+                          newSchedule[day] = { ...schedule, end: e.target.value };
+                          setBh({ ...bh, schedule: newSchedule });
+                        }}
+                        className="h-8 w-28 text-xs"
+                      />
+                    </>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        )}
+      </CardContent>
+      <CardFooter>
+        <Button onClick={handleSave}>
+          {saved ? (
+            <>
+              <Check className="mr-2 h-4 w-4" />
+              {t('common.saved')}
+            </>
+          ) : (
+            t('common.saveChanges')
+          )}
+        </Button>
+      </CardFooter>
+    </Card>
+  );
+}
+
+function CannedResponsesCard({
+  workspaceId,
+  t,
+}: {
+  workspaceId: string;
+  t: (key: string) => string;
+}): React.ReactNode {
+  const supabase = createClient();
+  const [responses, setResponses] = useState<CannedResponseItem[]>([]);
+  const [shortcut, setShortcut] = useState("");
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+
+  useEffect(() => {
+    supabase
+      .from("canned_responses")
+      .select("*")
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => {
+        if (data) setResponses(data);
+      });
+  }, [workspaceId]);
+
+  async function handleAdd() {
+    if (!shortcut.trim() || !title.trim() || !content.trim()) return;
+
+    const { data } = await supabase
+      .from("canned_responses")
+      .insert({
+        workspace_id: workspaceId,
+        shortcut: shortcut.trim(),
+        title: title.trim(),
+        content: content.trim(),
+      })
+      .select()
+      .single();
+
+    if (data) {
+      setResponses((prev) => [...prev, data]);
+      setShortcut("");
+      setTitle("");
+      setContent("");
+    }
+  }
+
+  async function handleDelete(id: string) {
+    setResponses((prev) => prev.filter((r) => r.id !== id));
+    await supabase.from("canned_responses").delete().eq("id", id);
+  }
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <MessageSquare className="h-4 w-4 text-primary" />
+          {t('settings.cannedResponses.title')}
+        </CardTitle>
+        <CardDescription>{t('settings.cannedResponses.description')}</CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Existing responses */}
+        {responses.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('settings.cannedResponses.empty')}</p>
+        ) : (
+          <div className="space-y-2">
+            {responses.map((r) => (
+              <div key={r.id} className="flex items-start gap-2 rounded-lg border p-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded">/{r.shortcut}</code>
+                    <span className="text-sm font-medium">{r.title}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground truncate">{r.content}</p>
+                </div>
+                <button
+                  onClick={() => handleDelete(r.id)}
+                  className="shrink-0 rounded p-1 text-muted-foreground hover:bg-muted hover:text-destructive transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        {/* Add new */}
+        <div className="space-y-2 rounded-lg border p-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label className="text-xs">{t('settings.cannedResponses.shortcut')}</Label>
+              <Input
+                value={shortcut}
+                onChange={(e) => setShortcut(e.target.value)}
+                placeholder={t('settings.cannedResponses.shortcutPlaceholder')}
+                className="h-8 text-xs mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">{t('settings.cannedResponses.titleLabel')}</Label>
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={t('settings.cannedResponses.titlePlaceholder')}
+                className="h-8 text-xs mt-1"
+              />
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">{t('settings.cannedResponses.content')}</Label>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder={t('settings.cannedResponses.contentPlaceholder')}
+              className="mt-1 flex w-full rounded-lg border border-input bg-background px-3 py-2 text-xs transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+              rows={2}
+            />
+          </div>
+          <Button
+            size="sm"
+            onClick={handleAdd}
+            disabled={!shortcut.trim() || !title.trim() || !content.trim()}
+            className="h-7 text-xs"
+          >
+            <Plus className="h-3 w-3 mr-1" />
+            {t('settings.cannedResponses.add')}
+          </Button>
+        </div>
       </CardContent>
     </Card>
   );

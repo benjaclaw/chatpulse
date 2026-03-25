@@ -1,13 +1,14 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState, useRef, useEffect, useCallback } from "react";
 import { MessageSquare, X, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createT, type Language, type TranslateFunction } from "@/lib/i18n";
+import { createClient } from "@/lib/supabase/client";
 
 interface Message {
   id: string;
-  role: "user" | "assistant";
+  role: "user" | "assistant" | "agent";
   content: string;
 }
 
@@ -90,10 +91,16 @@ export function ChatWidget({
   const [isTyping, setIsTyping] = useState(false);
   const [handoffTriggered, setHandoffTriggered] = useState(false);
   const [handoffSubmitted, setHandoffSubmitted] = useState(false);
+  const [liveChatMode, setLiveChatMode] = useState(false);
+  const [agentTyping, setAgentTyping] = useState(false);
+  const [queuePosition, setQueuePosition] = useState<number | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const conversationIdRef = useRef<string | null>(null);
   const workspaceIdRef = useRef<string | null>(null);
+  const realtimeChannelRef = useRef<ReturnType<ReturnType<typeof createClient>["channel"]> | null>(null);
+  const typingChannelRef = useRef<ReturnType<ReturnType<typeof createClient>["channel"]> | null>(null);
+  const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   const hasMounted = useRef(false);
   useEffect(() => {
@@ -106,7 +113,7 @@ export function ChatWidget({
     if (el?.parentElement) {
       el.parentElement.scrollTop = el.parentElement.scrollHeight;
     }
-  }, [messages, isTyping]);
+  }, [messages, isTyping, agentTyping]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) {
@@ -123,6 +130,127 @@ export function ChatWidget({
     }
   }, [welcomeMessage]);
 
+  // Subscribe to realtime messages when in live chat mode
+  const subscribeToRealtime = useCallback((conversationId: string) => {
+    const supabase = createClient();
+
+    // Message subscription
+    const channel = supabase
+      .channel(`live-chat-${conversationId}`)
+      .on(
+        "postgres_changes" as "system",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "messages",
+          filter: `conversation_id=eq.${conversationId}`,
+        } as Record<string, string>,
+        (payload: { new: { id: string; role: string; content: string } }) => {
+          const msg = payload.new;
+          if (msg.role === "agent") {
+            setMessages((prev) => {
+              if (prev.some((m) => m.id === msg.id)) return prev;
+              return [...prev, { id: msg.id, role: "agent", content: msg.content }];
+            });
+            setAgentTyping(false);
+          }
+        }
+      )
+      .subscribe();
+
+    realtimeChannelRef.current = channel;
+
+    // Typing indicator channel
+    const typingChannel = supabase
+      .channel(`typing-${conversationId}`)
+      .on("broadcast" as "system", { event: "typing" } as Record<string, string>, (payload: { payload?: { from?: string } }) => {
+        if (payload.payload?.from === "agent") {
+          setAgentTyping(true);
+          if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
+          typingTimeoutRef.current = setTimeout(() => setAgentTyping(false), 3000);
+        }
+      })
+      .subscribe();
+
+    typingChannelRef.current = typingChannel;
+
+    // Subscribe to conversation status changes for queue position
+    const statusChannel = supabase
+      .channel(`conv-status-${conversationId}`)
+      .on(
+        "postgres_changes" as "system",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "conversations",
+          filter: `id=eq.${conversationId}`,
+        } as Record<string, string>,
+        (payload: { new: { status: string } }) => {
+          if (payload.new.status === "human") {
+            setQueuePosition(null);
+          } else if (payload.new.status === "closed") {
+            setLiveChatMode(false);
+            setMessages((prev) => [
+              ...prev,
+              { id: `closed-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? "Samtalen er avsluttet. Takk for at du tok kontakt!" : "The conversation has ended. Thanks for reaching out!" },
+            ]);
+          }
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+      supabase.removeChannel(typingChannel);
+      supabase.removeChannel(statusChannel);
+    };
+  }, [i18nLang]);
+
+  // Cleanup on unmount
+  useEffect(() => {
+    return () => {
+      if (realtimeChannelRef.current) {
+        const supabase = createClient();
+        supabase.removeChannel(realtimeChannelRef.current);
+      }
+      if (typingChannelRef.current) {
+        const supabase = createClient();
+        supabase.removeChannel(typingChannelRef.current);
+      }
+    };
+  }, []);
+
+  // Fetch queue position
+  const fetchQueuePosition = useCallback(async (conversationId: string, wsId: string) => {
+    try {
+      const supabase = createClient();
+      const { data } = await supabase
+        .from("conversations")
+        .select("id, started_at")
+        .eq("workspace_id", wsId)
+        .eq("status", "waiting")
+        .order("started_at", { ascending: true });
+
+      if (data) {
+        const pos = data.findIndex((c: { id: string }) => c.id === conversationId) + 1;
+        setQueuePosition(pos > 0 ? pos : null);
+      }
+    } catch {
+      // ignore
+    }
+  }, []);
+
+  // Send typing event for visitor
+  const sendVisitorTyping = useCallback(() => {
+    if (typingChannelRef.current) {
+      typingChannelRef.current.send({
+        type: "broadcast",
+        event: "typing",
+        payload: { from: "visitor" },
+      });
+    }
+  }, []);
+
   async function handleSend() {
     const text = input.trim();
     if (!text || isTyping) return;
@@ -134,6 +262,28 @@ export function ChatWidget({
     };
     setMessages((prev) => [...prev, userMsg]);
     setInput("");
+
+    // If in live chat mode, send via live-chat API
+    if (liveChatMode && conversationIdRef.current) {
+      try {
+        await fetch("/api/live-chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            conversationId: conversationIdRef.current,
+            content: text,
+            role: "user",
+          }),
+        });
+      } catch {
+        setMessages((prev) => [
+          ...prev,
+          { id: `err-${Date.now()}`, role: "assistant", content: t('widget.error') },
+        ]);
+      }
+      return;
+    }
+
     setIsTyping(true);
 
     // If we have a chatbotId, use AI; otherwise fall back to demo replies
@@ -161,8 +311,27 @@ export function ChatWidget({
             ...prev,
             { id: `bot-${Date.now()}`, role: "assistant", content: data.response },
           ]);
-          if (data.handoff && !handoffTriggered) {
-            setHandoffTriggered(true);
+
+          if (data.handoff) {
+            if (data.liveChat && data.conversationId) {
+              // Live chat mode - agents are online
+              setLiveChatMode(true);
+              setMessages((prev) => [
+                ...prev,
+                {
+                  id: `connecting-${Date.now()}`,
+                  role: "assistant",
+                  content: i18nLang === "nb" ? "Du kobles til en medarbeider..." : "Connecting you to an agent...",
+                },
+              ]);
+              subscribeToRealtime(data.conversationId);
+              if (data.workspaceId) {
+                fetchQueuePosition(data.conversationId, data.workspaceId);
+              }
+            } else if (!handoffTriggered) {
+              // No agents online - existing lead capture flow
+              setHandoffTriggered(true);
+            }
           }
         } else {
           setMessages((prev) => [
@@ -199,6 +368,10 @@ export function ChatWidget({
     }
   }
 
+  const headerSubtext = liveChatMode
+    ? (i18nLang === "nb" ? "Live chat" : "Live chat")
+    : t('widget.online');
+
   // Inline mode — no floating button
   if (inline) {
     return (
@@ -216,12 +389,16 @@ export function ChatWidget({
           onClose={() => {}}
           showClose={false}
           t={t}
+          subtext={headerSubtext}
         />
         <MessageList
           messages={messages}
           isTyping={isTyping}
+          agentTyping={agentTyping}
           primaryColor={primaryColor}
           ref={messagesEndRef}
+          queuePosition={queuePosition}
+          i18nLang={i18nLang}
           handoffForm={
             handoffTriggered && !handoffSubmitted ? (
               <HandoffForm
@@ -250,7 +427,10 @@ export function ChatWidget({
         />
         <WidgetInput
           value={input}
-          onChange={setInput}
+          onChange={(v) => {
+            setInput(v);
+            if (liveChatMode) sendVisitorTyping();
+          }}
           onSend={handleSend}
           primaryColor={primaryColor}
           ref={inputRef}
@@ -286,12 +466,16 @@ export function ChatWidget({
           onClose={() => setIsOpen(false)}
           showClose
           t={t}
+          subtext={headerSubtext}
         />
         <MessageList
           messages={messages}
           isTyping={isTyping}
+          agentTyping={agentTyping}
           primaryColor={primaryColor}
           ref={messagesEndRef}
+          queuePosition={queuePosition}
+          i18nLang={i18nLang}
           handoffForm={
             handoffTriggered && !handoffSubmitted ? (
               <HandoffForm
@@ -320,7 +504,10 @@ export function ChatWidget({
         />
         <WidgetInput
           value={input}
-          onChange={setInput}
+          onChange={(v) => {
+            setInput(v);
+            if (liveChatMode) sendVisitorTyping();
+          }}
           onSend={handleSend}
           primaryColor={primaryColor}
           ref={inputRef}
@@ -354,6 +541,7 @@ function WidgetHeader({
   onClose,
   showClose,
   t,
+  subtext,
 }: {
   botName: string;
   primaryColor: string;
@@ -361,6 +549,7 @@ function WidgetHeader({
   onClose: () => void;
   showClose: boolean;
   t: TranslateFunction;
+  subtext?: string;
 }): React.ReactNode {
   return (
     <div
@@ -373,7 +562,7 @@ function WidgetHeader({
         </div>
         <div>
           <p className="text-sm font-semibold text-white">{botName}</p>
-          <p className="text-xs text-white/70">{t('widget.online')}</p>
+          <p className="text-xs text-white/70">{subtext || t('widget.online')}</p>
         </div>
       </div>
       <div className="flex items-center gap-2">
@@ -401,15 +590,21 @@ function WidgetHeader({
 const MessageList = ({
   messages,
   isTyping,
+  agentTyping,
   primaryColor,
   ref,
   handoffForm,
+  queuePosition,
+  i18nLang,
 }: {
   messages: Message[];
   isTyping: boolean;
+  agentTyping: boolean;
   primaryColor: string;
   ref: React.RefObject<HTMLDivElement | null>;
   handoffForm?: React.ReactNode;
+  queuePosition?: number | null;
+  i18nLang?: string;
 }): React.ReactNode => {
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -434,14 +629,31 @@ const MessageList = ({
                 : undefined
             }
           >
+            {msg.role === "agent" && (
+              <p className="text-[10px] font-medium text-primary mb-0.5">
+                {i18nLang === "nb" ? "Medarbeider" : "Agent"}
+              </p>
+            )}
             <SimpleMarkdown text={msg.content} />
           </div>
         </div>
       ))}
+      {queuePosition != null && queuePosition > 0 && (
+        <div className="flex justify-start">
+          <div className="rounded-2xl rounded-bl-md bg-muted/60 px-4 py-2 text-xs text-muted-foreground">
+            {i18nLang === "nb" ? `Du er nr. ${queuePosition} i køen` : `You are #${queuePosition} in the queue`}
+          </div>
+        </div>
+      )}
       {handoffForm}
-      {isTyping && (
+      {(isTyping || agentTyping) && (
         <div className="flex justify-start">
           <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-md bg-muted px-4 py-3">
+            {agentTyping && (
+              <span className="text-[10px] text-muted-foreground mr-1">
+                {i18nLang === "nb" ? "Medarbeider skriver" : "Agent typing"}
+              </span>
+            )}
             <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40 [animation-delay:0ms]" />
             <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40 [animation-delay:150ms]" />
             <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40 [animation-delay:300ms]" />

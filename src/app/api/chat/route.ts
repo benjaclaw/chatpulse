@@ -332,6 +332,58 @@ VIKTIGE REGLER:
     aiResponse = aiResponse.replace("[HANDOFF]", "").trim();
   }
 
+  // 7b. If handoff, check if live agents are online
+  let liveChat = false;
+  if (isHandoff && activeConversationId) {
+    try {
+      // Check business hours first
+      let withinBusinessHours = true;
+      if (workspace) {
+        const { data: wsData } = await supabase
+          .from("workspaces")
+          .select("business_hours")
+          .eq("id", config.workspace_id)
+          .single();
+
+        const bh = wsData?.business_hours as { enabled?: boolean; timezone?: string; schedule?: Record<string, { start: string; end: string } | null> } | null;
+        if (bh?.enabled && bh.schedule) {
+          const tz = bh.timezone || "Europe/Oslo";
+          const now = new Date();
+          const formatter = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false });
+          const parts = formatter.formatToParts(now);
+          const weekday = parts.find(p => p.type === "weekday")?.value?.toLowerCase().slice(0, 3) || "";
+          const hour = parts.find(p => p.type === "hour")?.value || "00";
+          const minute = parts.find(p => p.type === "minute")?.value || "00";
+          const currentTime = `${hour}:${minute}`;
+          const daySchedule = bh.schedule[weekday];
+          if (!daySchedule) {
+            withinBusinessHours = false;
+          } else {
+            withinBusinessHours = currentTime >= daySchedule.start && currentTime <= daySchedule.end;
+          }
+        }
+      }
+
+      if (withinBusinessHours) {
+        const presenceUrl = new URL("/api/presence", request.url);
+        presenceUrl.searchParams.set("workspaceId", config.workspace_id);
+        const presenceRes = await fetch(presenceUrl.toString());
+        const presenceData = await presenceRes.json();
+
+        if (presenceData.online) {
+          liveChat = true;
+          // Set conversation status to waiting
+          await supabase
+            .from("conversations")
+            .update({ status: "waiting" })
+            .eq("id", activeConversationId);
+        }
+      }
+    } catch (err) {
+      console.error("Live chat check error:", err);
+    }
+  }
+
   // 8. Track ALL questions for insights
   const isUnanswered = aiResponse.startsWith("[UBESVART]");
   if (isUnanswered) {
@@ -413,5 +465,6 @@ VIKTIGE REGLER:
     conversationId: activeConversationId,
     workspaceId: config.workspace_id,
     ...(isHandoff && { handoff: true }),
+    ...(isHandoff && { liveChat }),
   });
 }
