@@ -451,7 +451,7 @@ export function LeadsPageClient(): React.ReactNode {
             </div>
 
             <DialogFooter>
-              <div className="flex w-full items-center justify-between">
+              <div className="flex w-full flex-wrap items-center justify-between gap-2">
                 <Button
                   size="sm"
                   variant="ghost"
@@ -461,7 +461,7 @@ export function LeadsPageClient(): React.ReactNode {
                   <Trash2 className="h-3 w-3 mr-1" />
                   {t('leads.delete')}
                 </Button>
-                <div className="flex gap-1.5">
+                <div className="flex flex-wrap gap-1.5">
                   {COLUMNS.filter((s) => s !== selectedLead.status).map((status) => (
                     <Button
                       key={status}

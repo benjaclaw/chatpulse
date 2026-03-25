@@ -63,10 +63,10 @@ export function HomePage(): React.ReactNode {
               {t('landing.hero.description')}
             </p>
 
-            <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
+            <div className="mt-10 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row sm:justify-center sm:gap-4">
               <Link
                 href="/signup"
-                className={cn(buttonVariants({ size: "lg" }))}
+                className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto")}
               >
                 {t('landing.hero.cta')}
                 <ArrowRight className="ml-2 h-4 w-4" />

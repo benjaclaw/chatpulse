@@ -202,13 +202,15 @@ export function AnalyticsPageClient(): React.ReactNode {
       {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Daily messages chart */}
-        <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border bg-card p-6 shadow-sm overflow-x-auto">
           <h3 className="text-base font-semibold mb-4">{t("analytics.messagesPerDay")}</h3>
-          <DailyBarChart data={dailyCounts} />
+          <div className="min-w-[300px]">
+            <DailyBarChart data={dailyCounts} />
+          </div>
         </div>
 
         {/* Hourly chart */}
-        <div className="rounded-xl border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border bg-card p-6 shadow-sm overflow-x-auto">
           <h3 className="text-base font-semibold mb-4">{t("analytics.popularHours")}</h3>
           <HourlyBarChart data={hourlyCounts} />
         </div>

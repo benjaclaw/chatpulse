@@ -97,7 +97,7 @@ export function GoogleHeroButton() {
       type="button"
       onClick={handleClick}
       disabled={loading}
-      className="inline-flex h-12 items-center gap-2.5 rounded-lg border bg-white px-6 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:shadow-md disabled:opacity-50"
+      className="inline-flex h-12 w-full items-center justify-center gap-2.5 rounded-lg border bg-white px-6 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:shadow-md disabled:opacity-50 sm:w-auto"
     >
       {loading ? (
         <Loader2 className="h-4 w-4 animate-spin" />

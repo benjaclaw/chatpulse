@@ -491,7 +491,7 @@ export function ChatbotPageClient(): React.ReactNode {
         </div>
 
         {/* Live preview */}
-        <div className="lg:sticky lg:top-8">
+        <div className="lg:sticky lg:top-8 max-w-full overflow-hidden">
           <div className="rounded-xl border bg-card p-4 shadow-sm">
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
               <Eye className="h-4 w-4" />

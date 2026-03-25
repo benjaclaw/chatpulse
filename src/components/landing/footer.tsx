@@ -19,7 +19,7 @@ export function LandingFooter(): React.ReactNode {
         <Link href="/" className="flex items-center">
           <img src="/logo.svg" alt="ChatPulse" className="h-5" />
         </Link>
-        <div className="flex items-center gap-6 text-sm text-muted-foreground">
+        <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground sm:gap-6">
           <Link
             href="/privacy"
             className="transition-colors hover:text-foreground"

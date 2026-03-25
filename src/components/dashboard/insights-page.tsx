@@ -143,8 +143,8 @@ export function InsightsPageClient(): React.ReactNode {
       </div>
 
       {/* Filter + clear */}
-      <div className="flex items-center justify-between">
-      <div className="flex gap-2">
+      <div className="flex flex-wrap items-center justify-between gap-2">
+      <div className="flex flex-wrap gap-2">
         {FILTER_KEYS.map((opt) => (
           <Button
             key={opt.key}

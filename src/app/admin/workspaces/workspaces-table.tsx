@@ -36,7 +36,7 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspace[] }
         className="max-w-sm"
       />
 
-      <div className="rounded-lg border bg-card">
+      <div className="rounded-lg border bg-card overflow-x-auto">
         <Table>
           <TableHeader>
             <TableRow>
