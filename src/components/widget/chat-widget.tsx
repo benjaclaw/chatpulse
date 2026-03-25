@@ -431,7 +431,7 @@ function inlineFormat(text: string): React.ReactNode {
 
   while (remaining.length > 0) {
     // Bold: **...**
-    const boldMatch = remaining.match(/^(.*?)\*\*(.+?)\*\*(.*)/s);
+    const boldMatch = remaining.match(/^([\s\S]*?)\*\*([\s\S]+?)\*\*([\s\S]*)/);
     if (boldMatch) {
       if (boldMatch[1]) parts.push(<span key={key++}>{boldMatch[1]}</span>);
       parts.push(<strong key={key++}>{boldMatch[2]}</strong>);
@@ -439,7 +439,7 @@ function inlineFormat(text: string): React.ReactNode {
       continue;
     }
     // Italic: *...*
-    const italicMatch = remaining.match(/^(.*?)\*(.+?)\*(.*)/s);
+    const italicMatch = remaining.match(/^([\s\S]*?)\*([\s\S]+?)\*([\s\S]*)/);
     if (italicMatch) {
       if (italicMatch[1]) parts.push(<span key={key++}>{italicMatch[1]}</span>);
       parts.push(<em key={key++}>{italicMatch[2]}</em>);
