@@ -129,9 +129,21 @@ export async function POST(request: Request): Promise<Response> {
 
     const limit = getPlanLimit(workspace.plan_id ?? "basic");
     if (workspace.message_count >= limit) {
+      // Build a friendly message with company contact info
+      let limitMsg = "Chatboten er midlertidig utilgjengelig.";
+      const { data: compInfo } = await supabase
+        .from("company_info")
+        .select("data")
+        .eq("workspace_id", config.workspace_id)
+        .maybeSingle();
+      const cd = compInfo?.data as Record<string, string> | null;
+      if (cd?.email || cd?.phone) {
+        const contact = [cd.email, cd.phone].filter(Boolean).join(" / ");
+        limitMsg += ` Kontakt ${cd.name || "oss"} direkte: ${contact}`;
+      }
       return Response.json(
-        { error: "Meldingsgrensen er nådd for denne måneden" },
-        { status: 429 }
+        { response: limitMsg, conversationId, limitReached: true },
+        { status: 200 }
       );
     }
   }
