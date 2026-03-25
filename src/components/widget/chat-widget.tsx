@@ -500,7 +500,7 @@ const WidgetInput = ({
             href="https://chatpulse.no"
             target="_blank"
             rel="noopener noreferrer"
-            className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground/70 transition-colors"
+            className="text-[10px] text-muted-foreground/70 hover:text-muted-foreground transition-colors"
           >
             {t('widget.poweredBy')}
           </a>
