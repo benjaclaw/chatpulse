@@ -7,9 +7,11 @@
   if (!id) { console.error("[ChatPulse] Missing data-chatbot-id."); return; }
   var color = (s && s.getAttribute("data-primary-color")) || g.primaryColor || "#6366f1";
   var pos = (s && s.getAttribute("data-position")) || g.position || "right";
+  var lang = (s && s.getAttribute("data-language")) || g.language || document.documentElement.lang || "";
+  if (lang) { lang = lang.split("-")[0].toLowerCase(); }
   var base = "https://chatpulse-ten.vercel.app";
   if (s && s.src) { try { base = new URL(s.src).origin; } catch (_) {} }
-  var url = base + "/widget/" + encodeURIComponent(id) + "?color=" + encodeURIComponent(color) + "&position=" + encodeURIComponent(pos);
+  var url = base + "/widget/" + encodeURIComponent(id) + "?color=" + encodeURIComponent(color) + "&position=" + encodeURIComponent(pos) + (lang ? "&lang=" + encodeURIComponent(lang) : "");
   var isOpen = false;
   var iframeLoaded = false;
   var openIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';

@@ -11,12 +11,25 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatWidget } from "@/components/widget/chat-widget";
-import { Bot, Eye, Code2, Copy, Check, Upload, Trash2 } from "lucide-react";
+import { Bot, Eye, Code2, Copy, Check, Upload, Trash2, Globe, Plus, X } from "lucide-react";
 import type { ChatbotConfig } from "@/lib/types";
 import { hasFeature } from "@/lib/plans";
 import { UpgradeBanner } from "./upgrade-banner";
 
 const DEFAULT_STYLING = { primary_color: "#6366f1", position: "right" as const };
+
+const LANGUAGE_OPTIONS: { code: string; label: string }[] = [
+  { code: "nb", label: "Norsk bokmål" },
+  { code: "en", label: "English" },
+  { code: "sv", label: "Svenska" },
+  { code: "da", label: "Dansk" },
+  { code: "de", label: "Deutsch" },
+  { code: "fr", label: "Français" },
+  { code: "es", label: "Español" },
+  { code: "pl", label: "Polski" },
+  { code: "nl", label: "Nederlands" },
+  { code: "fi", label: "Suomi" },
+];
 
 export function ChatbotPageClient(): React.ReactNode {
   const workspace = useWorkspace();
@@ -40,6 +53,7 @@ export function ChatbotPageClient(): React.ReactNode {
   const iframeEmbed = config.id ? `<iframe\n  src="${widgetBase}/widget/${config.id}"\n  style="width:400px;height:600px;border:none;border-radius:12px;"\n  title="ChatPulse"\n  allow="clipboard-write">\n</iframe>` : "";
   const { active: saved, trigger: triggerSaved } = useTemporaryFlag();
   const [uploading, setUploading] = useState(false);
+  const [welcomeMessages, setWelcomeMessages] = useState<Record<string, string>>({});
 
   async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
     const file = e.target.files?.[0];
@@ -67,7 +81,7 @@ export function ChatbotPageClient(): React.ReactNode {
     async function load() {
       const { data } = await supabase
         .from("chatbot_config")
-        .select("id, workspace_id, name, prompt, welcome_message, fallback_response, widget_styling, logo_url")
+        .select("id, workspace_id, name, prompt, welcome_message, welcome_messages, fallback_response, widget_styling, logo_url")
         .eq("workspace_id", workspace.id)
         .limit(1)
         .maybeSingle();
@@ -83,6 +97,12 @@ export function ChatbotPageClient(): React.ReactNode {
             logo_url: data.logo_url ?? undefined,
             widget_styling: data.widget_styling ?? { primary_color: "#6366f1", position: "right" as const },
           });
+          const wm = data.welcome_messages as Record<string, string> | null;
+          if (wm && Object.keys(wm).length > 0) {
+            setWelcomeMessages(wm);
+          } else {
+            setWelcomeMessages({ nb: data.welcome_message });
+          }
         }
         setLoading(false);
       }
@@ -112,6 +132,7 @@ export function ChatbotPageClient(): React.ReactNode {
       name: config.name,
       prompt: config.prompt,
       welcome_message: config.welcome_message,
+      welcome_messages: welcomeMessages,
       fallback_response: config.fallback_response,
       logo_url: config.logo_url ?? null,
       widget_styling: config.widget_styling,
@@ -126,7 +147,7 @@ export function ChatbotPageClient(): React.ReactNode {
       const { data } = await supabase
         .from("chatbot_config")
         .insert({ ...payload, workspace_id: workspace.id })
-        .select("id, workspace_id, name, prompt, welcome_message, fallback_response, widget_styling, logo_url")
+        .select("id, workspace_id, name, prompt, welcome_message, welcome_messages, fallback_response, widget_styling, logo_url")
         .single();
       if (data) {
         setConfig({
@@ -263,6 +284,83 @@ export function ChatbotPageClient(): React.ReactNode {
                   {t('chatbot.fallbackHelp')}
                 </p>
               </div>
+            </div>
+          </div>
+
+          {/* Multilingual welcome messages */}
+          <div className="rounded-xl border bg-card p-6 shadow-sm">
+            <h3 className="flex items-center gap-2 font-semibold">
+              <Globe className="h-4 w-4 text-primary" />
+              {language === "nb" ? "Flerspråklige velkomstmeldinger" : "Multilingual welcome messages"}
+            </h3>
+            <p className="mt-1 text-xs text-muted-foreground">
+              {language === "nb"
+                ? "Legg til velkomstmeldinger for ulike språk. Hovedmeldingen over brukes som standard."
+                : "Add welcome messages for different languages. The main message above is used as default."}
+            </p>
+            <div className="mt-4 space-y-3">
+              {Object.entries(welcomeMessages).map(([code, msg]) => {
+                const langOption = LANGUAGE_OPTIONS.find((l) => l.code === code);
+                return (
+                  <div key={code} className="flex items-center gap-2">
+                    <span className="w-28 shrink-0 text-sm font-medium">
+                      {langOption?.label ?? code}
+                    </span>
+                    <Input
+                      value={msg}
+                      onChange={(e) =>
+                        setWelcomeMessages((prev) => ({ ...prev, [code]: e.target.value }))
+                      }
+                      placeholder={language === "nb" ? "Velkomstmelding…" : "Welcome message…"}
+                      className="flex-1"
+                    />
+                    <Button
+                      variant="ghost"
+                      size="sm"
+                      onClick={() =>
+                        setWelcomeMessages((prev) => {
+                          const next = { ...prev };
+                          delete next[code];
+                          return next;
+                        })
+                      }
+                    >
+                      <X className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  </div>
+                );
+              })}
+              {(() => {
+                const usedCodes = new Set(Object.keys(welcomeMessages));
+                const available = LANGUAGE_OPTIONS.filter((l) => !usedCodes.has(l.code));
+                if (available.length === 0) return null;
+                return (
+                  <div className="flex items-center gap-2">
+                    <select
+                      id="add-lang-select"
+                      className="h-9 rounded-md border bg-background px-2 text-sm"
+                      defaultValue=""
+                      onChange={(e) => {
+                        const code = e.target.value;
+                        if (code) {
+                          setWelcomeMessages((prev) => ({ ...prev, [code]: "" }));
+                          e.target.value = "";
+                        }
+                      }}
+                    >
+                      <option value="" disabled>
+                        {language === "nb" ? "Legg til språk…" : "Add language…"}
+                      </option>
+                      {available.map((l) => (
+                        <option key={l.code} value={l.code}>
+                          {l.label}
+                        </option>
+                      ))}
+                    </select>
+                    <Plus className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                );
+              })()}
             </div>
           </div>
 

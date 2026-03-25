@@ -8,6 +8,7 @@ interface ChatRequest {
   conversationId: string | null;
   message: string;
   visitorId: string;
+  language?: string;
 }
 
 // TODO: Add rate limiting here (e.g. per visitorId or IP)
@@ -28,7 +29,7 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Ugyldig forespørsel" }, { status: 400 });
   }
 
-  const { chatbotId, conversationId, message, visitorId } = body;
+  const { chatbotId, conversationId, message, visitorId, language: detectedLanguage } = body;
   if (!chatbotId || !message?.trim() || !visitorId) {
     return Response.json(
       { error: "Mangler chatbotId, message eller visitorId" },
@@ -165,7 +166,7 @@ VIKTIGE REGLER:
 - Hvis brukeren vil snakke med et menneske, gi kontaktinformasjonen til bedriften (e-post, telefon) hvis tilgjengelig.
 - Hvis du ikke finner svaret i kunnskapsbasen, start svaret med [UBESVART] og si høflig at du ikke har informasjon om dette.${companyContext ? ` Henvis til bedriftens kontaktinformasjon slik at de kan få hjelp.` : ""}
 - Hvis brukeren ønsker å snakke med et menneske, kontakte kundeservice, eller få personlig hjelp, inkluder taggen [HANDOFF] i starten av svaret. Gi et vennlig svar om at du vil koble dem med et menneske, og be dem oppgi e-postadressen sin.
-- Svar alltid på norsk med mindre brukeren skriver på et annet språk.
+- Detect the language the user writes in and respond in that same language. If unsure, use ${detectedLanguage || "nb"} as the default language.
 - Vær vennlig, konsis og profesjonell.`;
 
   let fullPrompt = `System: ${systemPrompt}\n\n`;

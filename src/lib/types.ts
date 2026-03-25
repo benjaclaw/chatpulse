@@ -57,6 +57,7 @@ export interface ChatbotConfig {
   name: string;
   prompt: string;
   welcome_message: string;
+  welcome_messages?: Record<string, string>;
   fallback_response: string;
   logo_url?: string;
   widget_styling: {

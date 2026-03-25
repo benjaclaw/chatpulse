@@ -23,7 +23,7 @@ interface ChatWidgetProps {
   className?: string;
   /** When provided, messages are persisted to the DB and AI is enabled */
   chatbotId?: string;
-  language?: "nb" | "en";
+  language?: string;
   /** Hide the 'Powered by ChatPulse' watermark (white-label) */
   hideWatermark?: boolean;
 }
@@ -38,6 +38,16 @@ function getVisitorId(): string {
   return id;
 }
 
+const PLACEHOLDER_MAP: Record<string, string> = {
+  nb: "Skriv en melding…",
+  en: "Type a message…",
+  sv: "Skriv ett meddelande…",
+  da: "Skriv en besked…",
+  de: "Nachricht schreiben…",
+  fr: "Écrivez un message…",
+  es: "Escribe un mensaje…",
+};
+
 export function ChatWidget({
   primaryColor = "#6366f1",
   position = "right",
@@ -50,7 +60,9 @@ export function ChatWidget({
   language,
   hideWatermark = false,
 }: ChatWidgetProps): React.ReactNode {
-  const t = createT((language ?? "nb") as Language);
+  const i18nLang: Language = (language === "nb" || language === "en") ? language : "nb";
+  const t = createT(i18nLang);
+  const placeholder = (language && PLACEHOLDER_MAP[language]) || PLACEHOLDER_MAP.nb;
 
   const defaultMessages: Message[] = [
     {
@@ -131,6 +143,7 @@ export function ChatWidget({
             conversationId: conversationIdRef.current,
             message: text,
             visitorId,
+            language: language || undefined,
           }),
         });
 
@@ -238,6 +251,7 @@ export function ChatWidget({
           ref={inputRef}
           t={t}
           hideWatermark={hideWatermark}
+          placeholderText={placeholder}
         />
       </div>
     );
@@ -307,6 +321,7 @@ export function ChatWidget({
           ref={inputRef}
           t={t}
           hideWatermark={hideWatermark}
+          placeholderText={placeholder}
         />
       </div>
 
@@ -440,6 +455,7 @@ const WidgetInput = ({
   ref,
   t,
   hideWatermark = false,
+  placeholderText,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -448,6 +464,7 @@ const WidgetInput = ({
   ref: React.RefObject<HTMLInputElement | null>;
   t: TranslateFunction;
   hideWatermark?: boolean;
+  placeholderText?: string;
 }): React.ReactNode => {
   return (
     <div className="border-t p-3">
@@ -463,7 +480,7 @@ const WidgetInput = ({
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder={t('widget.placeholder')}
+          placeholder={placeholderText || t('widget.placeholder')}
           className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
         />
         <button
