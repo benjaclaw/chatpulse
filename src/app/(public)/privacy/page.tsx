@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -8,13 +7,6 @@ export const metadata: Metadata = {
 export default function PrivacyPage(): React.ReactNode {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <Link
-        href="/"
-        className="mb-8 inline-block text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        &larr; Tilbake til forsiden
-      </Link>
-
       <h1 className="mb-2 font-heading text-3xl font-bold">
         Personvernerklæring
       </h1>
@@ -107,9 +99,9 @@ export default function PrivacyPage(): React.ReactNode {
           <h2>5. Informasjonskapsler (cookies)</h2>
           <p>
             Vi bruker følgende typer informasjonskapsler. Se vår{" "}
-            <Link href="/cookies" className="text-primary underline">
+            <a href="/cookies" className="text-primary underline">
               cookiepolicy
-            </Link>{" "}
+            </a>{" "}
             for detaljer.
           </p>
           <ul className="space-y-2">
@@ -153,9 +145,7 @@ export default function PrivacyPage(): React.ReactNode {
 
         <section>
           <h2>8. Dine rettigheter</h2>
-          <p>
-            I henhold til GDPR har du rett til:
-          </p>
+          <p>I henhold til GDPR har du rett til:</p>
           <ul className="space-y-2">
             <li>
               <strong>Innsyn:</strong> Be om kopi av dine personopplysninger.

@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -8,13 +7,6 @@ export const metadata: Metadata = {
 export default function CookiesPage(): React.ReactNode {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <Link
-        href="/"
-        className="mb-8 inline-block text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        &larr; Tilbake til forsiden
-      </Link>
-
       <h1 className="mb-2 font-heading text-3xl font-bold">Cookiepolicy</h1>
       <p className="mb-8 text-sm text-muted-foreground">
         Sist oppdatert: 25. mars 2026

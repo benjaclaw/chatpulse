@@ -1,4 +1,3 @@
-import Link from "next/link";
 import type { Metadata } from "next";
 
 export const metadata: Metadata = {
@@ -8,13 +7,6 @@ export const metadata: Metadata = {
 export default function TermsPage(): React.ReactNode {
   return (
     <div className="mx-auto max-w-3xl px-4 py-12 sm:px-6">
-      <Link
-        href="/"
-        className="mb-8 inline-block text-sm text-muted-foreground transition-colors hover:text-foreground"
-      >
-        &larr; Tilbake til forsiden
-      </Link>
-
       <h1 className="mb-2 font-heading text-3xl font-bold">
         Vilkår for bruk
       </h1>
@@ -67,9 +59,9 @@ export default function TermsPage(): React.ReactNode {
           <p>
             Du kan når som helst eksportere eller slette dine data i henhold til
             vår{" "}
-            <Link href="/privacy" className="text-primary underline">
+            <a href="/privacy" className="text-primary underline">
               personvernerklæring
-            </Link>
+            </a>
             .
           </p>
         </section>
@@ -112,8 +104,8 @@ export default function TermsPage(): React.ReactNode {
           <p>
             Vi kan oppdatere disse vilkårene ved behov. Vesentlige endringer vil
             bli varslet via e-post eller på nettsiden minst 30 dager før de trer
-            i kraft. Fortsatt bruk av tjenesten etter endringer utgjør
-            aksept av de oppdaterte vilkårene.
+            i kraft. Fortsatt bruk av tjenesten etter endringer utgjør aksept av
+            de oppdaterte vilkårene.
           </p>
         </section>
 

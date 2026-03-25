@@ -19,6 +19,8 @@ import { buttonVariants } from "@/components/ui/button";
 import { ChatWidget } from "@/components/widget/chat-widget";
 import { cn } from "@/lib/utils";
 import { createT, type Language } from "@/lib/i18n";
+import { LandingHeader } from "./header";
+import { LandingFooter } from "./footer";
 
 export function HomePage(): React.ReactNode {
   const [language] = useState<Language>(() => {
@@ -31,23 +33,7 @@ export function HomePage(): React.ReactNode {
 
   return (
     <div className="flex min-h-screen flex-col bg-background">
-      {/* Header */}
-      <header className="sticky top-0 z-40 flex h-16 items-center justify-between border-b bg-background/80 px-4 backdrop-blur-sm sm:px-6 lg:px-8">
-        <span className="font-heading text-xl font-bold text-primary">
-          ChatPulse
-        </span>
-        <div className="flex items-center gap-2 sm:gap-4">
-          <Link
-            href="/login"
-            className={cn(buttonVariants({ variant: "ghost" }))}
-          >
-            {t('landing.header.login')}
-          </Link>
-          <Link href="/signup" className={cn(buttonVariants())}>
-            {t('landing.header.getStarted')}
-          </Link>
-        </div>
-      </header>
+      <LandingHeader />
 
       <main className="flex flex-1 flex-col">
         {/* ─── Hero ─── */}
@@ -102,7 +88,7 @@ export function HomePage(): React.ReactNode {
         </section>
 
         {/* ─── Features ─── */}
-        <section className="border-t bg-card/50 px-4 py-16 dark:bg-card/20 sm:px-6 sm:py-24">
+        <section id="features" className="scroll-mt-16 border-t bg-card/50 px-4 py-16 dark:bg-card/20 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-5xl">
             <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
               {t('landing.features.title')}
@@ -266,43 +252,30 @@ export function HomePage(): React.ReactNode {
                 cta={t('landing.pricing.proNewCta')}
                 ctaHref="/signup"
                 popularLabel={t('landing.pricing.popular')}
+                note={t('landing.pricing.proNote')}
               />
+            </div>
+
+            <div className="mt-8 flex flex-col items-center gap-4">
+              <Link
+                href="/pricing"
+                className={cn(buttonVariants({ variant: "outline" }))}
+              >
+                {t('landing.pricing.viewAll')}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
+              <p className="text-sm text-muted-foreground">
+                {t('landing.pricing.setupBanner')}{' '}
+                <Link href="/pricing#setup" className="text-primary underline transition-colors hover:text-primary/80">
+                  {t('landing.pricing.setupBannerLink')} &rarr;
+                </Link>
+              </p>
             </div>
           </div>
         </section>
       </main>
 
-      {/* Footer */}
-      <footer className="border-t px-4 py-8 sm:px-6">
-        <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 sm:flex-row sm:justify-between">
-          <span className="font-heading text-lg font-bold text-primary">
-            ChatPulse
-          </span>
-          <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <Link
-              href="/privacy"
-              className="transition-colors hover:text-foreground"
-            >
-              {t('landing.footer.privacy')}
-            </Link>
-            <Link
-              href="/terms"
-              className="transition-colors hover:text-foreground"
-            >
-              {t('landing.footer.terms')}
-            </Link>
-            <Link
-              href="/cookies"
-              className="transition-colors hover:text-foreground"
-            >
-              {t('landing.footer.cookies')}
-            </Link>
-            <span>
-              &copy; {new Date().getFullYear()} Gains AS
-            </span>
-          </div>
-        </div>
-      </footer>
+      <LandingFooter />
     </div>
   );
 }
@@ -400,6 +373,7 @@ function PricingCard({
   ctaHref,
   highlighted = false,
   popularLabel,
+  note,
 }: {
   name: string;
   price: string;
@@ -410,6 +384,7 @@ function PricingCard({
   ctaHref: string;
   highlighted?: boolean;
   popularLabel: string;
+  note?: string;
 }): React.ReactNode {
   return (
     <div
@@ -443,6 +418,9 @@ function PricingCard({
           </li>
         ))}
       </ul>
+      {note && (
+        <p className="mt-3 text-xs font-medium text-primary">{note}</p>
+      )}
       <Link
         href={ctaHref}
         className={cn(
