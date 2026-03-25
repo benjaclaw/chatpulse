@@ -65,7 +65,14 @@ export async function POST(request: Request): Promise<Response> {
     }
   }
 
-  // 3. Search knowledge base with ILIKE on keywords from the message
+  // 3. Fetch company info if available
+  const { data: companyInfo } = await supabase
+    .from("company_info")
+    .select("data")
+    .eq("workspace_id", config.workspace_id)
+    .maybeSingle();
+
+  // 4. Search knowledge base with ILIKE on keywords from the message
   const words = message
     .trim()
     .split(/\s+/)
@@ -101,13 +108,38 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // 4. Build prompt
-  const systemPrompt =
-    (config.prompt || "Du er en hjelpsom kundeserviceassistent.") +
-    "\n\nBruk følgende kunnskapsbase for å svare. Hvis du ikke finner svaret i kunnskapsbasen, start svaret med [UBESVART] etterfulgt av: " +
-    fallback +
-    "\nSvar alltid på norsk med mindre brukeren skriver på et annet språk.";
+  // Build company context
+  let companyContext = "";
+  if (companyInfo?.data && typeof companyInfo.data === "object") {
+    const d = companyInfo.data as Record<string, string>;
+    const parts: string[] = [];
+    if (d.name) parts.push(`Bedrift: ${d.name}`);
+    if (d.email) parts.push(`E-post: ${d.email}`);
+    if (d.phone) parts.push(`Telefon: ${d.phone}`);
+    if (d.address) parts.push(`Adresse: ${d.address}`);
+    if (d.hours) parts.push(`Åpningstider: ${d.hours}`);
+    if (d.website) parts.push(`Nettside: ${d.website}`);
+    if (d.description) parts.push(`Om bedriften: ${d.description}`);
+    if (parts.length > 0) companyContext = parts.join("\n");
+  }
+
+  const systemPrompt = `${config.prompt || "Du er en hjelpsom kundeserviceassistent."}
+
+VIKTIGE REGLER:
+- Svar KUN basert på informasjonen i kunnskapsbasen og bedriftsinformasjonen under.
+- ALDRI finn på, anta eller hallusinér informasjon som ikke finnes i kunnskapsbasen.
+- ALDRI lov noe du ikke kan gjennomføre (f.eks. å videreformidle til noen, sende e-post, overføre samtaler).
+- Du er en chatbot og kan IKKE utføre handlinger — kun gi informasjon.
+- Hvis brukeren vil snakke med et menneske, gi kontaktinformasjonen til bedriften (e-post, telefon) hvis tilgjengelig.
+- Hvis du ikke finner svaret i kunnskapsbasen, start svaret med [UBESVART] og si høflig at du ikke har informasjon om dette.${companyContext ? ` Henvis til bedriftens kontaktinformasjon slik at de kan få hjelp.` : ""}
+- Svar alltid på norsk med mindre brukeren skriver på et annet språk.
+- Vær vennlig, konsis og profesjonell.`;
 
   let fullPrompt = `System: ${systemPrompt}\n\n`;
+
+  if (companyContext) {
+    fullPrompt += `Bedriftsinformasjon:\n${companyContext}\n\n`;
+  }
 
   if (knowledgeContext) {
     fullPrompt += `Kunnskapsbase:\n${knowledgeContext}\n\n`;
