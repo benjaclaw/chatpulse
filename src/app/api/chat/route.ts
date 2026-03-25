@@ -75,15 +75,23 @@ export async function POST(request: Request): Promise<Response> {
   let knowledgeContext = "";
   if (words.length > 0) {
     const orFilter = words
-      .map((w) => `title.ilike.%${w}%,content.ilike.%${w}%`)
+      .map((w) => {
+        // Escape special characters for PostgREST ILIKE
+        const safe = w.replace(/[%_'"()]/g, "");
+        return `title.ilike.%${safe}%,content.ilike.%${safe}%`;
+      })
       .join(",");
 
-    const { data: articles } = await supabase
+    const { data: articles, error: kbError } = await supabase
       .from("knowledge")
       .select("title, content")
       .eq("workspace_id", config.workspace_id)
       .or(orFilter)
       .limit(5);
+
+    if (kbError) {
+      console.error("Knowledge search error:", kbError);
+    }
 
     if (articles?.length) {
       knowledgeContext = articles
@@ -146,15 +154,18 @@ export async function POST(request: Request): Promise<Response> {
   let activeConversationId = conversationId;
 
   if (!activeConversationId) {
-    const { data: newConvo } = await supabase
+    const { data: newConvo, error: convoError } = await supabase
       .from("conversations")
       .insert({
         workspace_id: config.workspace_id,
-        chatbot_config_id: chatbotId,
         visitor_id: visitorId,
       })
       .select("id")
       .single();
+
+    if (convoError) {
+      console.error("Conversation insert error:", convoError);
+    }
 
     activeConversationId = newConvo?.id ?? null;
   }
