@@ -37,6 +37,7 @@ const PAGE_SIZE = 20;
 interface ConversationRow {
   id: string;
   visitor_id: string;
+  preview: string;
   started_at: string;
   message_count: number;
 }
@@ -127,7 +128,7 @@ export function ConversationsPageClient(): React.ReactNode {
     // Build data query
     let dataQuery = supabase
       .from("conversations")
-      .select("id, visitor_id, started_at, messages(id)")
+      .select("id, visitor_id, started_at, messages(id, content, role)")
       .eq("workspace_id", workspaceId)
       .order("started_at", { ascending: false })
       .range(from, to);
@@ -154,12 +155,16 @@ export function ConversationsPageClient(): React.ReactNode {
 
     setTotalCount(countResult.count ?? 0);
     const rows: ConversationRow[] = (dataResult.data ?? []).map(
-      (c: { id: string; visitor_id: string; started_at: string; messages: { id: string }[] }) => ({
-        id: c.id,
-        visitor_id: c.visitor_id,
-        started_at: c.started_at,
-        message_count: c.messages?.length ?? 0,
-      })
+      (c: { id: string; visitor_id: string; started_at: string; messages: { id: string; content: string; role: string }[] }) => {
+        const firstUserMsg = c.messages?.find((m) => m.role === "user");
+        return {
+          id: c.id,
+          visitor_id: c.visitor_id,
+          started_at: c.started_at,
+          message_count: c.messages?.length ?? 0,
+          preview: firstUserMsg?.content?.slice(0, 80) || "Ingen meldinger",
+        };
+      }
     );
     setConversations(rows);
     setLoading(false);
@@ -253,10 +258,10 @@ export function ConversationsPageClient(): React.ReactNode {
                 <div className="flex-1 min-w-0">
                   <div className="flex items-center gap-2">
                     <p className="text-sm font-medium truncate">
-                      {conv.visitor_id}
+                      {conv.preview}
                     </p>
                     <Badge variant="secondary" className="shrink-0">
-                      {conv.message_count} meldinger
+                      {conv.message_count} msg
                     </Badge>
                   </div>
                   <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
