@@ -1,20 +1,18 @@
-import { GoogleGenAI } from "@google/genai";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 
 export const runtime = "nodejs";
 
-interface ChatMessage {
-  role: "user" | "assistant";
-  content: string;
+interface ChatRequest {
+  chatbotId: string;
+  conversationId: string | null;
+  message: string;
+  visitorId: string;
 }
 
-interface ChatRequest {
-  messages: ChatMessage[];
-  chatbotId: string;
-}
+// TODO: Add rate limiting here (e.g. per visitorId or IP)
 
 export async function POST(request: Request): Promise<Response> {
-  const apiKey = process.env.GOOGLE_AI_API_KEY;
+  const apiKey = process.env.GEMINI_API_KEY;
   if (!apiKey) {
     return Response.json(
       { error: "AI er ikke konfigurert" },
@@ -29,17 +27,20 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Ugyldig forespørsel" }, { status: 400 });
   }
 
-  const { messages, chatbotId } = body;
-  if (!messages?.length || !chatbotId) {
-    return Response.json({ error: "Mangler meldinger eller chatbotId" }, { status: 400 });
+  const { chatbotId, conversationId, message, visitorId } = body;
+  if (!chatbotId || !message?.trim() || !visitorId) {
+    return Response.json(
+      { error: "Mangler chatbotId, message eller visitorId" },
+      { status: 400 }
+    );
   }
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
-  // Fetch chatbot config
+  // 1. Fetch chatbot config
   const { data: config } = await supabase
     .from("chatbot_config")
-    .select("prompt, fallback_response, workspace_id")
+    .select("workspace_id, prompt, welcome_message, fallback_response")
     .eq("id", chatbotId)
     .single();
 
@@ -47,79 +48,135 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Chatbot ikke funnet" }, { status: 404 });
   }
 
-  // Fetch knowledge base articles for context
-  const { data: knowledge } = await supabase
-    .from("knowledge")
-    .select("title, content, category")
-    .eq("workspace_id", config.workspace_id);
+  const fallback =
+    config.fallback_response || "Beklager, noe gikk galt. Prøv igjen senere.";
 
-  // Build system instruction
-  let systemInstruction = config.prompt || "Du er en hjelpsom kundeserviceassistent. Svar alltid på norsk.";
-
-  if (knowledge?.length) {
-    systemInstruction += "\n\n## Kunnskapsbase\nBruk følgende informasjon til å svare kunden:\n\n";
-    for (const article of knowledge) {
-      systemInstruction += `### ${article.title} (${article.category})\n${article.content}\n\n`;
+  // 2. Get conversation history (last 10 messages) if conversationId exists
+  let history: { role: string; content: string }[] = [];
+  if (conversationId) {
+    const { data: msgs } = await supabase
+      .from("messages")
+      .select("role, content")
+      .eq("conversation_id", conversationId)
+      .order("created_at", { ascending: true })
+      .limit(10);
+    if (msgs) {
+      history = msgs;
     }
-    systemInstruction += "Hvis spørsmålet ikke kan besvares med informasjonen over, si at du ikke har svaret og tilby å sette kunden i kontakt med en medarbeider.";
   }
 
+  // 3. Search knowledge base with ILIKE on keywords from the message
+  const words = message
+    .trim()
+    .split(/\s+/)
+    .filter((w) => w.length > 2)
+    .slice(0, 5);
+
+  let knowledgeContext = "";
+  if (words.length > 0) {
+    const orFilter = words
+      .map((w) => `title.ilike.%${w}%,content.ilike.%${w}%`)
+      .join(",");
+
+    const { data: articles } = await supabase
+      .from("knowledge")
+      .select("title, content")
+      .eq("workspace_id", config.workspace_id)
+      .or(orFilter)
+      .limit(5);
+
+    if (articles?.length) {
+      knowledgeContext = articles
+        .map((a, i) => `[${i + 1}] ${a.title}\n${a.content}`)
+        .join("\n\n");
+    }
+  }
+
+  // 4. Build prompt
+  const systemPrompt =
+    (config.prompt || "Du er en hjelpsom kundeserviceassistent.") +
+    "\n\nBruk følgende kunnskapsbase for å svare. Hvis du ikke finner svaret, si: " +
+    fallback +
+    "\nSvar alltid på norsk med mindre brukeren skriver på et annet språk.";
+
+  let fullPrompt = `System: ${systemPrompt}\n\n`;
+
+  if (knowledgeContext) {
+    fullPrompt += `Kunnskapsbase:\n${knowledgeContext}\n\n`;
+  }
+
+  for (const msg of history) {
+    const label = msg.role === "user" ? "Bruker" : "Assistent";
+    fullPrompt += `${label}: ${msg.content}\n`;
+  }
+
+  fullPrompt += `Bruker: ${message}\nAssistent:`;
+
+  // 5. Call Gemini API (plain fetch, no SDK)
+  let aiResponse: string;
   try {
-    const ai = new GoogleGenAI({ apiKey });
-
-    // Convert messages to Gemini format (user/model roles)
-    const contents = messages.map((msg) => ({
-      role: msg.role === "assistant" ? ("model" as const) : ("user" as const),
-      parts: [{ text: msg.content }],
-    }));
-
-    const response = await ai.models.generateContentStream({
-      model: "gemini-2.5-flash-lite",
-      contents,
-      config: {
-        systemInstruction,
-        maxOutputTokens: 1024,
-        temperature: 0.7,
-      },
-    });
-
-    // Stream the response
-    const encoder = new TextEncoder();
-    const stream = new ReadableStream({
-      async start(controller) {
-        try {
-          for await (const chunk of response) {
-            const text = chunk.text;
-            if (text) {
-              controller.enqueue(encoder.encode(`data: ${JSON.stringify({ text })}\n\n`));
-            }
-          }
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          controller.close();
-        } catch (err) {
-          const fallback = config.fallback_response || "Beklager, noe gikk galt. Prøv igjen senere.";
-          controller.enqueue(
-            encoder.encode(`data: ${JSON.stringify({ text: fallback, error: true })}\n\n`)
-          );
-          controller.enqueue(encoder.encode("data: [DONE]\n\n"));
-          controller.close();
-          console.error("Gemini streaming error:", err);
-        }
-      },
-    });
-
-    return new Response(stream, {
-      headers: {
-        "Content-Type": "text/event-stream",
-        "Cache-Control": "no-cache",
-        Connection: "keep-alive",
-      },
-    });
-  } catch (err) {
-    console.error("Gemini API error:", err);
-    return Response.json(
-      { reply: config.fallback_response || "Beklager, noe gikk galt." },
-      { status: 200 }
+    const geminiRes = await fetch(
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`,
+      {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+          "x-goog-api-key": apiKey,
+        },
+        body: JSON.stringify({
+          contents: [{ parts: [{ text: fullPrompt }] }],
+        }),
+      }
     );
+
+    if (!geminiRes.ok) {
+      console.error("Gemini API error:", geminiRes.status, await geminiRes.text());
+      aiResponse = fallback;
+    } else {
+      const data = await geminiRes.json();
+      aiResponse =
+        data?.candidates?.[0]?.content?.parts?.[0]?.text || fallback;
+    }
+  } catch (err) {
+    console.error("Gemini fetch error:", err);
+    aiResponse = fallback;
   }
+
+  // 6. Create conversation if needed, then save messages
+  let activeConversationId = conversationId;
+
+  if (!activeConversationId) {
+    const { data: newConvo } = await supabase
+      .from("conversations")
+      .insert({
+        workspace_id: config.workspace_id,
+        chatbot_config_id: chatbotId,
+        visitor_id: visitorId,
+      })
+      .select("id")
+      .single();
+
+    activeConversationId = newConvo?.id ?? null;
+  }
+
+  if (activeConversationId) {
+    await supabase.from("messages").insert([
+      {
+        conversation_id: activeConversationId,
+        role: "user",
+        content: message,
+      },
+      {
+        conversation_id: activeConversationId,
+        role: "assistant",
+        content: aiResponse,
+      },
+    ]);
+  }
+
+  // 7. Return response
+  return Response.json({
+    response: aiResponse,
+    conversationId: activeConversationId,
+  });
 }

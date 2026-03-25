@@ -1,9 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect, useCallback } from "react";
+import { useState, useRef, useEffect } from "react";
 import { MessageSquare, X, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { createClient } from "@/lib/supabase/client";
 
 interface Message {
   id: string;
@@ -69,7 +68,6 @@ export function ChatWidget({
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const conversationIdRef = useRef<string | null>(null);
-  const workspaceIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
@@ -90,53 +88,6 @@ export function ChatWidget({
     }
   }, [welcomeMessage]);
 
-  // Fetch workspace_id from chatbot_config on mount
-  useEffect(() => {
-    if (!chatbotId) return;
-    const supabase = createClient();
-    supabase
-      .from("chatbot_config")
-      .select("workspace_id")
-      .eq("id", chatbotId)
-      .single()
-      .then(({ data }) => {
-        if (data) workspaceIdRef.current = data.workspace_id;
-      });
-  }, [chatbotId]);
-
-  const ensureConversation = useCallback(async (): Promise<string | null> => {
-    if (conversationIdRef.current) return conversationIdRef.current;
-    if (!chatbotId || !workspaceIdRef.current) return null;
-
-    const supabase = createClient();
-    const visitorId = getVisitorId();
-
-    const { data } = await supabase
-      .from("conversations")
-      .insert({
-        workspace_id: workspaceIdRef.current,
-        chatbot_config_id: chatbotId,
-        visitor_id: visitorId,
-      })
-      .select("id")
-      .single();
-
-    if (data) {
-      conversationIdRef.current = data.id;
-      return data.id;
-    }
-    return null;
-  }, [chatbotId]);
-
-  async function saveMessage(conversationId: string, role: "user" | "assistant", content: string) {
-    const supabase = createClient();
-    await supabase.from("messages").insert({
-      conversation_id: conversationId,
-      role,
-      content,
-    });
-  }
-
   async function handleSend() {
     const text = input.trim();
     if (!text || isTyping) return;
@@ -146,20 +97,55 @@ export function ChatWidget({
       role: "user",
       content: text,
     };
-    const updatedMessages = [...messages, userMsg];
-    setMessages(updatedMessages);
+    setMessages((prev) => [...prev, userMsg]);
     setInput("");
     setIsTyping(true);
 
-    // Persist user message
-    const convoId = chatbotId ? await ensureConversation() : null;
-    if (convoId) {
-      await saveMessage(convoId, "user", text);
-    }
-
     // If we have a chatbotId, use AI; otherwise fall back to demo replies
     if (chatbotId) {
-      await streamAIResponse(updatedMessages, convoId);
+      try {
+        const visitorId = getVisitorId();
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            chatbotId,
+            conversationId: conversationIdRef.current,
+            message: text,
+            visitorId,
+          }),
+        });
+
+        const data = await res.json();
+
+        if (res.ok && data.response) {
+          conversationIdRef.current = data.conversationId;
+          setMessages((prev) => [
+            ...prev,
+            { id: `bot-${Date.now()}`, role: "assistant", content: data.response },
+          ]);
+        } else {
+          setMessages((prev) => [
+            ...prev,
+            {
+              id: `bot-${Date.now()}`,
+              role: "assistant",
+              content: "Beklager, noe gikk galt. Prøv igjen senere.",
+            },
+          ]);
+        }
+      } catch {
+        setMessages((prev) => [
+          ...prev,
+          {
+            id: `bot-${Date.now()}`,
+            role: "assistant",
+            content: "Beklager, noe gikk galt. Prøv igjen senere.",
+          },
+        ]);
+      } finally {
+        setIsTyping(false);
+      }
     } else {
       // Demo mode for preview
       setTimeout(() => {
@@ -170,96 +156,6 @@ export function ChatWidget({
         ]);
         setIsTyping(false);
       }, 1000 + Math.random() * 500);
-    }
-  }
-
-  async function streamAIResponse(allMessages: Message[], convoId: string | null) {
-    const botMsgId = `bot-${Date.now()}`;
-
-    // Add empty assistant message that we'll stream into
-    setMessages((prev) => [...prev, { id: botMsgId, role: "assistant", content: "" }]);
-
-    try {
-      // Send only user/assistant messages (skip welcome if it's default)
-      const chatHistory = allMessages
-        .filter((m) => m.id !== "welcome")
-        .map((m) => ({ role: m.role, content: m.content }));
-
-      const response = await fetch("/api/chat", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ messages: chatHistory, chatbotId }),
-      });
-
-      if (!response.ok || !response.body) {
-        // Non-streaming fallback
-        const data = await response.json();
-        const fallback = data.reply || "Beklager, noe gikk galt. Prøv igjen senere.";
-        setMessages((prev) =>
-          prev.map((m) => (m.id === botMsgId ? { ...m, content: fallback } : m))
-        );
-        setIsTyping(false);
-        if (convoId) await saveMessage(convoId, "assistant", fallback);
-        return;
-      }
-
-      // Stream SSE response
-      const reader = response.body.getReader();
-      const decoder = new TextDecoder();
-      let fullText = "";
-      let buffer = "";
-
-      setIsTyping(false); // Hide typing indicator once streaming starts
-
-      while (true) {
-        const { done, value } = await reader.read();
-        if (done) break;
-
-        buffer += decoder.decode(value, { stream: true });
-        const lines = buffer.split("\n");
-        // Keep last potentially incomplete line in buffer
-        buffer = lines.pop() || "";
-
-        for (const line of lines) {
-          if (!line.startsWith("data: ")) continue;
-          const payload = line.slice(6).trim();
-          if (payload === "[DONE]") continue;
-
-          try {
-            const parsed = JSON.parse(payload) as { text: string; error?: boolean };
-            if (parsed.text) {
-              fullText += parsed.text;
-              setMessages((prev) =>
-                prev.map((m) =>
-                  m.id === botMsgId ? { ...m, content: fullText } : m
-                )
-              );
-            }
-          } catch {
-            // Skip malformed chunks
-          }
-        }
-      }
-
-      // If we got nothing, show fallback
-      if (!fullText) {
-        fullText = "Beklager, jeg klarte ikke å svare. Prøv igjen.";
-        setMessages((prev) =>
-          prev.map((m) => (m.id === botMsgId ? { ...m, content: fullText } : m))
-        );
-      }
-
-      // Persist final assistant message
-      if (convoId) {
-        await saveMessage(convoId, "assistant", fullText);
-      }
-    } catch {
-      const errorMsg = "Beklager, noe gikk galt. Prøv igjen senere.";
-      setMessages((prev) =>
-        prev.map((m) => (m.id === botMsgId ? { ...m, content: errorMsg } : m))
-      );
-      setIsTyping(false);
-      if (convoId) await saveMessage(convoId, "assistant", errorMsg);
     }
   }
 
