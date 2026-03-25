@@ -296,7 +296,7 @@ export function ChatbotPageClient(): React.ReactNode {
                 className="absolute right-2 top-2"
                 onClick={() =>
                   copy(
-                    `<script src="https://chatpulse-ten.vercel.app/widget.js" data-chatbot-id="${config.id}" data-primary-color="${config.widget_styling.primary_color}" data-position="${config.widget_styling.position}"></script>`
+                    `<script async src="https://chatpulse-ten.vercel.app/widget.js" data-chatbot-id="${config.id}" data-primary-color="${config.widget_styling.primary_color}" data-position="${config.widget_styling.position}"></script>`
                   )
                 }
               >
