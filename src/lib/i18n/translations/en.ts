@@ -310,7 +310,7 @@ const en: Record<string, string> = {
   'landing.hero.title': 'AI chatbot for your business',
   'landing.hero.titleGradient': '— ready in minutes',
   'landing.hero.description': 'Train the chatbot with your knowledge base. Embed on your website. See what customers ask about.',
-  'landing.hero.cta': 'Get started for free',
+  'landing.hero.cta': 'Get started',
   'landing.hero.howItWorks': 'See how it works',
   'landing.features.title': 'Everything you need for smart customer service',
   'landing.features.description': 'From knowledge base to live widget — ChatPulse gives you full control.',

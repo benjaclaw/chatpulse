@@ -69,3 +69,42 @@ export function GoogleSignInButton() {
     </Button>
   );
 }
+
+export function GoogleHeroButton() {
+  const [loading, setLoading] = useState(false);
+
+  async function handleClick() {
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase.auth.signInWithOAuth({
+        provider: "google",
+        options: {
+          redirectTo: `${window.location.origin}/auth/callback`,
+        },
+      });
+      if (error) throw error;
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } catch {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <button
+      type="button"
+      onClick={handleClick}
+      disabled={loading}
+      className="inline-flex h-12 items-center gap-2.5 rounded-lg border bg-white px-6 text-sm font-medium text-gray-700 shadow-sm transition-all hover:bg-gray-50 hover:shadow-md disabled:opacity-50"
+    >
+      {loading ? (
+        <Loader2 className="h-4 w-4 animate-spin" />
+      ) : (
+        <GoogleIcon />
+      )}
+      Fortsett med Google
+    </button>
+  );
+}

@@ -310,7 +310,7 @@ const nb: Record<string, string> = {
   'landing.hero.title': 'AI-chatbot for din bedrift',
   'landing.hero.titleGradient': '— klar på minutter',
   'landing.hero.description': 'Tren chatboten med din kunnskapsbase. Embed på nettsiden. Se hva kundene spør om.',
-  'landing.hero.cta': 'Kom i gang gratis',
+  'landing.hero.cta': 'Kom i gang',
   'landing.hero.howItWorks': 'Se hvordan det fungerer',
   'landing.features.title': 'Alt du trenger for smart kundeservice',
   'landing.features.description': 'Fra kunnskapsbase til live widget — ChatPulse gir deg full kontroll.',

@@ -21,6 +21,7 @@ import { cn } from "@/lib/utils";
 import { createT, type Language } from "@/lib/i18n";
 import { LandingHeader } from "./header";
 import { LandingFooter } from "./footer";
+import { GoogleHeroButton } from "@/components/auth/google-sign-in-button";
 
 export function HomePage(): React.ReactNode {
   const [language] = useState<Language>(() => {
@@ -70,14 +71,7 @@ export function HomePage(): React.ReactNode {
                 {t('landing.hero.cta')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
-              <a
-                href="#how-it-works"
-                className={cn(
-                  buttonVariants({ size: "lg", variant: "outline" })
-                )}
-              >
-                {t('landing.hero.howItWorks')}
-              </a>
+              <GoogleHeroButton />
             </div>
           </div>
 
