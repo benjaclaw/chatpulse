@@ -19,7 +19,7 @@ const DEFAULT_STYLING = { primary_color: "#6366f1", position: "right" as const }
 export function ChatbotPageClient(): React.ReactNode {
   const workspace = useWorkspace();
   const supabase = createClient();
-  const { t } = useLanguage();
+  const { t, language } = useLanguage();
   const [config, setConfig] = useState<ChatbotConfig>({
     id: "",
     workspace_id: workspace.id,
@@ -31,6 +31,11 @@ export function ChatbotPageClient(): React.ReactNode {
   });
   const [loading, setLoading] = useState(true);
   const { copied, copy } = useClipboard();
+
+  const widgetBase = "https://chatpulse-ten.vercel.app";
+  const directLink = config.id ? `${widgetBase}/widget/${config.id}` : "";
+  const scriptEmbed = config.id ? `<script async\n  src="${widgetBase}/widget.js"\n  data-chatbot-id="${config.id}"\n  data-primary-color="${config.widget_styling.primary_color}"\n  data-position="${config.widget_styling.position}">\n</script>` : "";
+  const iframeEmbed = config.id ? `<iframe\n  src="${widgetBase}/widget/${config.id}"\n  style="width:400px;height:600px;border:none;border-radius:12px;"\n  title="ChatPulse"\n  allow="clipboard-write">\n</iframe>` : "";
   const { active: saved, trigger: triggerSaved } = useTemporaryFlag();
 
   useEffect(() => {
@@ -267,84 +272,58 @@ export function ChatbotPageClient(): React.ReactNode {
             )}
           </Button>
 
-          {/* Embed code */}
+          {/* Share & Embed */}
           <div className="rounded-xl border bg-card p-6 shadow-sm">
             <h3 className="flex items-center gap-2 font-semibold">
               <Code2 className="h-4 w-4 text-primary" />
               {t('chatbot.embed')}
             </h3>
-            <p className="mt-2 text-sm text-muted-foreground">
-              {t('chatbot.embedHelp')}{" "}
-              <code className="rounded bg-muted px-1 py-0.5 text-xs font-mono">
-                &lt;/body&gt;
-              </code>{" "}
-              {t('chatbot.embedHelpSuffix')}
-            </p>
-            <div className="relative mt-4">
-              <pre className="overflow-x-auto rounded-lg border bg-muted/50 p-4 text-sm font-mono leading-relaxed">
-                <code>{`<script
-  src="https://chatpulse-ten.vercel.app/widget.js"
-  data-chatbot-id="${config.id}"
-  data-primary-color="${config.widget_styling.primary_color}"
-  data-position="${config.widget_styling.position}">
-</script>`}</code>
-              </pre>
-              <Button
-                variant="outline"
-                size="sm"
-                className="absolute right-2 top-2"
-                onClick={() =>
-                  copy(
-                    `<script async src="https://chatpulse-ten.vercel.app/widget.js" data-chatbot-id="${config.id}" data-primary-color="${config.widget_styling.primary_color}" data-position="${config.widget_styling.position}"></script>`
-                  )
-                }
-              >
-                {copied ? (
-                  <>
-                    <Check className="mr-1.5 h-3.5 w-3.5" />
-                    {t('common.copied')}
-                  </>
-                ) : (
-                  <>
-                    <Copy className="mr-1.5 h-3.5 w-3.5" />
-                    {t('common.copyCode')}
-                  </>
-                )}
-              </Button>
-            </div>
-            {/* Mini preview */}
-            <div className="mt-4">
-              <p className="mb-2 text-xs font-medium text-muted-foreground">
-                {t('chatbot.buttonPreview')}
-              </p>
-              <div className="flex items-center gap-3 rounded-lg border bg-background p-4">
-                <div
-                  className="flex h-12 w-12 items-center justify-center rounded-full shadow-md"
-                  style={{
-                    backgroundColor: config.widget_styling.primary_color,
-                  }}
-                >
-                  <svg
-                    xmlns="http://www.w3.org/2000/svg"
-                    width="22"
-                    height="22"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="white"
-                    strokeWidth="2"
-                    strokeLinecap="round"
-                    strokeLinejoin="round"
-                  >
-                    <path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z" />
-                  </svg>
+
+            <div className="mt-4 space-y-4">
+              {/* Direct link */}
+              <div className="rounded-lg border p-4">
+                <div className="flex items-center justify-between">
+                  <div>
+                    <p className="text-sm font-medium">{language === "nb" ? "Direkte lenke" : "Direct link"}</p>
+                    <p className="text-xs text-muted-foreground">{language === "nb" ? "Del denne lenken — ingen embed nødvendig" : "Share this link — no embed needed"}</p>
+                  </div>
+                  <Button variant="outline" size="sm" onClick={() => copy(directLink)}>
+                    {copied ? <><Check className="mr-1.5 h-3.5 w-3.5" />{t('common.copied')}</> : <><Copy className="mr-1.5 h-3.5 w-3.5" />{t('common.copy')}</>}
+                  </Button>
                 </div>
-                <span className="text-sm text-muted-foreground">
-                  {t('chatbot.buttonDesc')}{" "}
-                  {config.widget_styling.position === "right"
-                    ? t('chatbot.buttonRight')
-                    : t('chatbot.buttonLeft')}{" "}
-                  {t('chatbot.buttonSuffix')}
-                </span>
+                <code className="mt-2 block truncate rounded bg-muted px-3 py-2 text-xs font-mono text-muted-foreground">{directLink}</code>
+              </div>
+
+              {/* Script embed (floating widget) */}
+              <div className="rounded-lg border p-4">
+                <p className="text-sm font-medium">{language === "nb" ? "Flytende widget (script)" : "Floating widget (script)"}</p>
+                <p className="text-xs text-muted-foreground mb-3">
+                  {t('chatbot.embedHelp')}{" "}
+                  <code className="rounded bg-muted px-1 py-0.5 text-xs font-mono">&lt;/body&gt;</code>{" "}
+                  {t('chatbot.embedHelpSuffix')}
+                </p>
+                <div className="relative">
+                  <pre className="overflow-x-auto rounded-lg border bg-muted/50 p-3 text-xs font-mono leading-relaxed">
+                    <code>{scriptEmbed}</code>
+                  </pre>
+                  <Button variant="outline" size="sm" className="absolute right-2 top-2" onClick={() => copy(scriptEmbed)}>
+                    {copied ? <><Check className="mr-1.5 h-3.5 w-3.5" />{t('common.copied')}</> : <><Copy className="mr-1.5 h-3.5 w-3.5" />{t('common.copyCode')}</>}
+                  </Button>
+                </div>
+              </div>
+
+              {/* Inline iframe */}
+              <div className="rounded-lg border p-4">
+                <p className="text-sm font-medium">{language === "nb" ? "Inline iframe" : "Inline iframe"}</p>
+                <p className="text-xs text-muted-foreground mb-3">{language === "nb" ? "Embed direkte i en div på siden" : "Embed directly in a div on your page"}</p>
+                <div className="relative">
+                  <pre className="overflow-x-auto rounded-lg border bg-muted/50 p-3 text-xs font-mono leading-relaxed">
+                    <code>{iframeEmbed}</code>
+                  </pre>
+                  <Button variant="outline" size="sm" className="absolute right-2 top-2" onClick={() => copy(iframeEmbed)}>
+                    {copied ? <><Check className="mr-1.5 h-3.5 w-3.5" />{t('common.copied')}</> : <><Copy className="mr-1.5 h-3.5 w-3.5" />{t('common.copyCode')}</>}
+                  </Button>
+                </div>
               </div>
             </div>
           </div>
