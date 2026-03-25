@@ -70,5 +70,5 @@ export async function resetPassword(password: string): Promise<ActionResult> {
 export async function signOut(): Promise<void> {
   const supabase = await createClient();
   await supabase.auth.signOut();
-  redirect("/login");
+  redirect("/");
 }
