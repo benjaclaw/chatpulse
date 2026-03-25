@@ -16,7 +16,7 @@ export default async function WidgetPage({
   const supabase = await createClient();
   const { data: config } = await supabase
     .from("chatbot_config")
-    .select("name, welcome_message, widget_styling")
+    .select("name, welcome_message, widget_styling, logo_url")
     .eq("id", chatbotId)
     .maybeSingle();
 
@@ -24,6 +24,7 @@ export default async function WidgetPage({
   const welcomeMessage = config?.welcome_message ?? "Hi! How can I help you?";
   const styling = config?.widget_styling as { primary_color?: string; position?: string } | null;
   const primaryColor = query.color ?? styling?.primary_color ?? "#6366f1";
+  const logoUrl = (config?.logo_url as string | undefined) ?? undefined;
 
   return (
     <div className="flex h-dvh w-full flex-col">
@@ -33,6 +34,7 @@ export default async function WidgetPage({
         botName={botName}
         welcomeMessage={welcomeMessage}
         primaryColor={primaryColor}
+        logoUrl={logoUrl}
         className="h-full w-full !rounded-none border-0 shadow-none"
       />
     </div>

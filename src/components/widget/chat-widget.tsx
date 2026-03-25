@@ -16,6 +16,8 @@ interface ChatWidgetProps {
   position?: "left" | "right";
   welcomeMessage?: string;
   botName?: string;
+  /** Optional logo URL to display in the header instead of the default icon */
+  logoUrl?: string;
   /** Render inline (no floating button, always open) for previews */
   inline?: boolean;
   className?: string;
@@ -39,6 +41,7 @@ export function ChatWidget({
   position = "right",
   welcomeMessage,
   botName = "ChatPulse",
+  logoUrl,
   inline = false,
   className,
   chatbotId,
@@ -188,6 +191,7 @@ export function ChatWidget({
         <WidgetHeader
           botName={botName}
           primaryColor={primaryColor}
+          logoUrl={logoUrl}
           onClose={() => {}}
           showClose={false}
           t={t}
@@ -255,6 +259,7 @@ export function ChatWidget({
         <WidgetHeader
           botName={botName}
           primaryColor={primaryColor}
+          logoUrl={logoUrl}
           onClose={() => setIsOpen(false)}
           showClose
           t={t}
@@ -320,12 +325,14 @@ export function ChatWidget({
 function WidgetHeader({
   botName,
   primaryColor,
+  logoUrl,
   onClose,
   showClose,
   t,
 }: {
   botName: string;
   primaryColor: string;
+  logoUrl?: string;
   onClose: () => void;
   showClose: boolean;
   t: TranslateFunction;
@@ -336,9 +343,17 @@ function WidgetHeader({
       style={{ backgroundColor: primaryColor }}
     >
       <div className="flex items-center gap-2">
-        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
-          <MessageSquare className="h-4 w-4 text-white" />
-        </div>
+        {logoUrl ? (
+          <img
+            src={logoUrl}
+            alt={botName}
+            className="h-8 w-8 rounded-full object-cover"
+          />
+        ) : (
+          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+            <MessageSquare className="h-4 w-4 text-white" />
+          </div>
+        )}
         <div>
           <p className="text-sm font-semibold text-white">{botName}</p>
           <p className="text-xs text-white/70">{t('widget.online')}</p>

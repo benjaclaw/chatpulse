@@ -54,6 +54,7 @@ export interface ChatbotConfig {
   prompt: string;
   welcome_message: string;
   fallback_response: string;
+  logo_url?: string;
   widget_styling: {
     primary_color: string;
     position: "left" | "right";

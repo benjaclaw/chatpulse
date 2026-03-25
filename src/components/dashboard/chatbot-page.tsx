@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatWidget } from "@/components/widget/chat-widget";
-import { Bot, Eye, Code2, Copy, Check } from "lucide-react";
+import { Bot, Eye, Code2, Copy, Check, Upload, Trash2 } from "lucide-react";
 import type { ChatbotConfig } from "@/lib/types";
 
 const DEFAULT_STYLING = { primary_color: "#6366f1", position: "right" as const };
@@ -37,13 +37,35 @@ export function ChatbotPageClient(): React.ReactNode {
   const scriptEmbed = config.id ? `<script async\n  src="${widgetBase}/widget.js"\n  data-chatbot-id="${config.id}"\n  data-primary-color="${config.widget_styling.primary_color}"\n  data-position="${config.widget_styling.position}">\n</script>` : "";
   const iframeEmbed = config.id ? `<iframe\n  src="${widgetBase}/widget/${config.id}"\n  style="width:400px;height:600px;border:none;border-radius:12px;"\n  title="ChatPulse"\n  allow="clipboard-write">\n</iframe>` : "";
   const { active: saved, trigger: triggerSaved } = useTemporaryFlag();
+  const [uploading, setUploading] = useState(false);
+
+  async function handleLogoUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploading(true);
+    try {
+      const ext = file.name.split(".").pop() ?? "png";
+      const path = `${workspace.id}/${crypto.randomUUID()}.${ext}`;
+      const { error } = await supabase.storage.from("logos").upload(path, file);
+      if (error) throw error;
+      const { data: urlData } = supabase.storage.from("logos").getPublicUrl(path);
+      update("logo_url", urlData.publicUrl);
+    } finally {
+      setUploading(false);
+      e.target.value = "";
+    }
+  }
+
+  function handleLogoRemove() {
+    update("logo_url", undefined as unknown as string);
+  }
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       const { data } = await supabase
         .from("chatbot_config")
-        .select("id, workspace_id, name, prompt, welcome_message, fallback_response, widget_styling")
+        .select("id, workspace_id, name, prompt, welcome_message, fallback_response, widget_styling, logo_url")
         .eq("workspace_id", workspace.id)
         .limit(1)
         .maybeSingle();
@@ -56,6 +78,7 @@ export function ChatbotPageClient(): React.ReactNode {
             prompt: data.prompt,
             welcome_message: data.welcome_message,
             fallback_response: data.fallback_response,
+            logo_url: data.logo_url ?? undefined,
             widget_styling: data.widget_styling ?? { primary_color: "#6366f1", position: "right" as const },
           });
         }
@@ -88,6 +111,7 @@ export function ChatbotPageClient(): React.ReactNode {
       prompt: config.prompt,
       welcome_message: config.welcome_message,
       fallback_response: config.fallback_response,
+      logo_url: config.logo_url ?? null,
       widget_styling: config.widget_styling,
     };
 
@@ -100,7 +124,7 @@ export function ChatbotPageClient(): React.ReactNode {
       const { data } = await supabase
         .from("chatbot_config")
         .insert({ ...payload, workspace_id: workspace.id })
-        .select("id, workspace_id, name, prompt, welcome_message, fallback_response, widget_styling")
+        .select("id, workspace_id, name, prompt, welcome_message, fallback_response, widget_styling, logo_url")
         .single();
       if (data) {
         setConfig({
@@ -110,6 +134,7 @@ export function ChatbotPageClient(): React.ReactNode {
           prompt: data.prompt,
           welcome_message: data.welcome_message,
           fallback_response: data.fallback_response,
+          logo_url: data.logo_url ?? undefined,
           widget_styling: data.widget_styling ?? { primary_color: "#6366f1", position: "right" as const },
         });
       }
@@ -161,6 +186,38 @@ export function ChatbotPageClient(): React.ReactNode {
                   value={config.name}
                   onChange={(e) => update("name", e.target.value)}
                 />
+              </div>
+              <div className="space-y-2">
+                <Label>{language === "nb" ? "Logo" : "Logo"}</Label>
+                <div className="flex items-center gap-3">
+                  {config.logo_url && (
+                    <img
+                      src={config.logo_url}
+                      alt="Logo"
+                      className="h-10 w-10 rounded-full object-cover border"
+                    />
+                  )}
+                  <label className="cursor-pointer">
+                    <input
+                      type="file"
+                      accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                      className="hidden"
+                      onChange={handleLogoUpload}
+                      disabled={uploading}
+                    />
+                    <span className="inline-flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium hover:bg-accent transition-colors">
+                      <Upload className="h-4 w-4" />
+                      {uploading
+                        ? (language === "nb" ? "Laster opp…" : "Uploading…")
+                        : (language === "nb" ? "Last opp logo" : "Upload logo")}
+                    </span>
+                  </label>
+                  {config.logo_url && (
+                    <Button variant="ghost" size="sm" onClick={handleLogoRemove}>
+                      <Trash2 className="h-4 w-4 text-muted-foreground" />
+                    </Button>
+                  )}
+                </div>
               </div>
             </div>
           </div>
@@ -343,6 +400,7 @@ export function ChatbotPageClient(): React.ReactNode {
               welcomeMessage={config.welcome_message}
               primaryColor={config.widget_styling.primary_color}
               position={config.widget_styling.position}
+              logoUrl={config.logo_url}
             />
           </div>
         </div>
