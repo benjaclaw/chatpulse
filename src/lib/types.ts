@@ -42,6 +42,8 @@ export interface KnowledgeItem {
   content: string;
   category: string;
   created_at: string;
+  file_url?: string;
+  file_name?: string;
 }
 
 export interface ChatbotConfig {

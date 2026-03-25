@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
 import { Button } from "@/components/ui/button";
@@ -19,8 +19,10 @@ import {
 } from "@/components/ui/dialog";
 import { EmptyState } from "./empty-state";
 import { SearchInput } from "./search-input";
-import { Plus, BookOpen, Calendar, Pencil } from "lucide-react";
+import { Plus, BookOpen, Calendar, Pencil, Upload, FileText, Loader2 } from "lucide-react";
 import type { KnowledgeItem } from "@/lib/types";
+
+const ACCEPTED_FILE_TYPES = ".pdf,.docx,.xlsx,.csv,.txt,.md";
 
 export function KnowledgePageClient(): React.ReactNode {
   const { id: workspaceId } = useWorkspace();
@@ -30,13 +32,16 @@ export function KnowledgePageClient(): React.ReactNode {
   const [editingItem, setEditingItem] = useState<KnowledgeItem | null>(null);
   const [items, setItems] = useState<KnowledgeItem[]>([]);
   const [loading, setLoading] = useState(true);
+  const [uploading, setUploading] = useState(false);
+  const [uploadError, setUploadError] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     let cancelled = false;
     async function load() {
       const { data } = await supabase
         .from("knowledge")
-        .select("id, title, content, category, created_at")
+        .select("id, title, content, category, created_at, file_url, file_name")
         .eq("workspace_id", workspaceId)
         .order("created_at", { ascending: false });
       if (!cancelled) {
@@ -81,7 +86,7 @@ export function KnowledgePageClient(): React.ReactNode {
           category: category || "Generelt",
         })
         .eq("id", editingItem.id)
-        .select("id, title, content, category, created_at")
+        .select("id, title, content, category, created_at, file_url, file_name")
         .single();
 
       if (data) {
@@ -96,7 +101,7 @@ export function KnowledgePageClient(): React.ReactNode {
           content,
           category: category || "Generelt",
         })
-        .select("id, title, content, category, created_at")
+        .select("id, title, content, category, created_at, file_url, file_name")
         .single();
 
       if (data) {
@@ -106,6 +111,46 @@ export function KnowledgePageClient(): React.ReactNode {
 
     setDialogOpen(false);
     setEditingItem(null);
+  }
+
+  async function handleFileUpload(e: React.ChangeEvent<HTMLInputElement>) {
+    const file = e.target.files?.[0];
+    if (!file) return;
+
+    // Reset input so the same file can be re-selected
+    e.target.value = "";
+
+    if (file.size > 10 * 1024 * 1024) {
+      setUploadError("Filen er for stor. Maks 10 MB.");
+      return;
+    }
+
+    setUploading(true);
+    setUploadError(null);
+
+    try {
+      const formData = new FormData();
+      formData.append("file", file);
+      formData.append("workspace_id", workspaceId);
+
+      const res = await fetch("/api/knowledge/upload", {
+        method: "POST",
+        body: formData,
+      });
+
+      const result = await res.json();
+
+      if (!res.ok) {
+        setUploadError(result.error || "Opplasting feilet");
+        return;
+      }
+
+      setItems((prev) => [result, ...prev]);
+    } catch {
+      setUploadError("Opplasting feilet. Sjekk tilkoblingen og prøv igjen.");
+    } finally {
+      setUploading(false);
+    }
   }
 
   if (loading) {
@@ -131,63 +176,92 @@ export function KnowledgePageClient(): React.ReactNode {
             Legg til innhold som chatboten kan bruke til å svare kunder.
           </p>
         </div>
-        <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingItem(null); }}>
-          <DialogTrigger render={<Button className="shrink-0" onClick={openCreate} />}>
-            <Plus className="mr-2 h-4 w-4" />
-            Legg til
-          </DialogTrigger>
-          <DialogContent>
-            <DialogHeader>
-              <DialogTitle>{editingItem ? "Rediger artikkel" : "Ny artikkel"}</DialogTitle>
-              <DialogDescription>
-                {editingItem
-                  ? "Oppdater artikkelen i kunnskapsbasen."
-                  : "Legg til en ny artikkel i kunnskapsbasen."}
-              </DialogDescription>
-            </DialogHeader>
-            <form onSubmit={handleSubmit}>
-              <div className="space-y-4 py-4">
-                <div className="space-y-2">
-                  <Label htmlFor="kb-title">Tittel</Label>
-                  <Input
-                    id="kb-title"
-                    name="title"
-                    placeholder="F.eks. Returpolicy"
-                    required
-                    defaultValue={editingItem?.title ?? ""}
-                    key={editingItem?.id ?? "new"}
-                  />
+        <div className="flex items-center gap-2">
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept={ACCEPTED_FILE_TYPES}
+            className="hidden"
+            onChange={handleFileUpload}
+          />
+          <Button
+            variant="outline"
+            className="shrink-0"
+            onClick={() => fileInputRef.current?.click()}
+            disabled={uploading}
+          >
+            {uploading ? (
+              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+            ) : (
+              <Upload className="mr-2 h-4 w-4" />
+            )}
+            {uploading ? "Laster opp..." : "Last opp fil"}
+          </Button>
+          <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingItem(null); }}>
+            <DialogTrigger render={<Button className="shrink-0" onClick={openCreate} />}>
+              <Plus className="mr-2 h-4 w-4" />
+              Legg til
+            </DialogTrigger>
+            <DialogContent>
+              <DialogHeader>
+                <DialogTitle>{editingItem ? "Rediger artikkel" : "Ny artikkel"}</DialogTitle>
+                <DialogDescription>
+                  {editingItem
+                    ? "Oppdater artikkelen i kunnskapsbasen."
+                    : "Legg til en ny artikkel i kunnskapsbasen."}
+                </DialogDescription>
+              </DialogHeader>
+              <form onSubmit={handleSubmit}>
+                <div className="space-y-4 py-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="kb-title">Tittel</Label>
+                    <Input
+                      id="kb-title"
+                      name="title"
+                      placeholder="F.eks. Returpolicy"
+                      required
+                      defaultValue={editingItem?.title ?? ""}
+                      key={editingItem?.id ?? "new"}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="kb-category">Kategori</Label>
+                    <Input
+                      id="kb-category"
+                      name="category"
+                      placeholder="F.eks. Frakt, Betaling, Generelt"
+                      defaultValue={editingItem?.category ?? ""}
+                      key={`cat-${editingItem?.id ?? "new"}`}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="kb-content">Innhold</Label>
+                    <Textarea
+                      id="kb-content"
+                      name="content"
+                      placeholder="Skriv innholdet her..."
+                      rows={5}
+                      required
+                      defaultValue={editingItem?.content ?? ""}
+                      key={`con-${editingItem?.id ?? "new"}`}
+                    />
+                  </div>
                 </div>
-                <div className="space-y-2">
-                  <Label htmlFor="kb-category">Kategori</Label>
-                  <Input
-                    id="kb-category"
-                    name="category"
-                    placeholder="F.eks. Frakt, Betaling, Generelt"
-                    defaultValue={editingItem?.category ?? ""}
-                    key={`cat-${editingItem?.id ?? "new"}`}
-                  />
-                </div>
-                <div className="space-y-2">
-                  <Label htmlFor="kb-content">Innhold</Label>
-                  <Textarea
-                    id="kb-content"
-                    name="content"
-                    placeholder="Skriv innholdet her..."
-                    rows={5}
-                    required
-                    defaultValue={editingItem?.content ?? ""}
-                    key={`con-${editingItem?.id ?? "new"}`}
-                  />
-                </div>
-              </div>
-              <DialogFooter>
-                <Button type="submit">{editingItem ? "Oppdater" : "Lagre"}</Button>
-              </DialogFooter>
-            </form>
-          </DialogContent>
-        </Dialog>
+                <DialogFooter>
+                  <Button type="submit">{editingItem ? "Oppdater" : "Lagre"}</Button>
+                </DialogFooter>
+              </form>
+            </DialogContent>
+          </Dialog>
+        </div>
       </div>
+
+      {/* Upload error */}
+      {uploadError && (
+        <div className="rounded-lg border border-destructive/50 bg-destructive/10 p-3 text-sm text-destructive">
+          {uploadError}
+        </div>
+      )}
 
       {/* Search */}
       <SearchInput
@@ -211,6 +285,12 @@ export function KnowledgePageClient(): React.ReactNode {
                   <div className="flex items-center gap-2 flex-wrap">
                     <h3 className="font-semibold">{item.title}</h3>
                     <Badge variant="secondary">{item.category}</Badge>
+                    {item.file_name && (
+                      <Badge variant="outline" className="gap-1">
+                        <FileText className="h-3 w-3" />
+                        {item.file_name}
+                      </Badge>
+                    )}
                   </div>
                   <p className="mt-2 text-sm text-muted-foreground line-clamp-2">
                     {item.content}
