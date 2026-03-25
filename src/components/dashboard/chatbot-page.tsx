@@ -284,7 +284,7 @@ export function ChatbotPageClient(): React.ReactNode {
             <div className="relative mt-4">
               <pre className="overflow-x-auto rounded-lg border bg-muted/50 p-4 text-sm font-mono leading-relaxed">
                 <code>{`<script
-  src="https://chatpulse.vercel.app/widget.js"
+  src="https://chatpulse-ten.vercel.app/widget.js"
   data-chatbot-id="${config.id}"
   data-primary-color="${config.widget_styling.primary_color}"
   data-position="${config.widget_styling.position}">
@@ -296,7 +296,7 @@ export function ChatbotPageClient(): React.ReactNode {
                 className="absolute right-2 top-2"
                 onClick={() =>
                   copy(
-                    `<script src="https://chatpulse.vercel.app/widget.js" data-chatbot-id="${config.id}" data-primary-color="${config.widget_styling.primary_color}" data-position="${config.widget_styling.position}"></script>`
+                    `<script src="https://chatpulse-ten.vercel.app/widget.js" data-chatbot-id="${config.id}" data-primary-color="${config.widget_styling.primary_color}" data-position="${config.widget_styling.position}"></script>`
                   )
                 }
               >
