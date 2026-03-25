@@ -348,16 +348,21 @@ VIKTIGE REGLER:
           matched = true;
         }
 
-        // Strategy 2: Word overlap — either direction
+        // Strategy 2: Any significant word appears in the other (catches "menneske" vs "menneske plis")
         if (!matched && words.length > 0) {
           const candWords = candNorm.split(/\s+/).filter((w: string) => w.length > 2);
-          const newInCand = words.filter((w) => candWords.includes(w)).length;
-          const candInNew = candWords.filter((w: string) => words.includes(w)).length;
-          // Match if >50% overlap in either direction
-          const overlapA = words.length > 0 ? newInCand / words.length : 0;
-          const overlapB = candWords.length > 0 ? candInNew / candWords.length : 0;
-          if (overlapA >= 0.5 || overlapB >= 0.5) {
-            matched = true;
+          // Check if ANY word from one appears in the other (bi-directional)
+          const anyNewInCand = words.some((w) => candWords.some((cw: string) => cw.includes(w) || w.includes(cw)));
+          const anyCandInNew = candWords.some((cw: string) => words.some((w) => w.includes(cw) || cw.includes(w)));
+          
+          if (anyNewInCand || anyCandInNew) {
+            // At least one shared root word — check overlap ratio too
+            const newInCand = words.filter((w) => candWords.some((cw: string) => cw.includes(w) || w.includes(cw))).length;
+            const shorter = Math.min(words.length, candWords.length);
+            // If the shorter question has >50% of its words matched, it's similar
+            if (shorter > 0 && newInCand / shorter >= 0.5) {
+              matched = true;
+            }
           }
         }
 
