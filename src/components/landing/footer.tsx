@@ -16,8 +16,8 @@ export function LandingFooter(): React.ReactNode {
   return (
     <footer className="border-t px-4 py-8 sm:px-6">
       <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 sm:flex-row sm:justify-between">
-        <Link href="/" className="font-heading text-lg font-bold text-primary">
-          ChatPulse
+        <Link href="/" className="flex items-center">
+          <img src="/logo.svg" alt="ChatPulse" className="h-5" />
         </Link>
         <div className="flex items-center gap-6 text-sm text-muted-foreground">
           <Link
