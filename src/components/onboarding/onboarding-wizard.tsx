@@ -274,12 +274,13 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
       if (rpcError) throw new Error(rpcError.message);
       if (!workspaceId) throw new Error("Failed to create workspace");
 
-      // 2. Insert company_info
+      // 2. Insert company_info (use workspace name as company name)
       const companyData: Record<string, string> = {};
+      companyData.name = workspaceName;
       if (companyEmail) companyData.email = companyEmail;
       if (phone) companyData.phone = phone;
       if (website) companyData.website = website;
-      if (openingHours) companyData.opening_hours = openingHours;
+      if (openingHours) companyData.hours = openingHours;
       if (industry) companyData.industry = industry;
 
       if (Object.keys(companyData).length > 0) {
@@ -517,12 +518,13 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
               <div className="space-y-2">
                 <Label htmlFor="opening-hours">
                   {t("onboarding.openingHours")}
+                  <span className="ml-1 text-xs font-normal text-muted-foreground">({t("common.optional")})</span>
                 </Label>
                 <Input
                   id="opening-hours"
                   value={openingHours}
                   onChange={(e) => setOpeningHours(e.target.value)}
-                  placeholder={t("onboarding.openingHoursPlaceholder")}
+                  placeholder="Man-Fre 08:00-16:00 / Døgnåpent / La stå tom"
                 />
               </div>
             </div>
