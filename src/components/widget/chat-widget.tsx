@@ -363,31 +363,32 @@ function WidgetHeader({
       style={{ backgroundColor: primaryColor }}
     >
       <div className="flex items-center gap-2">
-        {logoUrl ? (
-          <img
-            src={logoUrl}
-            alt={botName}
-            className="h-8 w-8 rounded-full object-cover"
-          />
-        ) : (
-          <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
-            <MessageSquare className="h-4 w-4 text-white" />
-          </div>
-        )}
+        <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20">
+          <MessageSquare className="h-4 w-4 text-white" />
+        </div>
         <div>
           <p className="text-sm font-semibold text-white">{botName}</p>
           <p className="text-xs text-white/70">{t('widget.online')}</p>
         </div>
       </div>
-      {showClose && (
-        <button
-          onClick={onClose}
-          className="rounded-lg p-1 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-          aria-label={t('widget.close')}
-        >
-          <X className="h-5 w-5" />
-        </button>
-      )}
+      <div className="flex items-center gap-2">
+        {logoUrl && (
+          <img
+            src={logoUrl}
+            alt={botName}
+            className="h-7 max-w-[90px] object-contain"
+          />
+        )}
+        {showClose && (
+          <button
+            onClick={onClose}
+            className="rounded-lg p-1 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
+            aria-label={t('widget.close')}
+          >
+            <X className="h-5 w-5" />
+          </button>
+        )}
+      </div>
     </div>
   );
 }
