@@ -19,7 +19,7 @@ interface ChatWidgetProps {
   /** Render inline (no floating button, always open) for previews */
   inline?: boolean;
   className?: string;
-  /** When provided, messages are persisted to the DB */
+  /** When provided, messages are persisted to the DB and AI is enabled */
   chatbotId?: string;
 }
 
@@ -72,7 +72,7 @@ export function ChatWidget({
   const workspaceIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, [messages, isTyping]);
 
   useEffect(() => {
@@ -139,14 +139,15 @@ export function ChatWidget({
 
   async function handleSend() {
     const text = input.trim();
-    if (!text) return;
+    if (!text || isTyping) return;
 
     const userMsg: Message = {
       id: `user-${Date.now()}`,
       role: "user",
       content: text,
     };
-    setMessages((prev) => [...prev, userMsg]);
+    const updatedMessages = [...messages, userMsg];
+    setMessages(updatedMessages);
     setInput("");
     setIsTyping(true);
 
@@ -156,20 +157,110 @@ export function ChatWidget({
       await saveMessage(convoId, "user", text);
     }
 
-    // Simulate bot response
-    setTimeout(async () => {
-      const reply = demoReplies[Math.floor(Math.random() * demoReplies.length)];
-      setMessages((prev) => [
-        ...prev,
-        { id: `bot-${Date.now()}`, role: "assistant", content: reply },
-      ]);
-      setIsTyping(false);
+    // If we have a chatbotId, use AI; otherwise fall back to demo replies
+    if (chatbotId) {
+      await streamAIResponse(updatedMessages, convoId);
+    } else {
+      // Demo mode for preview
+      setTimeout(() => {
+        const reply = demoReplies[Math.floor(Math.random() * demoReplies.length)];
+        setMessages((prev) => [
+          ...prev,
+          { id: `bot-${Date.now()}`, role: "assistant", content: reply },
+        ]);
+        setIsTyping(false);
+      }, 1000 + Math.random() * 500);
+    }
+  }
 
-      // Persist bot reply
-      if (convoId) {
-        await saveMessage(convoId, "assistant", reply);
+  async function streamAIResponse(allMessages: Message[], convoId: string | null) {
+    const botMsgId = `bot-${Date.now()}`;
+
+    // Add empty assistant message that we'll stream into
+    setMessages((prev) => [...prev, { id: botMsgId, role: "assistant", content: "" }]);
+
+    try {
+      // Send only user/assistant messages (skip welcome if it's default)
+      const chatHistory = allMessages
+        .filter((m) => m.id !== "welcome")
+        .map((m) => ({ role: m.role, content: m.content }));
+
+      const response = await fetch("/api/chat", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ messages: chatHistory, chatbotId }),
+      });
+
+      if (!response.ok || !response.body) {
+        // Non-streaming fallback
+        const data = await response.json();
+        const fallback = data.reply || "Beklager, noe gikk galt. Prøv igjen senere.";
+        setMessages((prev) =>
+          prev.map((m) => (m.id === botMsgId ? { ...m, content: fallback } : m))
+        );
+        setIsTyping(false);
+        if (convoId) await saveMessage(convoId, "assistant", fallback);
+        return;
       }
-    }, 1000 + Math.random() * 500);
+
+      // Stream SSE response
+      const reader = response.body.getReader();
+      const decoder = new TextDecoder();
+      let fullText = "";
+      let buffer = "";
+
+      setIsTyping(false); // Hide typing indicator once streaming starts
+
+      while (true) {
+        const { done, value } = await reader.read();
+        if (done) break;
+
+        buffer += decoder.decode(value, { stream: true });
+        const lines = buffer.split("\n");
+        // Keep last potentially incomplete line in buffer
+        buffer = lines.pop() || "";
+
+        for (const line of lines) {
+          if (!line.startsWith("data: ")) continue;
+          const payload = line.slice(6).trim();
+          if (payload === "[DONE]") continue;
+
+          try {
+            const parsed = JSON.parse(payload) as { text: string; error?: boolean };
+            if (parsed.text) {
+              fullText += parsed.text;
+              setMessages((prev) =>
+                prev.map((m) =>
+                  m.id === botMsgId ? { ...m, content: fullText } : m
+                )
+              );
+            }
+          } catch {
+            // Skip malformed chunks
+          }
+        }
+      }
+
+      // If we got nothing, show fallback
+      if (!fullText) {
+        fullText = "Beklager, jeg klarte ikke å svare. Prøv igjen.";
+        setMessages((prev) =>
+          prev.map((m) => (m.id === botMsgId ? { ...m, content: fullText } : m))
+        );
+      }
+
+      // Persist final assistant message
+      if (convoId) {
+        await saveMessage(convoId, "assistant", fullText);
+      }
+    } catch {
+      const errorMsg = "Beklager, noe gikk galt. Prøv igjen senere.";
+      setMessages((prev) =>
+        prev.map((m) => (m.id === botMsgId ? { ...m, content: errorMsg } : m))
+      );
+      setIsTyping(false);
+      if (convoId) await saveMessage(convoId, "assistant", errorMsg);
+    }
   }
 
   // Inline mode — no floating button
