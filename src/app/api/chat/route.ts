@@ -124,7 +124,7 @@ export async function POST(request: Request): Promise<Response> {
   let aiResponse: string;
   try {
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash:generateContent`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent`,
       {
         method: "POST",
         headers: {
