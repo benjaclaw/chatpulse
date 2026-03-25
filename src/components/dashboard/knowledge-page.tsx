@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/lib/i18n/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -27,6 +28,7 @@ const ACCEPTED_FILE_TYPES = ".pdf,.docx,.xlsx,.csv,.txt,.md";
 export function KnowledgePageClient(): React.ReactNode {
   const { id: workspaceId } = useWorkspace();
   const supabase = createClient();
+  const { t } = useLanguage();
   const [search, setSearch] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<KnowledgeItem | null>(null);
@@ -83,7 +85,7 @@ export function KnowledgePageClient(): React.ReactNode {
         .update({
           title,
           content,
-          category: category || "Generelt",
+          category: category || t('knowledge.defaultCategory'),
         })
         .eq("id", editingItem.id)
         .select("id, title, content, category, created_at, file_url, file_name")
@@ -99,7 +101,7 @@ export function KnowledgePageClient(): React.ReactNode {
           workspace_id: workspaceId,
           title,
           content,
-          category: category || "Generelt",
+          category: category || t('knowledge.defaultCategory'),
         })
         .select("id, title, content, category, created_at, file_url, file_name")
         .single();
@@ -121,7 +123,7 @@ export function KnowledgePageClient(): React.ReactNode {
     e.target.value = "";
 
     if (file.size > 10 * 1024 * 1024) {
-      setUploadError("Filen er for stor. Maks 10 MB.");
+      setUploadError(t('knowledge.fileTooLarge'));
       return;
     }
 
@@ -141,13 +143,13 @@ export function KnowledgePageClient(): React.ReactNode {
       const result = await res.json();
 
       if (!res.ok) {
-        setUploadError(result.error || "Opplasting feilet");
+        setUploadError(result.error || t('knowledge.uploadFailed'));
         return;
       }
 
       setItems((prev) => [result, ...prev]);
     } catch {
-      setUploadError("Opplasting feilet. Sjekk tilkoblingen og prøv igjen.");
+      setUploadError(t('knowledge.uploadFailedNetwork'));
     } finally {
       setUploading(false);
     }
@@ -157,9 +159,9 @@ export function KnowledgePageClient(): React.ReactNode {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Kunnskapsbase</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('knowledge.title')}</h1>
           <p className="mt-1 text-muted-foreground">
-            Legg til innhold som chatboten kan bruke til å svare kunder.
+            {t('knowledge.description')}
           </p>
         </div>
       </div>
@@ -171,9 +173,9 @@ export function KnowledgePageClient(): React.ReactNode {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Kunnskapsbase</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('knowledge.title')}</h1>
           <p className="mt-1 text-muted-foreground">
-            Legg til innhold som chatboten kan bruke til å svare kunder.
+            {t('knowledge.description')}
           </p>
         </div>
         <div className="flex items-center gap-2">
@@ -195,51 +197,51 @@ export function KnowledgePageClient(): React.ReactNode {
             ) : (
               <Upload className="mr-2 h-4 w-4" />
             )}
-            {uploading ? "Laster opp..." : "Last opp fil"}
+            {uploading ? t('knowledge.uploading') : t('knowledge.uploadFile')}
           </Button>
           <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingItem(null); }}>
             <DialogTrigger render={<Button className="shrink-0" onClick={openCreate} />}>
               <Plus className="mr-2 h-4 w-4" />
-              Legg til
+              {t('knowledge.add')}
             </DialogTrigger>
             <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
-                <DialogTitle>{editingItem ? "Rediger artikkel" : "Ny artikkel"}</DialogTitle>
+                <DialogTitle>{editingItem ? t('knowledge.editArticle') : t('knowledge.newArticle')}</DialogTitle>
                 <DialogDescription>
                   {editingItem
-                    ? "Oppdater artikkelen i kunnskapsbasen."
-                    : "Legg til en ny artikkel i kunnskapsbasen."}
+                    ? t('knowledge.editDescription')
+                    : t('knowledge.newDescription')}
                 </DialogDescription>
               </DialogHeader>
               <form onSubmit={handleSubmit}>
                 <div className="space-y-4 py-4">
                   <div className="space-y-2">
-                    <Label htmlFor="kb-title">Tittel</Label>
+                    <Label htmlFor="kb-title">{t('knowledge.titleLabel')}</Label>
                     <Input
                       id="kb-title"
                       name="title"
-                      placeholder="F.eks. Returpolicy"
+                      placeholder={t('knowledge.titlePlaceholder')}
                       required
                       defaultValue={editingItem?.title ?? ""}
                       key={editingItem?.id ?? "new"}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="kb-category">Kategori</Label>
+                    <Label htmlFor="kb-category">{t('knowledge.category')}</Label>
                     <Input
                       id="kb-category"
                       name="category"
-                      placeholder="F.eks. Frakt, Betaling, Generelt"
+                      placeholder={t('knowledge.categoryPlaceholder')}
                       defaultValue={editingItem?.category ?? ""}
                       key={`cat-${editingItem?.id ?? "new"}`}
                     />
                   </div>
                   <div className="space-y-2">
-                    <Label htmlFor="kb-content">Innhold</Label>
+                    <Label htmlFor="kb-content">{t('knowledge.content')}</Label>
                     <Textarea
                       id="kb-content"
                       name="content"
-                      placeholder="Skriv innholdet her..."
+                      placeholder={t('knowledge.contentPlaceholder')}
                       rows={12}
                       required
                       defaultValue={editingItem?.content ?? ""}
@@ -249,7 +251,7 @@ export function KnowledgePageClient(): React.ReactNode {
                   </div>
                 </div>
                 <DialogFooter>
-                  <Button type="submit">{editingItem ? "Oppdater" : "Lagre"}</Button>
+                  <Button type="submit">{editingItem ? t('knowledge.update') : t('knowledge.save')}</Button>
                 </DialogFooter>
               </form>
             </DialogContent>
@@ -268,12 +270,12 @@ export function KnowledgePageClient(): React.ReactNode {
       <SearchInput
         value={search}
         onChange={setSearch}
-        placeholder="Søk i kunnskapsbasen..."
+        placeholder={t('knowledge.search')}
       />
 
       {/* Items list */}
       {filtered.length === 0 ? (
-        <KnowledgeEmptyState search={search} onAdd={openCreate} />
+        <KnowledgeEmptyState search={search} onAdd={openCreate} t={t} />
       ) : (
         <div className="space-y-3">
           {filtered.map((item) => (
@@ -321,24 +323,26 @@ export function KnowledgePageClient(): React.ReactNode {
 function KnowledgeEmptyState({
   search,
   onAdd,
+  t,
 }: {
   search: string;
   onAdd: () => void;
+  t: (key: string) => string;
 }): React.ReactNode {
   return (
     <EmptyState
       icon={BookOpen}
-      title={search ? "Ingen resultater" : "Kunnskapsbasen er tom"}
+      title={search ? t('knowledge.noResults') : t('knowledge.empty')}
       description={
         search
-          ? `Fant ingen artikler som matcher "${search}".`
-          : "Legg til artikler som chatboten kan bruke til å svare kundene dine."
+          ? `${t('knowledge.noMatch')} "${search}".`
+          : t('knowledge.emptyDescription')
       }
     >
       {!search && (
         <Button variant="outline" className="mt-5" onClick={onAdd}>
           <Plus className="mr-2 h-4 w-4" />
-          Legg til din første artikkel
+          {t('knowledge.addFirst')}
         </Button>
       )}
     </EmptyState>

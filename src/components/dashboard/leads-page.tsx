@@ -3,8 +3,8 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/lib/i18n/context";
 import type { Lead, LeadStatus, ChatMessage } from "@/lib/types";
-import { LEAD_STATUS_LABEL } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "./empty-state";
@@ -46,6 +46,7 @@ import {
   GripVertical,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import type { TranslateFunction } from "@/lib/i18n";
 
 const COLUMNS: LeadStatus[] = ["new", "contacted", "resolved", "archived"];
 
@@ -70,23 +71,23 @@ const DROP_INDICATOR_COLORS: Record<LeadStatus, string> = {
   archived: "border-gray-400 dark:border-gray-500",
 };
 
-function timeAgo(dateStr: string): string {
+function timeAgo(dateStr: string, t: TranslateFunction): string {
   const now = Date.now();
   const then = new Date(dateStr).getTime();
   const diffMs = now - then;
   const minutes = Math.floor(diffMs / 60000);
-  if (minutes < 1) return "nå";
-  if (minutes < 60) return `${minutes} min siden`;
+  if (minutes < 1) return t('leads.time.now');
+  if (minutes < 60) return t('leads.time.minAgo', { n: minutes });
   const hours = Math.floor(minutes / 60);
-  if (hours < 24) return `${hours} ${hours === 1 ? "time" : "timer"} siden`;
+  if (hours < 24) return hours === 1 ? t('leads.time.hourAgo', { n: hours }) : t('leads.time.hoursAgo', { n: hours });
   const days = Math.floor(hours / 24);
-  if (days < 30) return `${days} ${days === 1 ? "dag" : "dager"} siden`;
+  if (days < 30) return days === 1 ? t('leads.time.dayAgo', { n: days }) : t('leads.time.daysAgo', { n: days });
   const months = Math.floor(days / 30);
-  return `${months} ${months === 1 ? "måned" : "måneder"} siden`;
+  return months === 1 ? t('leads.time.monthAgo', { n: months }) : t('leads.time.monthsAgo', { n: months });
 }
 
-function formatDate(dateStr: string): string {
-  return new Date(dateStr).toLocaleDateString("nb-NO", {
+function formatDate(dateStr: string, locale: string): string {
+  return new Date(dateStr).toLocaleDateString(locale, {
     year: "numeric",
     month: "long",
     day: "numeric",
@@ -98,6 +99,8 @@ function formatDate(dateStr: string): string {
 export function LeadsPageClient(): React.ReactNode {
   const { id: workspaceId } = useWorkspace();
   const supabase = createClient();
+  const { t, language } = useLanguage();
+  const dateLocale = language === 'nb' ? 'nb-NO' : 'en-US';
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
@@ -106,6 +109,8 @@ export function LeadsPageClient(): React.ReactNode {
   const [notesValue, setNotesValue] = useState("");
   const [activeId, setActiveId] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<LeadStatus>("new");
+
+  const statusLabel = (status: LeadStatus) => t(`leads.status${status.charAt(0).toUpperCase()}${status.slice(1)}`);
 
   useEffect(() => {
     let cancelled = false;
@@ -153,12 +158,12 @@ export function LeadsPageClient(): React.ReactNode {
 
   const handleDelete = useCallback(
     async (id: string) => {
-      if (!confirm("Er du sikker på at du vil slette denne leaden?")) return;
+      if (!confirm(t('leads.confirmDelete'))) return;
       setLeads((prev) => prev.filter((l) => l.id !== id));
       setSelectedLead(null);
       await supabase.from("leads").delete().eq("id", id);
     },
-    [supabase]
+    [supabase, t]
   );
 
   const handleSaveNotes = useCallback(
@@ -226,9 +231,9 @@ export function LeadsPageClient(): React.ReactNode {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Leads</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('leads.title')}</h1>
           <p className="mt-1 text-muted-foreground">
-            Håndter kundehenvendelser fra chatboten.
+            {t('leads.description')}
           </p>
         </div>
       </div>
@@ -238,25 +243,25 @@ export function LeadsPageClient(): React.ReactNode {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Leads</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t('leads.title')}</h1>
         <p className="mt-1 text-muted-foreground">
-          Håndter kundehenvendelser fra chatboten.
+          {t('leads.description')}
         </p>
       </div>
 
       {/* Stats */}
       <div className="grid gap-4 sm:grid-cols-4">
-        <StatCard icon={Users} label="Totalt" value={stats.total} />
-        <StatCard icon={UserPlus} label="Nye" value={stats.new} className="text-blue-600 dark:text-blue-400" />
-        <StatCard icon={CheckCircle2} label="Kontaktet" value={stats.contacted} className="text-yellow-600 dark:text-yellow-400" />
-        <StatCard icon={Check} label="Løst" value={stats.resolved} className="text-green-600 dark:text-green-400" />
+        <StatCard icon={Users} label={t('leads.total')} value={stats.total} />
+        <StatCard icon={UserPlus} label={t('leads.new')} value={stats.new} className="text-blue-600 dark:text-blue-400" />
+        <StatCard icon={CheckCircle2} label={t('leads.contacted')} value={stats.contacted} className="text-yellow-600 dark:text-yellow-400" />
+        <StatCard icon={Check} label={t('leads.resolved')} value={stats.resolved} className="text-green-600 dark:text-green-400" />
       </div>
 
       {leads.length === 0 ? (
         <EmptyState
           icon={UserPlus}
-          title="Ingen leads ennå"
-          description="Leads vil dukke opp her når besøkende ber om å snakke med et menneske."
+          title={t('leads.empty')}
+          description={t('leads.emptyDescription')}
         />
       ) : (
         <>
@@ -275,7 +280,7 @@ export function LeadsPageClient(): React.ReactNode {
                       : "text-muted-foreground hover:text-foreground"
                   )}
                 >
-                  {LEAD_STATUS_LABEL[status]}
+                  {statusLabel(status)}
                   {count > 0 && (
                     <span className={cn("ml-1.5 inline-flex h-5 w-5 items-center justify-center rounded-full text-xs", COLUMN_BADGE_COLORS[status])}>
                       {count}
@@ -342,7 +347,7 @@ export function LeadsPageClient(): React.ReactNode {
               <div className="flex items-center gap-2">
                 <DialogTitle>{selectedLead.email}</DialogTitle>
                 <Badge className={cn("text-[10px]", COLUMN_BADGE_COLORS[selectedLead.status])}>
-                  {LEAD_STATUS_LABEL[selectedLead.status]}
+                  {statusLabel(selectedLead.status)}
                 </Badge>
               </div>
               {selectedLead.name && (
@@ -354,14 +359,14 @@ export function LeadsPageClient(): React.ReactNode {
               {/* Created date */}
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Clock className="h-3.5 w-3.5" />
-                Opprettet {formatDate(selectedLead.created_at)}
+                {t('leads.created')} {formatDate(selectedLead.created_at, dateLocale)}
               </div>
 
               {/* Notes */}
               <div>
                 <div className="flex items-center gap-2 mb-1.5">
                   <StickyNote className="h-3.5 w-3.5 text-muted-foreground" />
-                  <span className="text-xs font-medium text-muted-foreground">Notater</span>
+                  <span className="text-xs font-medium text-muted-foreground">{t('leads.notes')}</span>
                 </div>
                 <textarea
                   value={notesValue}
@@ -371,7 +376,7 @@ export function LeadsPageClient(): React.ReactNode {
                       handleSaveNotes(selectedLead.id, notesValue);
                     }
                   }}
-                  placeholder="Legg til notater..."
+                  placeholder={t('leads.addNotes')}
                   className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none resize-none placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
                   rows={3}
                 />
@@ -382,12 +387,12 @@ export function LeadsPageClient(): React.ReactNode {
                 <div>
                   <div className="flex items-center gap-2 mb-2">
                     <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
-                    <span className="text-xs font-medium text-muted-foreground">Samtalehistorikk</span>
+                    <span className="text-xs font-medium text-muted-foreground">{t('leads.conversationHistory')}</span>
                   </div>
                   {loadingMessages ? (
-                    <p className="text-sm text-muted-foreground">Laster...</p>
+                    <p className="text-sm text-muted-foreground">{t('leads.loading')}</p>
                   ) : messages.length === 0 ? (
-                    <p className="text-sm text-muted-foreground">Ingen meldinger funnet.</p>
+                    <p className="text-sm text-muted-foreground">{t('leads.noMessagesFound')}</p>
                   ) : (
                     <div className="space-y-2 max-h-[50vh] overflow-y-auto rounded-lg border bg-background p-3">
                       {messages.map((msg) => (
@@ -435,7 +440,7 @@ export function LeadsPageClient(): React.ReactNode {
                   onClick={() => handleDelete(selectedLead.id)}
                 >
                   <Trash2 className="h-3 w-3 mr-1" />
-                  Slett
+                  {t('leads.delete')}
                 </Button>
                 <div className="flex gap-1.5">
                   {COLUMNS.filter((s) => s !== selectedLead.status).map((status) => (
@@ -446,7 +451,7 @@ export function LeadsPageClient(): React.ReactNode {
                       className="text-xs"
                       onClick={() => handleStatusChange(selectedLead.id, status)}
                     >
-                      {LEAD_STATUS_LABEL[status]}
+                      {statusLabel(status)}
                     </Button>
                   ))}
                 </div>
@@ -473,6 +478,8 @@ function KanbanColumn({
   isOver: boolean;
 }): React.ReactNode {
   const { setNodeRef, isOver } = useDroppable({ id: status });
+  const { t } = useLanguage();
+  const statusLabel = (s: LeadStatus) => t(`leads.status${s.charAt(0).toUpperCase()}${s.slice(1)}`);
 
   return (
     <div
@@ -487,9 +494,9 @@ function KanbanColumn({
       {/* Sticky header */}
       <div className="sticky top-0 z-10 flex items-center justify-between rounded-t-xl px-3 py-2.5 backdrop-blur-sm">
         <div className="flex flex-col">
-          <span className="text-sm font-semibold">{LEAD_STATUS_LABEL[status]}</span>
+          <span className="text-sm font-semibold">{statusLabel(status)}</span>
           {status === "archived" && (
-            <span className="text-[10px] text-muted-foreground">(slettes etter 30 dager)</span>
+            <span className="text-[10px] text-muted-foreground">{t('leads.archivedNote')}</span>
           )}
         </div>
         <span className={cn("inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-medium", COLUMN_BADGE_COLORS[status])}>
@@ -508,7 +515,7 @@ function KanbanColumn({
         ))}
         {leads.length === 0 && (
           <p className="py-8 text-center text-xs text-muted-foreground">
-            Ingen leads
+            {t('leads.noLeads')}
           </p>
         )}
       </div>
@@ -525,6 +532,7 @@ function LeadCard({
   lead: Lead;
   onClickLead: (lead: Lead) => void;
 }): React.ReactNode {
+  const { t } = useLanguage();
   const {
     attributes,
     listeners,
@@ -559,7 +567,7 @@ function LeadCard({
           {...listeners}
           className="mt-0.5 shrink-0 cursor-grab touch-none rounded p-0.5 text-muted-foreground/40 hover:text-muted-foreground hover:bg-muted transition-colors"
           onClick={(e) => e.stopPropagation()}
-          aria-label="Dra for å flytte"
+          aria-label={t('leads.dragToMove')}
         >
           <GripVertical className="h-4 w-4" />
         </button>
@@ -571,7 +579,7 @@ function LeadCard({
           )}
           <div className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
             <Clock className="h-3 w-3" />
-            {timeAgo(lead.created_at)}
+            {timeAgo(lead.created_at, t)}
           </div>
         </div>
       </div>
@@ -582,6 +590,7 @@ function LeadCard({
 /* ───── Drag overlay card ───── */
 
 function LeadCardOverlay({ lead }: { lead: Lead }): React.ReactNode {
+  const { t } = useLanguage();
   return (
     <div className="w-[260px] rounded-lg border bg-card shadow-xl rotate-2 scale-105">
       <div className="flex items-start gap-2 p-3">
@@ -595,7 +604,7 @@ function LeadCardOverlay({ lead }: { lead: Lead }): React.ReactNode {
           )}
           <div className="mt-1 flex items-center gap-1 text-[11px] text-muted-foreground">
             <Clock className="h-3 w-3" />
-            {timeAgo(lead.created_at)}
+            {timeAgo(lead.created_at, t)}
           </div>
         </div>
       </div>

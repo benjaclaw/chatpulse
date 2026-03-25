@@ -1,30 +1,33 @@
 import { Users, Building2, MessageSquare, MessagesSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
+import { createT } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
 
+const t = createT("nb");
+
 const statConfig = [
   {
-    label: "Totale brukere",
+    label: t('admin.totalUsers'),
     key: "totalUsers" as const,
     icon: Users,
     color: "text-blue-600 bg-blue-100 dark:bg-blue-900/30 dark:text-blue-400",
   },
   {
-    label: "Workspaces",
+    label: t('admin.workspaces'),
     key: "totalWorkspaces" as const,
     icon: Building2,
     color: "text-purple-600 bg-purple-100 dark:bg-purple-900/30 dark:text-purple-400",
   },
   {
-    label: "Samtaler",
+    label: t('admin.conversations'),
     key: "totalConversations" as const,
     icon: MessageSquare,
     color: "text-green-600 bg-green-100 dark:bg-green-900/30 dark:text-green-400",
   },
   {
-    label: "Meldinger",
+    label: t('admin.messages'),
     key: "totalMessages" as const,
     icon: MessagesSquare,
     color: "text-orange-600 bg-orange-100 dark:bg-orange-900/30 dark:text-orange-400",
@@ -51,9 +54,9 @@ export default async function AdminDashboardPage(): Promise<React.ReactNode> {
   return (
     <div className="space-y-6">
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Statistikk</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t('admin.stats')}</h1>
         <p className="mt-1 text-muted-foreground">
-          Oversikt over alle brukere, workspaces og aktivitet.
+          {t('admin.statsDescription')}
         </p>
       </div>
 

@@ -12,13 +12,13 @@ import {
 import type { NavItem } from "./types";
 
 export const NAV_ITEMS: NavItem[] = [
-  { label: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
-  { label: "Knowledge Base", href: "/dashboard/knowledge", icon: BookOpen },
-  { label: "Company Info", href: "/dashboard/company", icon: Building2 },
-  { label: "Chatbot", href: "/dashboard/chatbot", icon: Bot },
-  { label: "Conversations", href: "/dashboard/conversations", icon: MessageSquare },
-  { label: "Leads", href: "/dashboard/leads", icon: UserPlus },
-  { label: "Insights", href: "/dashboard/insights", icon: BarChart3 },
-  { label: "Team", href: "/dashboard/team", icon: Users },
-  { label: "Settings", href: "/dashboard/settings", icon: Settings },
+  { labelKey: "nav.dashboard", href: "/dashboard", icon: LayoutDashboard },
+  { labelKey: "nav.knowledge", href: "/dashboard/knowledge", icon: BookOpen },
+  { labelKey: "nav.company", href: "/dashboard/company", icon: Building2 },
+  { labelKey: "nav.chatbot", href: "/dashboard/chatbot", icon: Bot },
+  { labelKey: "nav.conversations", href: "/dashboard/conversations", icon: MessageSquare },
+  { labelKey: "nav.leads", href: "/dashboard/leads", icon: UserPlus },
+  { labelKey: "nav.insights", href: "/dashboard/insights", icon: BarChart3 },
+  { labelKey: "nav.team", href: "/dashboard/team", icon: Users },
+  { labelKey: "nav.settings", href: "/dashboard/settings", icon: Settings },
 ];

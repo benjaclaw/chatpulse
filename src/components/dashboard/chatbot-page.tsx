@@ -5,6 +5,7 @@ import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { useTemporaryFlag } from "@/hooks/use-temporary-flag";
+import { useLanguage } from "@/lib/i18n/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -29,6 +30,7 @@ const defaultConfig = (workspaceId: string): ChatbotConfig => ({
 export function ChatbotPageClient(): React.ReactNode {
   const workspace = useWorkspace();
   const supabase = createClient();
+  const { t } = useLanguage();
   const [config, setConfig] = useState<ChatbotConfig>(defaultConfig(workspace.id));
   const [loading, setLoading] = useState(true);
   const { copied, copy } = useClipboard();
@@ -118,10 +120,10 @@ export function ChatbotPageClient(): React.ReactNode {
       <div className="space-y-6">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">
-            Chatbot-konfigurasjon
+            {t('chatbot.title')}
           </h1>
           <p className="mt-1 text-muted-foreground">
-            Tilpass chatboten og se en live forhåndsvisning.
+            {t('chatbot.description')}
           </p>
         </div>
       </div>
@@ -133,10 +135,10 @@ export function ChatbotPageClient(): React.ReactNode {
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">
-          Chatbot-konfigurasjon
+          {t('chatbot.title')}
         </h1>
         <p className="mt-1 text-muted-foreground">
-          Tilpass chatboten og se en live forhåndsvisning.
+          {t('chatbot.description')}
         </p>
       </div>
 
@@ -147,11 +149,11 @@ export function ChatbotPageClient(): React.ReactNode {
           <div className="rounded-xl border bg-card p-6 shadow-sm">
             <h3 className="flex items-center gap-2 font-semibold">
               <Bot className="h-4 w-4 text-primary" />
-              Generelt
+              {t('chatbot.general')}
             </h3>
             <div className="mt-4 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="bot-name">Chatbot-navn</Label>
+                <Label htmlFor="bot-name">{t('chatbot.botName')}</Label>
                 <Input
                   id="bot-name"
                   value={config.name}
@@ -163,10 +165,10 @@ export function ChatbotPageClient(): React.ReactNode {
 
           {/* Prompts */}
           <div className="rounded-xl border bg-card p-6 shadow-sm">
-            <h3 className="font-semibold">Meldinger</h3>
+            <h3 className="font-semibold">{t('chatbot.messages')}</h3>
             <div className="mt-4 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="system-prompt">System prompt</Label>
+                <Label htmlFor="system-prompt">{t('chatbot.systemPrompt')}</Label>
                 <Textarea
                   id="system-prompt"
                   value={config.prompt}
@@ -174,11 +176,11 @@ export function ChatbotPageClient(): React.ReactNode {
                   rows={4}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Instruksjoner som styrer chatbotens oppførsel.
+                  {t('chatbot.systemPromptHelp')}
                 </p>
               </div>
               <div className="space-y-2">
-                <Label htmlFor="welcome-msg">Velkomstmelding</Label>
+                <Label htmlFor="welcome-msg">{t('chatbot.welcomeMessage')}</Label>
                 <Input
                   id="welcome-msg"
                   value={config.welcome_message}
@@ -186,14 +188,14 @@ export function ChatbotPageClient(): React.ReactNode {
                 />
               </div>
               <div className="space-y-2">
-                <Label htmlFor="fallback-msg">Fallback-respons</Label>
+                <Label htmlFor="fallback-msg">{t('chatbot.fallbackResponse')}</Label>
                 <Input
                   id="fallback-msg"
                   value={config.fallback_response}
                   onChange={(e) => update("fallback_response", e.target.value)}
                 />
                 <p className="text-xs text-muted-foreground">
-                  Vises når chatboten ikke finner et svar.
+                  {t('chatbot.fallbackHelp')}
                 </p>
               </div>
             </div>
@@ -203,11 +205,11 @@ export function ChatbotPageClient(): React.ReactNode {
           <div className="rounded-xl border bg-card p-6 shadow-sm">
             <h3 className="flex items-center gap-2 font-semibold">
               <Eye className="h-4 w-4 text-primary" />
-              Widget-utseende
+              {t('chatbot.widgetAppearance')}
             </h3>
             <div className="mt-4 space-y-4">
               <div className="space-y-2">
-                <Label htmlFor="primary-color">Primærfarge</Label>
+                <Label htmlFor="primary-color">{t('chatbot.primaryColor')}</Label>
                 <div className="flex items-center gap-3">
                   <input
                     id="primary-color"
@@ -228,7 +230,7 @@ export function ChatbotPageClient(): React.ReactNode {
                 </div>
               </div>
               <div className="space-y-2">
-                <Label>Posisjon</Label>
+                <Label>{t('chatbot.position')}</Label>
                 <div className="flex gap-2">
                   <Button
                     variant={
@@ -239,7 +241,7 @@ export function ChatbotPageClient(): React.ReactNode {
                     size="sm"
                     onClick={() => updateStyling("position", "left")}
                   >
-                    Venstre
+                    {t('chatbot.positionLeft')}
                   </Button>
                   <Button
                     variant={
@@ -250,7 +252,7 @@ export function ChatbotPageClient(): React.ReactNode {
                     size="sm"
                     onClick={() => updateStyling("position", "right")}
                   >
-                    Høyre
+                    {t('chatbot.positionRight')}
                   </Button>
                 </div>
               </div>
@@ -261,10 +263,10 @@ export function ChatbotPageClient(): React.ReactNode {
             {saved ? (
               <>
                 <Check className="mr-2 h-4 w-4" />
-                Lagret!
+                {t('common.saved')}
               </>
             ) : (
-              "Lagre endringer"
+              t('common.saveChanges')
             )}
           </Button>
 
@@ -272,14 +274,14 @@ export function ChatbotPageClient(): React.ReactNode {
           <div className="rounded-xl border bg-card p-6 shadow-sm">
             <h3 className="flex items-center gap-2 font-semibold">
               <Code2 className="h-4 w-4 text-primary" />
-              Embed på nettside
+              {t('chatbot.embed')}
             </h3>
             <p className="mt-2 text-sm text-muted-foreground">
-              Lim inn denne kodesnutten rett før{" "}
+              {t('chatbot.embedHelp')}{" "}
               <code className="rounded bg-muted px-1 py-0.5 text-xs font-mono">
                 &lt;/body&gt;
               </code>{" "}
-              på nettsiden din.
+              {t('chatbot.embedHelpSuffix')}
             </p>
             <div className="relative mt-4">
               <pre className="overflow-x-auto rounded-lg border bg-muted/50 p-4 text-sm font-mono leading-relaxed">
@@ -303,12 +305,12 @@ export function ChatbotPageClient(): React.ReactNode {
                 {copied ? (
                   <>
                     <Check className="mr-1.5 h-3.5 w-3.5" />
-                    Kopiert!
+                    {t('common.copied')}
                   </>
                 ) : (
                   <>
                     <Copy className="mr-1.5 h-3.5 w-3.5" />
-                    Kopier kode
+                    {t('common.copyCode')}
                   </>
                 )}
               </Button>
@@ -316,7 +318,7 @@ export function ChatbotPageClient(): React.ReactNode {
             {/* Mini preview */}
             <div className="mt-4">
               <p className="mb-2 text-xs font-medium text-muted-foreground">
-                Forhåndsvisning av knapp
+                {t('chatbot.buttonPreview')}
               </p>
               <div className="flex items-center gap-3 rounded-lg border bg-background p-4">
                 <div
@@ -340,11 +342,11 @@ export function ChatbotPageClient(): React.ReactNode {
                   </svg>
                 </div>
                 <span className="text-sm text-muted-foreground">
-                  Denne knappen vises nederst{" "}
+                  {t('chatbot.buttonDesc')}{" "}
                   {config.widget_styling.position === "right"
-                    ? "til høyre"
-                    : "til venstre"}{" "}
-                  på nettsiden
+                    ? t('chatbot.buttonRight')
+                    : t('chatbot.buttonLeft')}{" "}
+                  {t('chatbot.buttonSuffix')}
                 </span>
               </div>
             </div>
@@ -356,7 +358,7 @@ export function ChatbotPageClient(): React.ReactNode {
           <div className="rounded-xl border bg-card p-4 shadow-sm">
             <h3 className="mb-3 flex items-center gap-2 text-sm font-semibold text-muted-foreground">
               <Eye className="h-4 w-4" />
-              Forhåndsvisning
+              {t('chatbot.preview')}
             </h3>
             <ChatWidget
               inline

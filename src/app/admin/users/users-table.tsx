@@ -14,6 +14,9 @@ import {
 } from "@/components/ui/table";
 import { ROLE_BADGE_VARIANT } from "@/lib/types";
 import type { AdminUser } from "@/lib/types";
+import { createT } from "@/lib/i18n";
+
+const t = createT("nb");
 
 export function UsersTable({ users }: { users: AdminUser[] }): React.ReactNode {
   const [search, setSearch] = useState("");
@@ -29,7 +32,7 @@ export function UsersTable({ users }: { users: AdminUser[] }): React.ReactNode {
       <SearchInput
         value={search}
         onChange={setSearch}
-        placeholder="Søk etter navn eller e-post..."
+        placeholder={t('admin.users.search')}
         className="max-w-sm"
       />
 
@@ -37,19 +40,19 @@ export function UsersTable({ users }: { users: AdminUser[] }): React.ReactNode {
         <Table>
           <TableHeader>
             <TableRow>
-              <TableHead>Navn</TableHead>
-              <TableHead>E-post</TableHead>
-              <TableHead>Rolle</TableHead>
-              <TableHead>Workspace</TableHead>
-              <TableHead>Opprettet</TableHead>
-              <TableHead>Super Admin</TableHead>
+              <TableHead>{t('admin.users.name')}</TableHead>
+              <TableHead>{t('admin.users.email')}</TableHead>
+              <TableHead>{t('admin.users.role')}</TableHead>
+              <TableHead>{t('admin.users.workspace')}</TableHead>
+              <TableHead>{t('admin.users.created')}</TableHead>
+              <TableHead>{t('admin.users.superAdmin')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={6} className="py-8 text-center text-muted-foreground">
-                  Ingen brukere funnet.
+                  {t('admin.users.noUsers')}
                 </TableCell>
               </TableRow>
             ) : (

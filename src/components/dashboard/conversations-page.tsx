@@ -7,6 +7,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { EmptyState } from "./empty-state";
+import { useLanguage } from "@/lib/i18n/context";
 import {
   MessageSquare,
   User,
@@ -23,13 +24,13 @@ import type { ChatMessage } from "@/lib/types";
 
 type DateRange = "today" | "week" | "2weeks" | "month" | "3months" | "all";
 
-const DATE_OPTIONS: { key: DateRange; label: string }[] = [
-  { key: "today", label: "I dag" },
-  { key: "week", label: "Siste uke" },
-  { key: "2weeks", label: "Siste 2 uker" },
-  { key: "month", label: "Siste måned" },
-  { key: "3months", label: "Siste 3 mnd" },
-  { key: "all", label: "Alle" },
+const DATE_KEYS: { key: DateRange; tKey: string }[] = [
+  { key: "today", tKey: "conversations.today" },
+  { key: "week", tKey: "conversations.week" },
+  { key: "2weeks", tKey: "conversations.twoWeeks" },
+  { key: "month", tKey: "conversations.month" },
+  { key: "3months", tKey: "conversations.threeMonths" },
+  { key: "all", tKey: "conversations.all" },
 ];
 
 const PAGE_SIZE = 20;
@@ -66,7 +67,9 @@ function getDateFrom(range: DateRange): string | null {
 
 export function ConversationsPageClient(): React.ReactNode {
   const { id: workspaceId } = useWorkspace();
+  const { t, language } = useLanguage();
   const supabase = createClient();
+  const dateLocale = language === "nb" ? "nb-NO" : "en-US";
 
   const [conversations, setConversations] = useState<ConversationRow[]>([]);
   const [totalCount, setTotalCount] = useState(0);
@@ -81,11 +84,11 @@ export function ConversationsPageClient(): React.ReactNode {
 
   // Debounce search
   useEffect(() => {
-    const t = setTimeout(() => {
+    const timer = setTimeout(() => {
       setSearchDebounced(search);
       setPage(0);
     }, 300);
-    return () => clearTimeout(t);
+    return () => clearTimeout(timer);
   }, [search]);
 
   // Reset page when date range changes
@@ -162,13 +165,13 @@ export function ConversationsPageClient(): React.ReactNode {
           visitor_id: c.visitor_id,
           started_at: c.started_at,
           message_count: c.messages?.length ?? 0,
-          preview: firstUserMsg?.content?.slice(0, 80) || "Ingen meldinger",
+          preview: firstUserMsg?.content?.slice(0, 80) || t('conversations.noMessages'),
         };
       }
     );
     setConversations(rows);
     setLoading(false);
-  }, [workspaceId, supabase, page, dateRange, searchDebounced]);
+  }, [workspaceId, supabase, page, dateRange, searchDebounced, t]);
 
   useEffect(() => {
     fetchConversations();
@@ -197,9 +200,9 @@ export function ConversationsPageClient(): React.ReactNode {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Samtaler</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t('conversations.title')}</h1>
         <p className="mt-1 text-muted-foreground">
-          Se samtaleloggen fra chatboten din.
+          {t('conversations.description')}
         </p>
       </div>
 
@@ -207,7 +210,7 @@ export function ConversationsPageClient(): React.ReactNode {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Søk i meldinger..."
+          placeholder={t('conversations.search')}
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
@@ -216,14 +219,14 @@ export function ConversationsPageClient(): React.ReactNode {
 
       {/* Date filter */}
       <div className="flex flex-wrap gap-2">
-        {DATE_OPTIONS.map(({ key, label }) => (
+        {DATE_KEYS.map((opt) => (
           <Button
-            key={key}
-            variant={dateRange === key ? "default" : "outline"}
+            key={opt.key}
+            variant={dateRange === opt.key ? "default" : "outline"}
             size="sm"
-            onClick={() => setDateRange(key)}
+            onClick={() => setDateRange(opt.key)}
           >
-            {label}
+            {t(opt.tKey)}
           </Button>
         ))}
       </div>
@@ -241,8 +244,8 @@ export function ConversationsPageClient(): React.ReactNode {
       ) : conversations.length === 0 ? (
         <EmptyState
           icon={MessageSquare}
-          title="Ingen samtaler funnet"
-          description="Ingen samtaler matcher søket eller filteret ditt."
+          title={t('conversations.empty')}
+          description={t('conversations.emptyDescription')}
         />
       ) : (
         <div className="space-y-3">
@@ -261,12 +264,12 @@ export function ConversationsPageClient(): React.ReactNode {
                       {conv.preview}
                     </p>
                     <Badge variant="secondary" className="shrink-0">
-                      {conv.message_count} msg
+                      {conv.message_count} {t('conversations.msgBadge')}
                     </Badge>
                   </div>
                   <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
                     <Clock className="h-3 w-3" />
-                    {new Date(conv.started_at).toLocaleString("nb-NO", {
+                    {new Date(conv.started_at).toLocaleString(dateLocale, {
                       day: "numeric",
                       month: "short",
                       hour: "2-digit",
@@ -286,11 +289,11 @@ export function ConversationsPageClient(): React.ReactNode {
                 <div className="mt-1 rounded-xl border bg-card p-4 shadow-sm">
                   {messagesLoading ? (
                     <p className="text-sm text-muted-foreground text-center py-4">
-                      Laster meldinger...
+                      {t('conversations.loadingMessages')}
                     </p>
                   ) : expandedMessages.length === 0 ? (
                     <p className="text-sm text-muted-foreground text-center py-4">
-                      Ingen meldinger i denne samtalen.
+                      {t('conversations.noMessagesInConv')}
                     </p>
                   ) : (
                     <div className="space-y-4">
@@ -324,7 +327,7 @@ export function ConversationsPageClient(): React.ReactNode {
                                   : "text-muted-foreground"
                               )}
                             >
-                              {new Date(msg.created_at).toLocaleTimeString("nb-NO", {
+                              {new Date(msg.created_at).toLocaleTimeString(dateLocale, {
                                 hour: "2-digit",
                                 minute: "2-digit",
                               })}
@@ -356,10 +359,10 @@ export function ConversationsPageClient(): React.ReactNode {
             onClick={() => setPage((p) => p - 1)}
           >
             <ChevronLeft className="mr-1 h-4 w-4" />
-            Forrige
+            {t('conversations.previous')}
           </Button>
           <span className="text-sm text-muted-foreground">
-            Side {page + 1} av {totalPages}
+            {t('conversations.pageOf', { page: page + 1, total: totalPages })}
           </span>
           <Button
             variant="outline"
@@ -367,7 +370,7 @@ export function ConversationsPageClient(): React.ReactNode {
             disabled={page >= totalPages - 1}
             onClick={() => setPage((p) => p + 1)}
           >
-            Neste
+            {t('conversations.next')}
             <ChevronRight className="ml-1 h-4 w-4" />
           </Button>
         </div>

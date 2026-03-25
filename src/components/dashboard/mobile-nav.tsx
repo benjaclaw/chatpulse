@@ -18,6 +18,7 @@ import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import type { UserInfo, Workspace } from "@/lib/types";
 import { isNavActive, getInitials } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/context";
 
 interface MobileNavProps {
   user: UserInfo;
@@ -34,6 +35,7 @@ export function MobileNav({
 }: MobileNavProps): React.ReactNode {
   const pathname = usePathname();
   const [open, setOpen] = useState(false);
+  const { t } = useLanguage();
 
   return (
     <Sheet open={open} onOpenChange={setOpen}>
@@ -43,7 +45,7 @@ export function MobileNav({
         }
       >
         <Menu className="h-5 w-5" />
-        <span className="sr-only">Toggle menu</span>
+        <span className="sr-only">{t('nav.toggleMenu')}</span>
       </SheetTrigger>
       <SheetContent side="left" className="w-[280px] p-0">
         <SheetHeader className="p-4">
@@ -56,7 +58,7 @@ export function MobileNav({
           <>
             <div className="px-4 pb-2">
               <p className="text-xs font-medium text-muted-foreground mb-2">
-                Workspaces
+                {t('nav.workspaces')}
               </p>
               {workspaces.map((ws) => (
                 <button
@@ -96,7 +98,7 @@ export function MobileNav({
                     }`}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />
-                    {item.label}
+                    {t(item.labelKey)}
                   </Link>
                 </li>
               );
@@ -130,7 +132,7 @@ export function MobileNav({
             onClick={() => signOut()}
           >
             <LogOut className="mr-2 h-4 w-4" />
-            Sign out
+            {t('nav.signOut')}
           </Button>
         </div>
       </SheetContent>

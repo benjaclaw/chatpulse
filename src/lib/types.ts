@@ -18,6 +18,7 @@ export type Workspace = {
   name: string;
   slug: string;
   role: MemberRole;
+  language?: string;
 };
 
 export type UserInfo = {
@@ -29,7 +30,7 @@ export type UserInfo = {
 // --- Navigation ---
 
 export interface NavItem {
-  label: string;
+  labelKey: string;
   href: string;
   icon: LucideIcon;
 }

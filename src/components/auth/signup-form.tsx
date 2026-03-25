@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import { signup } from "@/lib/auth-actions";
 import { useFormAction } from "@/hooks/use-form-action";
@@ -16,9 +17,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
+import { createT, type Language } from "@/lib/i18n";
 
 export function SignupForm(): React.ReactNode {
   const { error, pending, handleSubmit } = useFormAction();
+  const [language] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('chatpulse_lang') as Language) || 'nb';
+    }
+    return 'nb';
+  });
+  const t = createT(language);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
@@ -29,40 +38,40 @@ export function SignupForm(): React.ReactNode {
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">Create your account</CardTitle>
+        <CardTitle className="text-2xl font-bold">{t('auth.signup.title')}</CardTitle>
         <CardDescription>
-          Get started with ChatPulse in minutes
+          {t('auth.signup.description')}
         </CardDescription>
       </CardHeader>
       <form onSubmit={onSubmit}>
         <CardContent className="space-y-4">
           <FormError message={error} />
           <div className="space-y-2">
-            <Label htmlFor="name">Full name</Label>
+            <Label htmlFor="name">{t('auth.signup.name')}</Label>
             <Input
               id="name"
               name="name"
               type="text"
-              placeholder="Jane Smith"
+              placeholder={t('auth.signup.namePlaceholder')}
               required
               autoComplete="name"
               disabled={pending}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="email">Email</Label>
+            <Label htmlFor="email">{t('auth.signup.email')}</Label>
             <Input
               id="email"
               name="email"
               type="email"
-              placeholder="you@company.com"
+              placeholder={t('auth.signup.emailPlaceholder')}
               required
               autoComplete="email"
               disabled={pending}
             />
           </div>
           <div className="space-y-2">
-            <Label htmlFor="password">Password</Label>
+            <Label htmlFor="password">{t('auth.signup.password')}</Label>
             <Input
               id="password"
               name="password"
@@ -73,22 +82,22 @@ export function SignupForm(): React.ReactNode {
               disabled={pending}
             />
             <p className="text-xs text-muted-foreground">
-              Must be at least 8 characters
+              {t('auth.signup.passwordHelp')}
             </p>
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
           <Button type="submit" className="w-full" disabled={pending}>
             {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {pending ? "Creating account..." : "Create account"}
+            {pending ? t('auth.signup.creating') : t('auth.signup.create')}
           </Button>
           <p className="text-sm text-muted-foreground">
-            Already have an account?{" "}
+            {t('auth.signup.hasAccount')}{" "}
             <Link
               href="/login"
               className="font-medium text-primary underline-offset-4 transition-colors hover:underline"
             >
-              Sign in
+              {t('auth.signup.signIn')}
             </Link>
           </p>
         </CardFooter>

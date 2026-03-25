@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
 import { useTemporaryFlag } from "@/hooks/use-temporary-flag";
+import { useLanguage } from "@/lib/i18n/context";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -26,12 +27,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { UserPlus, CheckCircle2 } from "lucide-react";
-import { ROLE_BADGE_VARIANT, ROLE_LABEL } from "@/lib/types";
+import { ROLE_BADGE_VARIANT } from "@/lib/types";
 import type { TeamMember, MemberRole } from "@/lib/types";
 
 export function TeamPageClient(): React.ReactNode {
   const { id: workspaceId } = useWorkspace();
   const supabase = createClient();
+  const { t } = useLanguage();
   const [members, setMembers] = useState<TeamMember[]>([]);
   const [loading, setLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -92,9 +94,9 @@ export function TeamPageClient(): React.ReactNode {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Team</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('team.title')}</h1>
           <p className="mt-1 text-muted-foreground">
-            Administrer teammedlemmer og invitasjoner.
+            {t('team.description')}
           </p>
         </div>
       </div>
@@ -105,21 +107,21 @@ export function TeamPageClient(): React.ReactNode {
     <div className="space-y-6">
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Team</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('team.title')}</h1>
           <p className="mt-1 text-muted-foreground">
-            Administrer teammedlemmer og invitasjoner.
+            {t('team.description')}
           </p>
         </div>
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger render={<Button className="shrink-0" />}>
             <UserPlus className="mr-2 h-4 w-4" />
-            Inviter medlem
+            {t('team.invite')}
           </DialogTrigger>
           <DialogContent>
             <DialogHeader>
-              <DialogTitle>Inviter teammedlem</DialogTitle>
+              <DialogTitle>{t('team.inviteTitle')}</DialogTitle>
               <DialogDescription>
-                Send en invitasjon for å legge til et nytt medlem i workspacen.
+                {t('team.inviteDescription')}
               </DialogDescription>
             </DialogHeader>
             <form onSubmit={handleInvite}>
@@ -127,34 +129,34 @@ export function TeamPageClient(): React.ReactNode {
                 {success && (
                   <div className="animate-in fade-in slide-in-from-top-1 flex items-center gap-2 rounded-lg bg-success/10 p-3 text-sm text-green-700 dark:text-green-400">
                     <CheckCircle2 className="h-4 w-4 shrink-0" />
-                    Invitasjon sendt!
+                    {t('team.inviteSent')}
                   </div>
                 )}
                 <div className="space-y-2">
-                  <Label htmlFor="invite-email">E-postadresse</Label>
+                  <Label htmlFor="invite-email">{t('team.emailLabel')}</Label>
                   <Input
                     id="invite-email"
                     name="email"
                     type="email"
-                    placeholder="kollega@bedrift.no"
+                    placeholder={t('team.emailPlaceholder')}
                     required
                   />
                 </div>
                 <div className="space-y-2">
-                  <Label htmlFor="invite-role">Rolle</Label>
+                  <Label htmlFor="invite-role">{t('team.roleLabel')}</Label>
                   <select
                     id="invite-role"
                     name="role"
                     className="flex h-10 w-full rounded-lg border border-input bg-background px-3 py-2 text-sm transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none disabled:opacity-50"
                     defaultValue="member"
                   >
-                    <option value="member">Medlem</option>
-                    <option value="admin">Admin</option>
+                    <option value="member">{t('team.roleMember')}</option>
+                    <option value="admin">{t('team.roleAdmin')}</option>
                   </select>
                 </div>
               </div>
               <DialogFooter>
-                <Button type="submit">Send invitasjon</Button>
+                <Button type="submit">{t('team.sendInvite')}</Button>
               </DialogFooter>
             </form>
           </DialogContent>
@@ -164,15 +166,15 @@ export function TeamPageClient(): React.ReactNode {
       {/* Members card */}
       <Card>
         <CardHeader>
-          <CardTitle>Medlemmer</CardTitle>
+          <CardTitle>{t('team.membersTitle')}</CardTitle>
           <CardDescription>
-            Personer med tilgang til denne workspacen.
+            {t('team.membersDescription')}
           </CardDescription>
         </CardHeader>
         <CardContent>
           {members.length === 0 ? (
             <p className="py-4 text-center text-sm text-muted-foreground">
-              Ingen medlemmer funnet.
+              {t('team.noMembers')}
             </p>
           ) : (
             <div className="space-y-2">
@@ -193,7 +195,7 @@ export function TeamPageClient(): React.ReactNode {
                     </p>
                   </div>
                   <Badge variant={ROLE_BADGE_VARIANT[member.role] ?? "outline"}>
-                    {ROLE_LABEL[member.role] ?? member.role}
+                    {t(`role.${member.role}`)}
                   </Badge>
                 </div>
               ))}

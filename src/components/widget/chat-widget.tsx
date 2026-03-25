@@ -3,6 +3,7 @@
 import { useState, useRef, useEffect } from "react";
 import { MessageSquare, X, Send } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { createT, type Language, type TranslateFunction } from "@/lib/i18n";
 
 interface Message {
   id: string;
@@ -20,22 +21,8 @@ interface ChatWidgetProps {
   className?: string;
   /** When provided, messages are persisted to the DB and AI is enabled */
   chatbotId?: string;
+  language?: "nb" | "en";
 }
-
-const defaultMessages: Message[] = [
-  {
-    id: "welcome",
-    role: "assistant",
-    content: "Hei! Hvordan kan jeg hjelpe deg i dag? 👋",
-  },
-];
-
-const demoReplies = [
-  "Takk for spørsmålet! La meg sjekke det for deg.",
-  "Vi tilbyr 30 dagers åpent kjøp på alle produkter.",
-  "Kundeservice er tilgjengelig mandag til fredag kl. 08:00-16:00.",
-  "Fri frakt på bestillinger over 500 kr!",
-];
 
 function getVisitorId(): string {
   const key = "chatpulse_visitor_id";
@@ -55,7 +42,25 @@ export function ChatWidget({
   inline = false,
   className,
   chatbotId,
+  language,
 }: ChatWidgetProps): React.ReactNode {
+  const t = createT((language ?? "nb") as Language);
+
+  const defaultMessages: Message[] = [
+    {
+      id: "welcome",
+      role: "assistant",
+      content: t('widget.defaultWelcome'),
+    },
+  ];
+
+  const demoReplies = [
+    t('widget.demo1'),
+    t('widget.demo2'),
+    t('widget.demo3'),
+    t('widget.demo4'),
+  ];
+
   const [isOpen, setIsOpen] = useState(inline);
   const [messages, setMessages] = useState<Message[]>(() => {
     if (welcomeMessage) {
@@ -86,7 +91,7 @@ export function ChatWidget({
   useEffect(() => {
     if (welcomeMessage !== undefined) {
       setMessages([
-        { id: "welcome", role: "assistant", content: welcomeMessage || "Hei! 👋" },
+        { id: "welcome", role: "assistant", content: welcomeMessage || t('widget.fallbackWelcome') },
       ]);
     }
   }, [welcomeMessage]);
@@ -137,7 +142,7 @@ export function ChatWidget({
             {
               id: `bot-${Date.now()}`,
               role: "assistant",
-              content: "Beklager, noe gikk galt. Prøv igjen senere.",
+              content: t('widget.error'),
             },
           ]);
         }
@@ -147,7 +152,7 @@ export function ChatWidget({
           {
             id: `bot-${Date.now()}`,
             role: "assistant",
-            content: "Beklager, noe gikk galt. Prøv igjen senere.",
+            content: t('widget.error'),
           },
         ]);
       } finally {
@@ -181,6 +186,7 @@ export function ChatWidget({
           primaryColor={primaryColor}
           onClose={() => {}}
           showClose={false}
+          t={t}
         />
         <MessageList
           messages={messages}
@@ -191,6 +197,7 @@ export function ChatWidget({
             handoffTriggered && !handoffSubmitted ? (
               <HandoffForm
                 primaryColor={primaryColor}
+                t={t}
                 onSubmit={async (email, name) => {
                   await fetch("/api/leads", {
                     method: "POST",
@@ -205,7 +212,7 @@ export function ChatWidget({
                   setHandoffSubmitted(true);
                   setMessages((prev) => [
                     ...prev,
-                    { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: "Takk! Vi kontakter deg snart." },
+                    { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: t('widget.handoffConfirm') },
                   ]);
                 }}
               />
@@ -218,6 +225,7 @@ export function ChatWidget({
           onSend={handleSend}
           primaryColor={primaryColor}
           ref={inputRef}
+          t={t}
         />
       </div>
     );
@@ -245,6 +253,7 @@ export function ChatWidget({
           primaryColor={primaryColor}
           onClose={() => setIsOpen(false)}
           showClose
+          t={t}
         />
         <MessageList
           messages={messages}
@@ -255,6 +264,7 @@ export function ChatWidget({
             handoffTriggered && !handoffSubmitted ? (
               <HandoffForm
                 primaryColor={primaryColor}
+                t={t}
                 onSubmit={async (email, name) => {
                   await fetch("/api/leads", {
                     method: "POST",
@@ -269,7 +279,7 @@ export function ChatWidget({
                   setHandoffSubmitted(true);
                   setMessages((prev) => [
                     ...prev,
-                    { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: "Takk! Vi kontakter deg snart." },
+                    { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: t('widget.handoffConfirm') },
                   ]);
                 }}
               />
@@ -282,6 +292,7 @@ export function ChatWidget({
           onSend={handleSend}
           primaryColor={primaryColor}
           ref={inputRef}
+          t={t}
         />
       </div>
 
@@ -290,7 +301,7 @@ export function ChatWidget({
         onClick={() => setIsOpen(!isOpen)}
         className="flex h-14 w-14 items-center justify-center rounded-full shadow-lg transition-all duration-200 hover:scale-105 hover:shadow-xl"
         style={{ backgroundColor: primaryColor }}
-        aria-label={isOpen ? "Lukk chat" : "Åpne chat"}
+        aria-label={isOpen ? t('widget.closeChat') : t('widget.openChat')}
       >
         {isOpen ? (
           <X className="h-6 w-6 text-white" />
@@ -307,11 +318,13 @@ function WidgetHeader({
   primaryColor,
   onClose,
   showClose,
+  t,
 }: {
   botName: string;
   primaryColor: string;
   onClose: () => void;
   showClose: boolean;
+  t: TranslateFunction;
 }): React.ReactNode {
   return (
     <div
@@ -324,14 +337,14 @@ function WidgetHeader({
         </div>
         <div>
           <p className="text-sm font-semibold text-white">{botName}</p>
-          <p className="text-xs text-white/70">Online</p>
+          <p className="text-xs text-white/70">{t('widget.online')}</p>
         </div>
       </div>
       {showClose && (
         <button
           onClick={onClose}
           className="rounded-lg p-1 text-white/70 transition-colors hover:bg-white/10 hover:text-white"
-          aria-label="Lukk"
+          aria-label={t('widget.close')}
         >
           <X className="h-5 w-5" />
         </button>
@@ -401,12 +414,14 @@ const WidgetInput = ({
   onSend,
   primaryColor,
   ref,
+  t,
 }: {
   value: string;
   onChange: (v: string) => void;
   onSend: () => void;
   primaryColor: string;
   ref: React.RefObject<HTMLInputElement | null>;
+  t: TranslateFunction;
 }): React.ReactNode => {
   return (
     <div className="border-t p-3">
@@ -422,7 +437,7 @@ const WidgetInput = ({
           type="text"
           value={value}
           onChange={(e) => onChange(e.target.value)}
-          placeholder="Skriv en melding..."
+          placeholder={t('widget.placeholder')}
           className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
         />
         <button
@@ -430,7 +445,7 @@ const WidgetInput = ({
           disabled={!value.trim()}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white transition-all duration-150 hover:opacity-90 disabled:opacity-40"
           style={{ backgroundColor: primaryColor }}
-          aria-label="Send"
+          aria-label={t('widget.sendLabel')}
         >
           <Send className="h-4 w-4" />
         </button>
@@ -442,7 +457,7 @@ const WidgetInput = ({
           rel="noopener noreferrer"
           className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground/70 transition-colors"
         >
-          Powered by ChatPulse.no
+          {t('widget.poweredBy')}
         </a>
       </div>
     </div>
@@ -452,9 +467,11 @@ const WidgetInput = ({
 function HandoffForm({
   primaryColor,
   onSubmit,
+  t,
 }: {
   primaryColor: string;
   onSubmit: (email: string, name: string) => Promise<void>;
+  t: TranslateFunction;
 }): React.ReactNode {
   const [email, setEmail] = useState("");
   const [name, setName] = useState("");
@@ -472,21 +489,21 @@ function HandoffForm({
       <div className="max-w-[90%] rounded-2xl rounded-bl-md bg-muted p-3">
         <form onSubmit={handleSubmit} className="space-y-2">
           <p className="text-xs font-medium text-foreground">
-            Legg igjen kontaktinformasjonen din:
+            {t('widget.handoffHeading')}
           </p>
           <input
             type="email"
             required
             value={email}
             onChange={(e) => setEmail(e.target.value)}
-            placeholder="E-post *"
+            placeholder={t('widget.emailPlaceholder')}
             className="w-full rounded-lg border bg-background px-3 py-1.5 text-sm outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
           />
           <input
             type="text"
             value={name}
             onChange={(e) => setName(e.target.value)}
-            placeholder="Navn (valgfritt)"
+            placeholder={t('widget.namePlaceholder')}
             className="w-full rounded-lg border bg-background px-3 py-1.5 text-sm outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
           />
           <button
@@ -495,7 +512,7 @@ function HandoffForm({
             className="w-full rounded-lg px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
             style={{ backgroundColor: primaryColor }}
           >
-            {submitting ? "Sender..." : "Send"}
+            {submitting ? t('widget.sending') : t('widget.send')}
           </button>
         </form>
       </div>

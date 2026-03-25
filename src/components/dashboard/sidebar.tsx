@@ -16,6 +16,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import type { UserInfo, Workspace } from "@/lib/types";
 import { isNavActive, getInitials } from "@/lib/utils";
+import { useLanguage } from "@/lib/i18n/context";
 
 interface SidebarProps {
   user: UserInfo;
@@ -31,6 +32,7 @@ export function Sidebar({
   onWorkspaceChange,
 }: SidebarProps): React.ReactNode {
   const pathname = usePathname();
+  const { t } = useLanguage();
 
   return (
     <aside className="flex h-screen w-[260px] flex-col border-r bg-card">
@@ -56,7 +58,7 @@ export function Sidebar({
               <DropdownMenuItem
                 render={<Link href="/create-workspace" />}
               >
-                + New workspace
+                {t('nav.newWorkspace')}
               </DropdownMenuItem>
             </DropdownMenuContent>
           </DropdownMenu>
@@ -86,7 +88,7 @@ export function Sidebar({
                   }`}
                 >
                   <item.icon className="h-4 w-4 shrink-0" />
-                  {item.label}
+                  {t(item.labelKey)}
                 </Link>
               </li>
             );
@@ -122,7 +124,7 @@ export function Sidebar({
               className="text-destructive"
             >
               <LogOut className="mr-2 h-4 w-4" />
-              Sign out
+              {t('nav.signOut')}
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

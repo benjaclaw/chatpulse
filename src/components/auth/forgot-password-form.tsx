@@ -17,10 +17,18 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2, ArrowLeft, CheckCircle2 } from "lucide-react";
+import { createT, type Language } from "@/lib/i18n";
 
 export function ForgotPasswordForm(): React.ReactNode {
   const { error, pending, handleSubmit } = useFormAction();
   const [sent, setSent] = useState(false);
+  const [language] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('chatpulse_lang') as Language) || 'nb';
+    }
+    return 'nb';
+  });
+  const t = createT(language);
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
@@ -42,9 +50,9 @@ export function ForgotPasswordForm(): React.ReactNode {
           <div className="mx-auto mb-2 flex h-12 w-12 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
             <CheckCircle2 className="h-6 w-6 text-green-600 dark:text-green-400" />
           </div>
-          <CardTitle className="text-2xl font-bold">Sjekk e-posten din</CardTitle>
+          <CardTitle className="text-2xl font-bold">{t('auth.forgot.sentTitle')}</CardTitle>
           <CardDescription>
-            Vi har sendt en lenke for &#229; tilbakestille passordet ditt. Sjekk innboksen din.
+            {t('auth.forgot.sentDescription')}
           </CardDescription>
         </CardHeader>
         <CardFooter className="flex justify-center">
@@ -53,7 +61,7 @@ export function ForgotPasswordForm(): React.ReactNode {
             className="inline-flex items-center gap-2 text-sm font-medium text-primary underline-offset-4 transition-colors hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />
-            Tilbake til innlogging
+            {t('auth.forgot.backToLogin')}
           </Link>
         </CardFooter>
       </Card>
@@ -63,21 +71,21 @@ export function ForgotPasswordForm(): React.ReactNode {
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl font-bold">Glemt passord?</CardTitle>
+        <CardTitle className="text-2xl font-bold">{t('auth.forgot.title')}</CardTitle>
         <CardDescription>
-          Skriv inn e-posten din, s&#229; sender vi deg en lenke for &#229; tilbakestille passordet.
+          {t('auth.forgot.description')}
         </CardDescription>
       </CardHeader>
       <form onSubmit={onSubmit}>
         <CardContent className="space-y-4">
           <FormError message={error} />
           <div className="space-y-2">
-            <Label htmlFor="email">E-post</Label>
+            <Label htmlFor="email">{t('auth.forgot.email')}</Label>
             <Input
               id="email"
               name="email"
               type="email"
-              placeholder="deg@bedrift.no"
+              placeholder={t('auth.forgot.emailPlaceholder')}
               required
               autoComplete="email"
               disabled={pending}
@@ -87,14 +95,14 @@ export function ForgotPasswordForm(): React.ReactNode {
         <CardFooter className="flex flex-col gap-4">
           <Button type="submit" className="w-full" disabled={pending}>
             {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-            {pending ? "Sender..." : "Send reset-lenke"}
+            {pending ? t('auth.forgot.sending') : t('auth.forgot.sendLink')}
           </Button>
           <Link
             href="/login"
             className="inline-flex items-center gap-2 text-sm font-medium text-muted-foreground underline-offset-4 transition-colors hover:text-foreground hover:underline"
           >
             <ArrowLeft className="h-4 w-4" />
-            Tilbake til innlogging
+            {t('auth.forgot.backToLogin')}
           </Link>
         </CardFooter>
       </form>

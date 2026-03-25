@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import Link from "next/link";
 import {
   BookOpen,
@@ -17,8 +18,17 @@ import {
 import { buttonVariants } from "@/components/ui/button";
 import { ChatWidget } from "@/components/widget/chat-widget";
 import { cn } from "@/lib/utils";
+import { createT, type Language } from "@/lib/i18n";
 
 export function HomePage(): React.ReactNode {
+  const [language] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('chatpulse_lang') as Language) || 'nb';
+    }
+    return 'nb';
+  });
+  const t = createT(language);
+
   return (
     <div className="flex min-h-screen flex-col bg-background">
       {/* Header */}
@@ -31,10 +41,10 @@ export function HomePage(): React.ReactNode {
             href="/login"
             className={cn(buttonVariants({ variant: "ghost" }))}
           >
-            Logg inn
+            {t('landing.header.login')}
           </Link>
           <Link href="/signup" className={cn(buttonVariants())}>
-            Kom i gang
+            {t('landing.header.getStarted')}
           </Link>
         </div>
       </header>
@@ -51,20 +61,19 @@ export function HomePage(): React.ReactNode {
           <div className="relative z-10 mx-auto max-w-4xl">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-sm text-muted-foreground shadow-sm">
               <Sparkles className="h-4 w-4 text-accent" />
-              AI-drevet kundeservice
+              {t('landing.hero.badge')}
             </div>
 
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              AI-chatbot for din bedrift
+              {t('landing.hero.title')}
               <br />
               <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                — klar på minutter
+                {t('landing.hero.titleGradient')}
               </span>
             </h1>
 
             <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg">
-              Tren chatboten med din kunnskapsbase. Embed på nettsiden. Se hva
-              kundene spør om.
+              {t('landing.hero.description')}
             </p>
 
             <div className="mt-10 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
@@ -72,7 +81,7 @@ export function HomePage(): React.ReactNode {
                 href="/signup"
                 className={cn(buttonVariants({ size: "lg" }))}
               >
-                Kom i gang gratis
+                {t('landing.hero.cta')}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
               <a
@@ -81,14 +90,14 @@ export function HomePage(): React.ReactNode {
                   buttonVariants({ size: "lg", variant: "outline" })
                 )}
               >
-                Se hvordan det fungerer
+                {t('landing.hero.howItWorks')}
               </a>
             </div>
           </div>
 
           {/* Widget mockup illustration */}
           <div className="relative z-10 mx-auto mt-16 w-full max-w-sm">
-            <WidgetMockup />
+            <WidgetMockup t={t} />
           </div>
         </section>
 
@@ -96,33 +105,32 @@ export function HomePage(): React.ReactNode {
         <section className="border-t bg-card/50 px-4 py-16 dark:bg-card/20 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-5xl">
             <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
-              Alt du trenger for smart kundeservice
+              {t('landing.features.title')}
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
-              Fra kunnskapsbase til live widget — ChatPulse gir deg full
-              kontroll.
+              {t('landing.features.description')}
             </p>
 
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <FeatureCard
                 icon={BookOpen}
-                title="Kunnskapsbase"
-                description="Last opp dokumenter og FAQ. Chatboten lærer automatisk."
+                title={t('landing.features.knowledge')}
+                description={t('landing.features.knowledgeDesc')}
               />
               <FeatureCard
                 icon={Palette}
-                title="Tilpasning"
-                description="Dine farger, din logo, din velkomstmelding."
+                title={t('landing.features.customization')}
+                description={t('landing.features.customizationDesc')}
               />
               <FeatureCard
                 icon={BarChart3}
-                title="Innsikt"
-                description="Se hva kundene spør om. Finn hull i dokumentasjonen."
+                title={t('landing.features.insights')}
+                description={t('landing.features.insightsDesc')}
               />
               <FeatureCard
                 icon={Code2}
-                title="Enkel integrasjon"
-                description="Én kodelinje. Fungerer på alle nettsider."
+                title={t('landing.features.integration')}
+                description={t('landing.features.integrationDesc')}
               />
             </div>
           </div>
@@ -134,21 +142,21 @@ export function HomePage(): React.ReactNode {
             <div className="text-center">
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-sm text-muted-foreground shadow-sm">
                 <MessageSquare className="h-4 w-4 text-primary" />
-                Interaktiv demo
+                {t('landing.demo.badge')}
               </div>
               <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                Prøv chatboten selv
+                {t('landing.demo.title')}
               </h2>
               <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-                Skriv en melding og se hvordan ChatPulse svarer kundene dine.
+                {t('landing.demo.description')}
               </p>
             </div>
 
             <div className="mx-auto mt-10 max-w-sm">
               <ChatWidget
                 inline
-                botName="Demo Bot"
-                welcomeMessage="Hei! 👋 Jeg er en demo-chatbot. Prøv å spør meg om leveringstid, retur eller betaling!"
+                botName={t('landing.demo.botName')}
+                welcomeMessage={t('landing.demo.welcome')}
                 primaryColor="#6366f1"
               />
             </div>
@@ -162,30 +170,30 @@ export function HomePage(): React.ReactNode {
         >
           <div className="mx-auto max-w-4xl">
             <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
-              Tre enkle steg
+              {t('landing.steps.title')}
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
-              Fra opprettelse til live chatbot på under 10 minutter.
+              {t('landing.steps.description')}
             </p>
 
             <div className="mt-12 grid gap-8 sm:grid-cols-3">
               <StepCard
                 step={1}
                 icon={Plus}
-                title="Opprett"
-                description="Opprett workspace og last opp kunnskapsbase."
+                title={t('landing.steps.createTitle')}
+                description={t('landing.steps.createDesc')}
               />
               <StepCard
                 step={2}
                 icon={Zap}
-                title="Tilpass"
-                description="Tilpass chatboten til din merkevare."
+                title={t('landing.steps.customizeTitle')}
+                description={t('landing.steps.customizeDesc')}
               />
               <StepCard
                 step={3}
                 icon={Puzzle}
-                title="Embed"
-                description="Embed på nettsiden med én kodelinje."
+                title={t('landing.steps.embedTitle')}
+                description={t('landing.steps.embedDesc')}
               />
             </div>
           </div>
@@ -195,51 +203,54 @@ export function HomePage(): React.ReactNode {
         <section className="border-t bg-card/50 px-4 py-16 dark:bg-card/20 sm:px-6 sm:py-24">
           <div className="mx-auto max-w-5xl">
             <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
-              Enkel og forutsigbar prising
+              {t('landing.pricing.title')}
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
-              Start gratis. Oppgrader når du vokser.
+              {t('landing.pricing.description')}
             </p>
 
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <PricingCard
-                name="Free"
-                price="0 kr"
-                period="/mnd"
-                description="Perfekt for å prøve ChatPulse"
+                name={t('landing.pricing.free')}
+                price={t('landing.pricing.freePrice')}
+                period={t('landing.pricing.perMonth')}
+                description={t('landing.pricing.freeDesc')}
                 features={[
-                  "1 chatbot",
-                  "100 meldinger/mnd",
-                  "50 kunnskapsbaser",
+                  t('landing.pricing.freeF1'),
+                  t('landing.pricing.freeF2'),
+                  t('landing.pricing.freeF3'),
                 ]}
-                cta="Kom i gang"
+                cta={t('landing.pricing.freeCta')}
                 ctaHref="/signup"
+                popularLabel={t('landing.pricing.popular')}
               />
               <PricingCard
-                name="Pro"
-                price="499 kr"
-                period="/mnd"
-                description="For bedrifter som trenger mer"
+                name={t('landing.pricing.pro')}
+                price={t('landing.pricing.proPrice')}
+                period={t('landing.pricing.perMonth')}
+                description={t('landing.pricing.proDesc')}
                 features={[
-                  "5 chatbots",
-                  "Ubegrenset meldinger",
-                  "Priority support",
+                  t('landing.pricing.proF1'),
+                  t('landing.pricing.proF2'),
+                  t('landing.pricing.proF3'),
                 ]}
-                cta="Oppgrader"
+                cta={t('landing.pricing.proCta')}
                 ctaHref="/signup"
                 highlighted
+                popularLabel={t('landing.pricing.popular')}
               />
               <PricingCard
-                name="Enterprise"
-                price="Custom"
-                description="For store organisasjoner"
+                name={t('landing.pricing.enterprise')}
+                price={t('landing.pricing.enterprisePrice')}
+                description={t('landing.pricing.enterpriseDesc')}
                 features={[
-                  "Ubegrenset chatbots",
-                  "SLA-garanti",
-                  "Dedikert support",
+                  t('landing.pricing.enterpriseF1'),
+                  t('landing.pricing.enterpriseF2'),
+                  t('landing.pricing.enterpriseF3'),
                 ]}
-                cta="Kontakt oss"
+                cta={t('landing.pricing.enterpriseCta')}
                 ctaHref="mailto:salg@chatpulse.no"
+                popularLabel={t('landing.pricing.popular')}
               />
             </div>
           </div>
@@ -265,7 +276,7 @@ export function HomePage(): React.ReactNode {
               href="/privacy"
               className="transition-colors hover:text-foreground"
             >
-              Privacy
+              {t('landing.footer.privacy')}
             </Link>
             <span>
               &copy; {new Date().getFullYear()} ChatPulse
@@ -279,7 +290,7 @@ export function HomePage(): React.ReactNode {
 
 /* ─── Sub-components ─── */
 
-function WidgetMockup(): React.ReactNode {
+function WidgetMockup({ t }: { t: (key: string) => string }): React.ReactNode {
   return (
     <div className="rounded-xl border bg-card p-0 shadow-lg">
       {/* Header bar */}
@@ -288,25 +299,25 @@ function WidgetMockup(): React.ReactNode {
           <Sparkles className="h-3.5 w-3.5 text-white" />
         </div>
         <span className="text-sm font-semibold text-white">
-          ChatPulse Bot
+          {t('landing.widget.botName')}
         </span>
       </div>
       {/* Messages */}
       <div className="space-y-3 p-4">
         <div className="max-w-[75%] rounded-2xl rounded-bl-md bg-muted px-4 py-2 text-sm">
-          Hei! Hvordan kan jeg hjelpe?
+          {t('landing.widget.greeting')}
         </div>
         <div className="ml-auto max-w-[75%] rounded-2xl rounded-br-md bg-primary px-4 py-2 text-sm text-white">
-          Hva er leveringstiden?
+          {t('landing.widget.userMsg')}
         </div>
         <div className="max-w-[75%] rounded-2xl rounded-bl-md bg-muted px-4 py-2 text-sm">
-          Standard frakt tar 3-5 virkedager. Ekspress leverer på 1-2 dager!
+          {t('landing.widget.botReply')}
         </div>
       </div>
       {/* Input */}
       <div className="border-t p-3">
         <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2 text-sm text-muted-foreground">
-          Skriv en melding...
+          {t('landing.widget.placeholder')}
         </div>
       </div>
     </div>
@@ -369,6 +380,7 @@ function PricingCard({
   cta,
   ctaHref,
   highlighted = false,
+  popularLabel,
 }: {
   name: string;
   price: string;
@@ -378,6 +390,7 @@ function PricingCard({
   cta: string;
   ctaHref: string;
   highlighted?: boolean;
+  popularLabel: string;
 }): React.ReactNode {
   return (
     <div
@@ -390,7 +403,7 @@ function PricingCard({
     >
       {highlighted && (
         <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-0.5 text-xs font-semibold text-white">
-          Populær
+          {popularLabel}
         </div>
       )}
       <div>

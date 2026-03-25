@@ -5,6 +5,8 @@ import { Sidebar } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
 import type { UserInfo, Workspace } from "@/lib/types";
 import { WorkspaceProvider } from "@/contexts/workspace-context";
+import { LanguageProvider } from "@/lib/i18n/context";
+import type { Language } from "@/lib/i18n";
 
 interface DashboardShellProps {
   children: React.ReactNode;
@@ -21,40 +23,44 @@ export function DashboardShell({
 
   const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId) ?? workspaces[0];
 
-  return (
-    <div className="flex h-screen overflow-hidden bg-background">
-      {/* Desktop sidebar */}
-      <div className="hidden md:flex">
-        <Sidebar
-          user={user}
-          workspaces={workspaces}
-          activeWorkspace={activeWorkspace}
-          onWorkspaceChange={setActiveWorkspaceId}
-        />
-      </div>
+  const language = (activeWorkspace?.language === "en" ? "en" : "nb") as Language;
 
-      {/* Main content area */}
-      <div className="flex flex-1 flex-col overflow-hidden">
-        {/* Mobile header */}
-        <header className="flex h-14 items-center gap-3 border-b bg-card px-4 md:hidden">
-          <MobileNav
+  return (
+    <LanguageProvider initialLanguage={language} key={language}>
+      <div className="flex h-screen overflow-hidden bg-background">
+        {/* Desktop sidebar */}
+        <div className="hidden md:flex">
+          <Sidebar
             user={user}
             workspaces={workspaces}
             activeWorkspace={activeWorkspace}
             onWorkspaceChange={setActiveWorkspaceId}
           />
-          <h1 className="font-heading text-lg font-semibold truncate">
-            {activeWorkspace?.name}
-          </h1>
-        </header>
+        </div>
 
-        {/* Page content */}
-        <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
-          <WorkspaceProvider workspace={activeWorkspace}>
-            {children}
-          </WorkspaceProvider>
-        </main>
+        {/* Main content area */}
+        <div className="flex flex-1 flex-col overflow-hidden">
+          {/* Mobile header */}
+          <header className="flex h-14 items-center gap-3 border-b bg-card px-4 md:hidden">
+            <MobileNav
+              user={user}
+              workspaces={workspaces}
+              activeWorkspace={activeWorkspace}
+              onWorkspaceChange={setActiveWorkspaceId}
+            />
+            <h1 className="font-heading text-lg font-semibold truncate">
+              {activeWorkspace?.name}
+            </h1>
+          </header>
+
+          {/* Page content */}
+          <main className="flex-1 overflow-y-auto p-4 sm:p-6 md:p-8">
+            <WorkspaceProvider workspace={activeWorkspace}>
+              {children}
+            </WorkspaceProvider>
+          </main>
+        </div>
       </div>
-    </div>
+    </LanguageProvider>
   );
 }

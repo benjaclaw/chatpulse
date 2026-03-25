@@ -1,5 +1,6 @@
 "use client";
 
+import { useState } from "react";
 import { acceptInvite } from "@/lib/invite-actions";
 import { useFormAction } from "@/hooks/use-form-action";
 import { Button } from "@/components/ui/button";
@@ -13,9 +14,17 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2, Mail } from "lucide-react";
+import { createT, type Language } from "@/lib/i18n";
 
 export function AcceptInviteClient({ token }: { token: string }): React.ReactNode {
   const { error, pending, handleSubmit } = useFormAction();
+  const [language] = useState<Language>(() => {
+    if (typeof window !== 'undefined') {
+      return (localStorage.getItem('chatpulse_lang') as Language) || 'nb';
+    }
+    return 'nb';
+  });
+  const t = createT(language);
 
   async function handleAccept(): Promise<void> {
     await handleSubmit(() => acceptInvite(token));
@@ -28,10 +37,10 @@ export function AcceptInviteClient({ token }: { token: string }): React.ReactNod
           <Mail className="h-6 w-6 text-primary" />
         </div>
         <CardTitle className="text-2xl font-bold">
-          You&apos;ve been invited!
+          {t('invite.title')}
         </CardTitle>
         <CardDescription>
-          Click below to join the workspace and start collaborating.
+          {t('invite.description')}
         </CardDescription>
       </CardHeader>
       <CardContent>
@@ -44,7 +53,7 @@ export function AcceptInviteClient({ token }: { token: string }): React.ReactNod
           disabled={pending}
         >
           {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
-          {pending ? "Joining..." : "Accept invite"}
+          {pending ? t('invite.joining') : t('invite.accept')}
         </Button>
       </CardFooter>
     </Card>

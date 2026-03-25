@@ -4,6 +4,7 @@ import { useState, useEffect } from "react";
 import { useSearchParams } from "next/navigation";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
+import { useLanguage } from "@/lib/i18n/context";
 import type { Question } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -18,10 +19,18 @@ import {
 
 type Filter = "all" | "answered" | "unanswered";
 
+const FILTER_KEYS: { key: Filter; tKey: string }[] = [
+  { key: "all", tKey: "insights.filterAll" },
+  { key: "answered", tKey: "insights.filterAnswered" },
+  { key: "unanswered", tKey: "insights.filterUnanswered" },
+];
+
 export function InsightsPageClient(): React.ReactNode {
   const { id: workspaceId } = useWorkspace();
+  const { t, language } = useLanguage();
   const searchParams = useSearchParams();
   const supabase = createClient();
+  const dateLocale = language === "nb" ? "nb-NO" : "en-US";
   const [questions, setQuestions] = useState<Question[]>([]);
   const initialFilter = (searchParams.get("filter") as Filter) ?? "all";
   const [filter, setFilter] = useState<Filter>(
@@ -63,7 +72,7 @@ export function InsightsPageClient(): React.ReactNode {
   }
 
   async function handleClearAll() {
-    if (!confirm("Er du sikker på at du vil slette alle spørsmål?")) return;
+    if (!confirm(t('insights.confirmClear'))) return;
     await supabase.from("questions").delete().eq("workspace_id", workspaceId);
     setQuestions([]);
   }
@@ -72,9 +81,9 @@ export function InsightsPageClient(): React.ReactNode {
     return (
       <div className="space-y-6">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">Innsikt</h1>
+          <h1 className="text-3xl font-bold tracking-tight">{t('insights.title')}</h1>
           <p className="mt-1 text-muted-foreground">
-            Se hva kundene dine spør om mest.
+            {t('insights.description')}
           </p>
         </div>
       </div>
@@ -85,9 +94,9 @@ export function InsightsPageClient(): React.ReactNode {
     <div className="space-y-6">
       {/* Header */}
       <div>
-        <h1 className="text-3xl font-bold tracking-tight">Innsikt</h1>
+        <h1 className="text-3xl font-bold tracking-tight">{t('insights.title')}</h1>
         <p className="mt-1 text-muted-foreground">
-          Se hva kundene dine spør om mest.
+          {t('insights.description')}
         </p>
       </div>
 
@@ -96,21 +105,21 @@ export function InsightsPageClient(): React.ReactNode {
         <div className="rounded-xl border bg-card p-5 shadow-sm">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <TrendingUp className="h-4 w-4" />
-            Totalt spørsmål
+            {t('insights.totalQuestions')}
           </div>
           <p className="mt-2 text-2xl font-bold">{questions.length}</p>
         </div>
         <div className="rounded-xl border bg-card p-5 shadow-sm">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
-            Besvart
+            {t('insights.answered')}
           </div>
           <p className="mt-2 text-2xl font-bold">{totalAnswered}</p>
         </div>
         <div className="rounded-xl border bg-card p-5 shadow-sm">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
             <XCircle className="h-4 w-4 text-destructive" />
-            Ubesvart
+            {t('insights.unanswered')}
           </div>
           <p className="mt-2 text-2xl font-bold">{totalUnanswered}</p>
         </div>
@@ -119,43 +128,37 @@ export function InsightsPageClient(): React.ReactNode {
       {/* Filter + clear */}
       <div className="flex items-center justify-between">
       <div className="flex gap-2">
-        {(
-          [
-            ["all", "Alle"],
-            ["answered", "Besvart"],
-            ["unanswered", "Ubesvart"],
-          ] as const
-        ).map(([key, label]) => (
+        {FILTER_KEYS.map((opt) => (
           <Button
-            key={key}
-            variant={filter === key ? "default" : "outline"}
+            key={opt.key}
+            variant={filter === opt.key ? "default" : "outline"}
             size="sm"
-            onClick={() => setFilter(key)}
+            onClick={() => setFilter(opt.key)}
           >
-            {label}
+            {t(opt.tKey)}
           </Button>
         ))}
       </div>
       {questions.length > 0 && (
         <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive" onClick={handleClearAll}>
           <Trash2 className="mr-1.5 h-3.5 w-3.5" />
-          Slett alle
+          {t('insights.clearAll')}
         </Button>
       )}
       </div>
 
       {/* Bar chart */}
       <div className="rounded-xl border bg-card p-6 shadow-sm">
-        <h3 className="text-base font-semibold mb-4">Topp-spørsmål</h3>
+        <h3 className="text-base font-semibold mb-4">{t('insights.topQuestions')}</h3>
         <BarChart questions={filtered.slice(0, 8)} maxCount={Math.max(...filtered.map((x) => x.count), 0)} />
         <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <span className="inline-block h-2.5 w-2.5 rounded-full bg-success" />
-            Besvart
+            {t('insights.answered')}
           </div>
           <div className="flex items-center gap-1.5">
             <span className="inline-block h-2.5 w-2.5 rounded-full bg-warning" />
-            Ubesvart
+            {t('insights.unanswered')}
           </div>
         </div>
       </div>
@@ -164,8 +167,8 @@ export function InsightsPageClient(): React.ReactNode {
       {filtered.length === 0 ? (
         <EmptyState
           icon={HelpCircle}
-          title="Ingen spørsmål funnet"
-          description="Det er ingen spørsmål som matcher dette filteret."
+          title={t('insights.empty')}
+          description={t('insights.emptyDescription')}
         />
       ) : (
         <div className="space-y-2">
@@ -180,14 +183,14 @@ export function InsightsPageClient(): React.ReactNode {
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">{q.question}</p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
-                  Sist stilt:{" "}
-                  {new Date(q.last_asked_at).toLocaleDateString("nb-NO")}
+                  {t('insights.lastAsked')}{" "}
+                  {new Date(q.last_asked_at).toLocaleDateString(dateLocale)}
                 </p>
               </div>
               <div className="flex items-center gap-3 shrink-0">
                 <div className="text-right">
                   <p className="text-lg font-bold">{q.count}</p>
-                  <p className="text-[10px] text-muted-foreground">ganger</p>
+                  <p className="text-[10px] text-muted-foreground">{t('insights.times')}</p>
                 </div>
                 <Badge
                   variant={q.answered ? "secondary" : "destructive"}
@@ -195,12 +198,12 @@ export function InsightsPageClient(): React.ReactNode {
                   {q.answered ? (
                     <>
                       <CheckCircle2 className="mr-1 h-3 w-3" />
-                      Besvart
+                      {t('insights.answered')}
                     </>
                   ) : (
                     <>
                       <XCircle className="mr-1 h-3 w-3" />
-                      Ubesvart
+                      {t('insights.unanswered')}
                     </>
                   )}
                 </Badge>

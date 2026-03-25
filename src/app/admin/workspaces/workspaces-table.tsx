@@ -13,6 +13,9 @@ import {
   TableRow,
 } from "@/components/ui/table";
 import type { AdminWorkspace } from "@/lib/types";
+import { createT } from "@/lib/i18n";
+
+const t = createT("nb");
 
 export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspace[] }): React.ReactNode {
   const [search, setSearch] = useState("");
@@ -29,7 +32,7 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspace[] }
       <SearchInput
         value={search}
         onChange={setSearch}
-        placeholder="Søk etter workspace..."
+        placeholder={t('admin.workspaces.search')}
         className="max-w-sm"
       />
 
@@ -38,17 +41,17 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspace[] }
           <TableHeader>
             <TableRow>
               <TableHead className="w-8" />
-              <TableHead>Navn</TableHead>
-              <TableHead>Slug</TableHead>
-              <TableHead>Medlemmer</TableHead>
-              <TableHead>Opprettet</TableHead>
+              <TableHead>{t('admin.workspaces.name')}</TableHead>
+              <TableHead>{t('admin.workspaces.slug')}</TableHead>
+              <TableHead>{t('admin.workspaces.members')}</TableHead>
+              <TableHead>{t('admin.workspaces.created')}</TableHead>
             </TableRow>
           </TableHeader>
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
                 <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
-                  Ingen workspaces funnet.
+                  {t('admin.workspaces.noWorkspaces')}
                 </TableCell>
               </TableRow>
             ) : (
@@ -86,7 +89,7 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspace[] }
                       {isExpanded && (
                         <div className="border-t bg-muted/30 px-10 py-3">
                           <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                            Medlemmer
+                            {t('admin.workspaces.membersSection')}
                           </p>
                           <ul className="space-y-1">
                             {ws.members.map((m) => (
