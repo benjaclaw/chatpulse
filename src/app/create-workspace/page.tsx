@@ -3,6 +3,8 @@ import { CenteredLayout } from "@/components/auth/centered-layout";
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 
+export const dynamic = "force-dynamic";
+
 export const metadata = {
   title: "Create Workspace — ChatPulse",
 };

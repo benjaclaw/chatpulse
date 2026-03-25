@@ -3,6 +3,8 @@ import { createClient } from "@/lib/supabase/server";
 import { DashboardShell } from "@/components/dashboard/shell";
 import type { MemberRole, WorkspaceMembership } from "@/lib/types";
 
+export const dynamic = "force-dynamic";
+
 export default async function DashboardLayout({
   children,
 }: {
