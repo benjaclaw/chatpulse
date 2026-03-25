@@ -2,8 +2,10 @@
 
 import { useState } from "react";
 import { mockQuestions } from "@/lib/mock-data";
+import type { Question } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "./empty-state";
 import {
   HelpCircle,
   CheckCircle2,
@@ -85,34 +87,7 @@ export function InsightsPageClient(): React.ReactNode {
       {/* Bar chart */}
       <div className="rounded-xl border bg-card p-6 shadow-sm">
         <h3 className="text-base font-semibold mb-4">Topp-spørsmål</h3>
-        <div className="space-y-3">
-          {(() => {
-            const topQuestions = filtered.slice(0, 8);
-            const maxCount = Math.max(...filtered.map((x) => x.count));
-            return topQuestions.map((q) => {
-            const pct = maxCount > 0 ? (q.count / maxCount) * 100 : 0;
-            return (
-              <div key={q.id} className="space-y-1">
-                <div className="flex items-center justify-between text-sm">
-                  <span className="truncate pr-4">{q.question}</span>
-                  <span className="shrink-0 font-medium">{q.count}</span>
-                </div>
-                <div className="h-2.5 w-full rounded-full bg-muted">
-                  <div
-                    className="h-2.5 rounded-full transition-all duration-500"
-                    style={{
-                      width: `${pct}%`,
-                      backgroundColor: q.answered
-                        ? "var(--success)"
-                        : "var(--warning)",
-                    }}
-                  />
-                </div>
-              </div>
-            );
-          });
-          })()}
-        </div>
+        <BarChart questions={filtered.slice(0, 8)} maxCount={Math.max(...filtered.map((x) => x.count), 0)} />
         <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <span className="inline-block h-2.5 w-2.5 rounded-full bg-success" />
@@ -127,15 +102,11 @@ export function InsightsPageClient(): React.ReactNode {
 
       {/* Questions list */}
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-dashed bg-card/50 p-8 text-center dark:bg-card/20">
-          <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-            <HelpCircle className="h-7 w-7 text-primary" />
-          </div>
-          <h3 className="mt-4 text-base font-semibold">Ingen spørsmål funnet</h3>
-          <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-            Det er ingen spørsmål som matcher dette filteret.
-          </p>
-        </div>
+        <EmptyState
+          icon={HelpCircle}
+          title="Ingen spørsmål funnet"
+          description="Det er ingen spørsmål som matcher dette filteret."
+        />
       ) : (
         <div className="space-y-2">
           {filtered.map((q, i) => (
@@ -178,6 +149,33 @@ export function InsightsPageClient(): React.ReactNode {
           ))}
         </div>
       )}
+    </div>
+  );
+}
+
+function BarChart({ questions, maxCount }: { questions: Question[]; maxCount: number }): React.ReactNode {
+  return (
+    <div className="space-y-3">
+      {questions.map((q) => {
+        const pct = maxCount > 0 ? (q.count / maxCount) * 100 : 0;
+        return (
+          <div key={q.id} className="space-y-1">
+            <div className="flex items-center justify-between text-sm">
+              <span className="truncate pr-4">{q.question}</span>
+              <span className="shrink-0 font-medium">{q.count}</span>
+            </div>
+            <div className="h-2.5 w-full rounded-full bg-muted">
+              <div
+                className="h-2.5 rounded-full transition-all duration-500"
+                style={{
+                  width: `${pct}%`,
+                  backgroundColor: q.answered ? "var(--success)" : "var(--warning)",
+                }}
+              />
+            </div>
+          </div>
+        );
+      })}
     </div>
   );
 }

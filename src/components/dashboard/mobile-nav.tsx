@@ -17,6 +17,7 @@ import {
 import { Separator } from "@/components/ui/separator";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import type { UserInfo, Workspace } from "@/lib/types";
+import { isNavActive, getInitials } from "@/lib/utils";
 
 interface MobileNavProps {
   user: UserInfo;
@@ -81,10 +82,7 @@ export function MobileNav({
         <nav className="flex-1 p-2">
           <ul className="space-y-1">
             {NAV_ITEMS.map((item) => {
-              const isActive =
-                item.href === "/dashboard"
-                  ? pathname === "/dashboard"
-                  : pathname.startsWith(item.href);
+              const active = isNavActive(item.href, pathname);
 
               return (
                 <li key={item.href}>
@@ -92,7 +90,7 @@ export function MobileNav({
                     href={item.href}
                     onClick={() => setOpen(false)}
                     className={`flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-150 ${
-                      isActive
+                      active
                         ? "bg-primary/10 text-primary dark:bg-primary/20"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
@@ -112,7 +110,7 @@ export function MobileNav({
           <div className="flex items-center gap-3 mb-3">
             <Avatar className="h-8 w-8">
               <AvatarFallback className="bg-primary/10 text-primary text-xs">
-                {user.name?.charAt(0).toUpperCase() ?? user.email.charAt(0).toUpperCase()}
+                {getInitials(user.name, user.email)}
               </AvatarFallback>
             </Avatar>
             <div className="flex flex-col">

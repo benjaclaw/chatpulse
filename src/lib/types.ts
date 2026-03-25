@@ -138,6 +138,32 @@ export interface AdminStats {
   totalMessages: number;
 }
 
+// --- Supabase join result types ---
+
+export interface WorkspaceMembership {
+  workspace: { id: string; name: string; slug: string };
+  role: MemberRole;
+}
+
+export interface InviteRecord {
+  id: string;
+  workspace_id: string;
+  email: string;
+  role: string;
+  invited_by: string;
+  accepted_at: string | null;
+  created_at: string;
+}
+
+export interface MemberRecord {
+  id: string;
+  user_id: string;
+  workspace_id: string;
+  role: MemberRole;
+  created_at: string;
+  user: { email: string; raw_user_meta_data: Record<string, unknown> } | null;
+}
+
 export const ROLE_BADGE_VARIANT: Record<MemberRole, "default" | "secondary" | "outline"> = {
   owner: "default",
   admin: "secondary",

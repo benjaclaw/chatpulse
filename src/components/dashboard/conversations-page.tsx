@@ -4,6 +4,7 @@ import { useState } from "react";
 import { mockConversations } from "@/lib/mock-data";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { EmptyState } from "./empty-state";
 import {
   MessageSquare,
   ArrowLeft,
@@ -52,15 +53,11 @@ function ConversationList({
 }): React.ReactNode {
   if (conversations.length === 0) {
     return (
-      <div className="rounded-xl border border-dashed bg-card/50 p-8 text-center dark:bg-card/20">
-        <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-          <MessageSquare className="h-7 w-7 text-primary" />
-        </div>
-        <h3 className="mt-4 text-base font-semibold">Ingen samtaler ennå</h3>
-        <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-          Samtaler vil dukke opp her når besøkende bruker chatboten din.
-        </p>
-      </div>
+      <EmptyState
+        icon={MessageSquare}
+        title="Ingen samtaler ennå"
+        description="Samtaler vil dukke opp her når besøkende bruker chatboten din."
+      />
     );
   }
 

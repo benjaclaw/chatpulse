@@ -2,7 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
-import type { ActionResult } from "@/lib/types";
+import type { ActionResult, WorkspaceMembership } from "@/lib/types";
 
 function slugify(text: string): string {
   return text
@@ -56,7 +56,7 @@ export async function createWorkspace(formData: FormData): Promise<ActionResult>
   redirect(`/dashboard`);
 }
 
-export async function getUserWorkspaces(): Promise<Record<string, unknown>[]> {
+export async function getUserWorkspaces(): Promise<WorkspaceMembership[]> {
   const supabase = await createClient();
 
   const {
@@ -70,5 +70,5 @@ export async function getUserWorkspaces(): Promise<Record<string, unknown>[]> {
     .select("workspace:workspaces(*), role")
     .eq("user_id", user.id);
 
-  return data ?? [];
+  return (data ?? []) as unknown as WorkspaceMembership[];
 }

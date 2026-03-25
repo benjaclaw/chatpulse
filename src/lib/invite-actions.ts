@@ -2,7 +2,7 @@
 
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
-import type { ActionResult } from "@/lib/types";
+import type { ActionResult, InviteRecord, MemberRecord } from "@/lib/types";
 
 export async function sendInvite(workspaceId: string, formData: FormData): Promise<ActionResult> {
   const supabase = await createClient();
@@ -121,7 +121,7 @@ export async function acceptInvite(token: string): Promise<ActionResult> {
   redirect("/dashboard");
 }
 
-export async function getWorkspaceInvites(workspaceId: string): Promise<Record<string, unknown>[]> {
+export async function getWorkspaceInvites(workspaceId: string): Promise<InviteRecord[]> {
   const supabase = await createClient();
 
   const { data } = await supabase
@@ -131,10 +131,10 @@ export async function getWorkspaceInvites(workspaceId: string): Promise<Record<s
     .is("accepted_at", null)
     .order("created_at", { ascending: false });
 
-  return data ?? [];
+  return (data ?? []) as InviteRecord[];
 }
 
-export async function getWorkspaceMembers(workspaceId: string): Promise<Record<string, unknown>[]> {
+export async function getWorkspaceMembers(workspaceId: string): Promise<MemberRecord[]> {
   const supabase = await createClient();
 
   const { data } = await supabase
@@ -143,5 +143,5 @@ export async function getWorkspaceMembers(workspaceId: string): Promise<Record<s
     .eq("workspace_id", workspaceId)
     .order("created_at", { ascending: true });
 
-  return data ?? [];
+  return (data ?? []) as MemberRecord[];
 }

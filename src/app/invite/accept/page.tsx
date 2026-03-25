@@ -1,4 +1,5 @@
 import { AcceptInviteClient } from "@/components/invite/accept-invite";
+import { CenteredLayout } from "@/components/auth/centered-layout";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 
@@ -8,7 +9,7 @@ export const metadata = {
 
 export default async function AcceptInvitePage(props: {
   searchParams: Promise<{ token?: string }>;
-}) {
+}): Promise<React.ReactNode> {
   const searchParams = await props.searchParams;
   const token = searchParams.token;
 
@@ -35,18 +36,8 @@ export default async function AcceptInvitePage(props: {
   }
 
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-background p-4">
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 left-1/2 h-[400px] w-[600px] -translate-x-1/2 rounded-full bg-primary/5 blur-3xl dark:bg-primary/10" />
-      </div>
-      <div className="relative z-10">
-        <div className="mb-8 text-center">
-          <span className="font-heading text-2xl font-bold text-primary">
-            ChatPulse
-          </span>
-        </div>
-        <AcceptInviteClient token={token} />
-      </div>
-    </div>
+    <CenteredLayout>
+      <AcceptInviteClient token={token} />
+    </CenteredLayout>
   );
 }

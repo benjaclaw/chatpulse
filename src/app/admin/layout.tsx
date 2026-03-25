@@ -4,6 +4,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { Users, Building2, BarChart3, ShieldCheck, ArrowLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
+import { isNavActive } from "@/lib/utils";
 
 const adminNav = [
   { label: "Statistikk", href: "/admin", icon: BarChart3 },
@@ -30,17 +31,14 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <nav className="flex-1 overflow-y-auto p-2">
           <ul className="space-y-1">
             {adminNav.map((item) => {
-              const isActive =
-                item.href === "/admin"
-                  ? pathname === "/admin"
-                  : pathname.startsWith(item.href);
+              const active = isNavActive(item.href, pathname, "/admin");
 
               return (
                 <li key={item.href}>
                   <Link
                     href={item.href}
                     className={`flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-150 ${
-                      isActive
+                      active
                         ? "bg-primary/10 text-primary border-l-2 border-primary dark:bg-primary/20"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
@@ -77,16 +75,13 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         {/* Mobile nav */}
         <nav className="flex gap-1 border-b bg-card px-4 py-2 md:hidden">
           {adminNav.map((item) => {
-            const isActive =
-              item.href === "/admin"
-                ? pathname === "/admin"
-                : pathname.startsWith(item.href);
+            const active = isNavActive(item.href, pathname, "/admin");
             return (
               <Link
                 key={item.href}
                 href={item.href}
                 className={`flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-medium transition-colors ${
-                  isActive
+                  active
                     ? "bg-primary/10 text-primary"
                     : "text-muted-foreground hover:bg-muted"
                 }`}

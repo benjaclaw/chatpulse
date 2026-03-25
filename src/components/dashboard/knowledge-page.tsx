@@ -16,7 +16,9 @@ import {
   DialogTitle,
   DialogTrigger,
 } from "@/components/ui/dialog";
-import { Plus, Search, BookOpen, Calendar } from "lucide-react";
+import { EmptyState } from "./empty-state";
+import { SearchInput } from "./search-input";
+import { Plus, BookOpen, Calendar } from "lucide-react";
 
 export function KnowledgePageClient(): React.ReactNode {
   const [search, setSearch] = useState("");
@@ -111,19 +113,15 @@ export function KnowledgePageClient(): React.ReactNode {
       </div>
 
       {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Søk i kunnskapsbasen..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-10"
-        />
-      </div>
+      <SearchInput
+        value={search}
+        onChange={setSearch}
+        placeholder="Søk i kunnskapsbasen..."
+      />
 
       {/* Items list */}
       {filtered.length === 0 ? (
-        <EmptyState search={search} onAdd={() => setDialogOpen(true)} />
+        <KnowledgeEmptyState search={search} onAdd={() => setDialogOpen(true)} />
       ) : (
         <div className="space-y-3">
           {filtered.map((item) => (
@@ -154,7 +152,7 @@ export function KnowledgePageClient(): React.ReactNode {
   );
 }
 
-function EmptyState({
+function KnowledgeEmptyState({
   search,
   onAdd,
 }: {
@@ -162,24 +160,21 @@ function EmptyState({
   onAdd: () => void;
 }): React.ReactNode {
   return (
-    <div className="rounded-xl border border-dashed bg-card/50 p-8 text-center dark:bg-card/20">
-      <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10">
-        <BookOpen className="h-7 w-7 text-primary" />
-      </div>
-      <h3 className="mt-4 text-base font-semibold">
-        {search ? "Ingen resultater" : "Kunnskapsbasen er tom"}
-      </h3>
-      <p className="mx-auto mt-2 max-w-sm text-sm text-muted-foreground">
-        {search
+    <EmptyState
+      icon={BookOpen}
+      title={search ? "Ingen resultater" : "Kunnskapsbasen er tom"}
+      description={
+        search
           ? `Fant ingen artikler som matcher "${search}".`
-          : "Legg til artikler som chatboten kan bruke til å svare kundene dine."}
-      </p>
+          : "Legg til artikler som chatboten kan bruke til å svare kundene dine."
+      }
+    >
       {!search && (
         <Button variant="outline" className="mt-5" onClick={onAdd}>
           <Plus className="mr-2 h-4 w-4" />
           Legg til din første artikkel
         </Button>
       )}
-    </div>
+    </EmptyState>
   );
 }

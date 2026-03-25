@@ -1,7 +1,8 @@
 "use client";
 
-import { useState, useRef, useEffect } from "react";
+import { useState } from "react";
 import { mockTeamMembers } from "@/lib/mock-data";
+import { useTemporaryFlag } from "@/hooks/use-temporary-flag";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -28,23 +29,12 @@ import { ROLE_BADGE_VARIANT, ROLE_LABEL } from "@/lib/types";
 
 export function TeamPageClient(): React.ReactNode {
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [success, setSuccess] = useState(false);
-  const timeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
-
-  useEffect(() => {
-    return () => {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    };
-  }, []);
+  const { active: success, trigger: triggerSuccess } = useTemporaryFlag(1500);
 
   function handleInvite(e: React.FormEvent<HTMLFormElement>): void {
     e.preventDefault();
-    setSuccess(true);
-    if (timeoutRef.current) clearTimeout(timeoutRef.current);
-    timeoutRef.current = setTimeout(() => {
-      setDialogOpen(false);
-      setSuccess(false);
-    }, 1500);
+    triggerSuccess();
+    setTimeout(() => setDialogOpen(false), 1500);
   }
 
   return (

@@ -15,18 +15,7 @@ import {
 } from "@/components/ui/dropdown-menu";
 import { Separator } from "@/components/ui/separator";
 import type { UserInfo, Workspace } from "@/lib/types";
-
-function getInitials(name?: string, email?: string): string {
-  if (name) {
-    return name
-      .split(" ")
-      .map((n) => n[0])
-      .join("")
-      .toUpperCase()
-      .slice(0, 2);
-  }
-  return email?.charAt(0).toUpperCase() ?? "?";
-}
+import { isNavActive, getInitials } from "@/lib/utils";
 
 interface SidebarProps {
   user: UserInfo;
@@ -84,17 +73,14 @@ export function Sidebar({
       <nav className="flex-1 overflow-y-auto p-2">
         <ul className="space-y-1">
           {NAV_ITEMS.map((item) => {
-            const isActive =
-              item.href === "/dashboard"
-                ? pathname === "/dashboard"
-                : pathname.startsWith(item.href);
+            const active = isNavActive(item.href, pathname);
 
             return (
               <li key={item.href}>
                 <Link
                   href={item.href}
                   className={`flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-150 ${
-                    isActive
+                    active
                       ? "bg-primary/10 text-primary border-l-2 border-primary dark:bg-primary/20"
                       : "text-muted-foreground hover:bg-muted hover:text-foreground"
                   }`}

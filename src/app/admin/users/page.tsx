@@ -1,8 +1,8 @@
 "use client";
 
 import { useState } from "react";
-import { Search, ShieldCheck } from "lucide-react";
-import { Input } from "@/components/ui/input";
+import { ShieldCheck } from "lucide-react";
+import { SearchInput } from "@/components/dashboard/search-input";
 import { Badge } from "@/components/ui/badge";
 import {
   Table,
@@ -33,15 +33,12 @@ export default function AdminUsersPage(): React.ReactNode {
         </p>
       </div>
 
-      <div className="relative max-w-sm">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder="Søk etter navn eller e-post..."
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
-      </div>
+      <SearchInput
+        value={search}
+        onChange={setSearch}
+        placeholder="Søk etter navn eller e-post..."
+        className="max-w-sm"
+      />
 
       <div className="rounded-lg border bg-card">
         <Table>
