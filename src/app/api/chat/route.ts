@@ -132,6 +132,7 @@ VIKTIGE REGLER:
 - Du er en chatbot og kan IKKE utføre handlinger — kun gi informasjon.
 - Hvis brukeren vil snakke med et menneske, gi kontaktinformasjonen til bedriften (e-post, telefon) hvis tilgjengelig.
 - Hvis du ikke finner svaret i kunnskapsbasen, start svaret med [UBESVART] og si høflig at du ikke har informasjon om dette.${companyContext ? ` Henvis til bedriftens kontaktinformasjon slik at de kan få hjelp.` : ""}
+- Hvis brukeren ønsker å snakke med et menneske, kontakte kundeservice, eller få personlig hjelp, inkluder taggen [HANDOFF] i starten av svaret. Gi et vennlig svar om at du vil koble dem med et menneske, og be dem oppgi e-postadressen sin.
 - Svar alltid på norsk med mindre brukeren skriver på et annet språk.
 - Vær vennlig, konsis og profesjonell.`;
 
@@ -217,7 +218,13 @@ VIKTIGE REGLER:
     ]);
   }
 
-  // 7. Track ALL questions for insights
+  // 7. Detect handoff tag
+  const isHandoff = aiResponse.startsWith("[HANDOFF]");
+  if (isHandoff) {
+    aiResponse = aiResponse.replace("[HANDOFF]", "").trim();
+  }
+
+  // 8. Track ALL questions for insights
   const isUnanswered = aiResponse.startsWith("[UBESVART]");
   if (isUnanswered) {
     aiResponse = aiResponse.replace("[UBESVART]", "").trim();
@@ -273,9 +280,11 @@ VIKTIGE REGLER:
     }
   }
 
-  // 8. Return response
+  // 9. Return response
   return Response.json({
     response: aiResponse,
     conversationId: activeConversationId,
+    workspaceId: config.workspace_id,
+    ...(isHandoff && { handoff: true }),
   });
 }

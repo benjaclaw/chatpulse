@@ -65,9 +65,12 @@ export function ChatWidget({
   });
   const [input, setInput] = useState("");
   const [isTyping, setIsTyping] = useState(false);
+  const [handoffTriggered, setHandoffTriggered] = useState(false);
+  const [handoffSubmitted, setHandoffSubmitted] = useState(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const conversationIdRef = useRef<string | null>(null);
+  const workspaceIdRef = useRef<string | null>(null);
 
   useEffect(() => {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
@@ -120,10 +123,14 @@ export function ChatWidget({
 
         if (res.ok && data.response) {
           conversationIdRef.current = data.conversationId;
+          if (data.workspaceId) workspaceIdRef.current = data.workspaceId;
           setMessages((prev) => [
             ...prev,
             { id: `bot-${Date.now()}`, role: "assistant", content: data.response },
           ]);
+          if (data.handoff && !handoffTriggered) {
+            setHandoffTriggered(true);
+          }
         } else {
           setMessages((prev) => [
             ...prev,
@@ -180,6 +187,30 @@ export function ChatWidget({
           isTyping={isTyping}
           primaryColor={primaryColor}
           ref={messagesEndRef}
+          handoffForm={
+            handoffTriggered && !handoffSubmitted ? (
+              <HandoffForm
+                primaryColor={primaryColor}
+                onSubmit={async (email, name) => {
+                  await fetch("/api/leads", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      email,
+                      name: name || null,
+                      workspaceId: workspaceIdRef.current,
+                      conversationId: conversationIdRef.current,
+                    }),
+                  });
+                  setHandoffSubmitted(true);
+                  setMessages((prev) => [
+                    ...prev,
+                    { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: "Takk! Vi kontakter deg snart." },
+                  ]);
+                }}
+              />
+            ) : null
+          }
         />
         <WidgetInput
           value={input}
@@ -220,6 +251,30 @@ export function ChatWidget({
           isTyping={isTyping}
           primaryColor={primaryColor}
           ref={messagesEndRef}
+          handoffForm={
+            handoffTriggered && !handoffSubmitted ? (
+              <HandoffForm
+                primaryColor={primaryColor}
+                onSubmit={async (email, name) => {
+                  await fetch("/api/leads", {
+                    method: "POST",
+                    headers: { "Content-Type": "application/json" },
+                    body: JSON.stringify({
+                      email,
+                      name: name || null,
+                      workspaceId: workspaceIdRef.current,
+                      conversationId: conversationIdRef.current,
+                    }),
+                  });
+                  setHandoffSubmitted(true);
+                  setMessages((prev) => [
+                    ...prev,
+                    { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: "Takk! Vi kontakter deg snart." },
+                  ]);
+                }}
+              />
+            ) : null
+          }
         />
         <WidgetInput
           value={input}
@@ -290,11 +345,13 @@ const MessageList = ({
   isTyping,
   primaryColor,
   ref,
+  handoffForm,
 }: {
   messages: Message[];
   isTyping: boolean;
   primaryColor: string;
   ref: React.RefObject<HTMLDivElement | null>;
+  handoffForm?: React.ReactNode;
 }): React.ReactNode => {
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -323,6 +380,7 @@ const MessageList = ({
           </div>
         </div>
       ))}
+      {handoffForm}
       {isTyping && (
         <div className="flex justify-start">
           <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-md bg-muted px-4 py-3">
@@ -380,6 +438,60 @@ const WidgetInput = ({
     </div>
   );
 };
+
+function HandoffForm({
+  primaryColor,
+  onSubmit,
+}: {
+  primaryColor: string;
+  onSubmit: (email: string, name: string) => Promise<void>;
+}): React.ReactNode {
+  const [email, setEmail] = useState("");
+  const [name, setName] = useState("");
+  const [submitting, setSubmitting] = useState(false);
+
+  async function handleSubmit(e: React.FormEvent) {
+    e.preventDefault();
+    if (!email.trim() || submitting) return;
+    setSubmitting(true);
+    await onSubmit(email.trim(), name.trim());
+  }
+
+  return (
+    <div className="flex justify-start">
+      <div className="max-w-[90%] rounded-2xl rounded-bl-md bg-muted p-3">
+        <form onSubmit={handleSubmit} className="space-y-2">
+          <p className="text-xs font-medium text-foreground">
+            Legg igjen kontaktinformasjonen din:
+          </p>
+          <input
+            type="email"
+            required
+            value={email}
+            onChange={(e) => setEmail(e.target.value)}
+            placeholder="E-post *"
+            className="w-full rounded-lg border bg-background px-3 py-1.5 text-sm outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
+          />
+          <input
+            type="text"
+            value={name}
+            onChange={(e) => setName(e.target.value)}
+            placeholder="Navn (valgfritt)"
+            className="w-full rounded-lg border bg-background px-3 py-1.5 text-sm outline-none placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
+          />
+          <button
+            type="submit"
+            disabled={!email.trim() || submitting}
+            className="w-full rounded-lg px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
+            style={{ backgroundColor: primaryColor }}
+          >
+            {submitting ? "Sender..." : "Send"}
+          </button>
+        </form>
+      </div>
+    </div>
+  );
+}
 
 /** Lightweight markdown: bold, italic, bullet lists, line breaks */
 function SimpleMarkdown({ text }: { text: string }): React.ReactNode {

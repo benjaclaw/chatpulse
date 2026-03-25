@@ -82,6 +82,33 @@ export interface Question {
   answered: boolean;
 }
 
+export type LeadStatus = "new" | "contacted" | "resolved" | "archived";
+
+export interface Lead {
+  id: string;
+  workspace_id: string;
+  conversation_id: string | null;
+  email: string;
+  name: string | null;
+  status: LeadStatus;
+  notes: string | null;
+  created_at: string;
+}
+
+export const LEAD_STATUS_LABEL: Record<LeadStatus, string> = {
+  new: "Ny",
+  contacted: "Kontaktet",
+  resolved: "Løst",
+  archived: "Arkivert",
+};
+
+export const LEAD_STATUS_VARIANT: Record<LeadStatus, "default" | "secondary" | "outline" | "destructive"> = {
+  new: "default",
+  contacted: "secondary",
+  resolved: "outline",
+  archived: "outline",
+};
+
 export interface TeamMember {
   id: string;
   name: string;
