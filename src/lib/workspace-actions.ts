@@ -33,24 +33,13 @@ export async function createWorkspace(formData: FormData): Promise<ActionResult>
   const baseSlug = slugify(name);
   const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`;
 
-  // Create workspace
-  const { data: workspace, error: wsError } = await supabase
-    .from("workspaces")
-    .insert({ name: name.trim(), slug })
-    .select()
-    .single();
+  // Create workspace + add creator as owner atomically via RPC
+  // (Direct INSERT + SELECT fails because RLS SELECT requires membership that doesn't exist yet)
+  const { data: workspaceId, error: rpcError } = await supabase
+    .rpc("create_workspace", { ws_name: name.trim(), ws_slug: slug });
 
-  if (wsError) {
-    return { error: wsError.message };
-  }
-
-  // Add creator as owner
-  const { error: memberError } = await supabase
-    .from("members")
-    .insert({ user_id: user.id, workspace_id: workspace.id, role: "owner" });
-
-  if (memberError) {
-    return { error: memberError.message };
+  if (rpcError) {
+    return { error: rpcError.message };
   }
 
   redirect(`/dashboard`);
