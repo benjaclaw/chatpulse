@@ -103,7 +103,7 @@ export async function POST(request: Request): Promise<Response> {
   // 4. Build prompt
   const systemPrompt =
     (config.prompt || "Du er en hjelpsom kundeserviceassistent.") +
-    "\n\nBruk følgende kunnskapsbase for å svare. Hvis du ikke finner svaret, si: " +
+    "\n\nBruk følgende kunnskapsbase for å svare. Hvis du ikke finner svaret i kunnskapsbasen, start svaret med [UBESVART] etterfulgt av: " +
     fallback +
     "\nSvar alltid på norsk med mindre brukeren skriver på et annet språk.";
 
@@ -124,7 +124,7 @@ export async function POST(request: Request): Promise<Response> {
   let aiResponse: string;
   try {
     const geminiRes = await fetch(
-      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.0-flash-lite:generateContent`,
+      `https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent`,
       {
         method: "POST",
         headers: {
@@ -185,7 +185,36 @@ export async function POST(request: Request): Promise<Response> {
     ]);
   }
 
-  // 7. Return response
+  // 7. Track unanswered questions for insights
+  const isUnanswered = aiResponse.startsWith("[UBESVART]");
+  if (isUnanswered) {
+    // Strip the tag from the response shown to the user
+    aiResponse = aiResponse.replace("[UBESVART]", "").trim();
+
+    // Log to questions table (upsert: increment count if same question exists)
+    const { data: existing } = await supabase
+      .from("questions")
+      .select("id, count")
+      .eq("workspace_id", config.workspace_id)
+      .ilike("question", message.trim())
+      .maybeSingle();
+
+    if (existing) {
+      await supabase
+        .from("questions")
+        .update({ count: existing.count + 1, last_asked_at: new Date().toISOString() })
+        .eq("id", existing.id);
+    } else {
+      await supabase.from("questions").insert({
+        workspace_id: config.workspace_id,
+        question: message.trim(),
+        count: 1,
+        answered: false,
+      });
+    }
+  }
+
+  // 8. Return response
   return Response.json({
     response: aiResponse,
     conversationId: activeConversationId,
