@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { InsightsPageClient } from "@/components/dashboard/insights-page";
 
 export const dynamic = "force-dynamic";
@@ -7,5 +8,9 @@ export const metadata = {
 };
 
 export default function InsightsPage(): React.ReactNode {
-  return <InsightsPageClient />;
+  return (
+    <Suspense>
+      <InsightsPageClient />
+    </Suspense>
+  );
 }

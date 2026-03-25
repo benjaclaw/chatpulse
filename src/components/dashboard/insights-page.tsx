@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import { useSearchParams } from "next/navigation";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
 import type { Question } from "@/lib/types";
@@ -19,9 +20,13 @@ type Filter = "all" | "answered" | "unanswered";
 
 export function InsightsPageClient(): React.ReactNode {
   const { id: workspaceId } = useWorkspace();
+  const searchParams = useSearchParams();
   const supabase = createClient();
   const [questions, setQuestions] = useState<Question[]>([]);
-  const [filter, setFilter] = useState<Filter>("all");
+  const initialFilter = (searchParams.get("filter") as Filter) ?? "all";
+  const [filter, setFilter] = useState<Filter>(
+    ["all", "answered", "unanswered"].includes(initialFilter) ? initialFilter : "all"
+  );
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {

@@ -95,7 +95,7 @@ export default async function DashboardPage(): Promise<React.ReactNode> {
           icon={HelpCircle}
           title="Ubesvarte spørsmål"
           value={stats.unansweredQuestions}
-          href="/dashboard/insights"
+          href="/dashboard/insights?filter=unanswered"
         />
         <StatCard
           icon={Users}
