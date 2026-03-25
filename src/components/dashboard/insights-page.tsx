@@ -9,6 +9,8 @@ import type { Question } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "./empty-state";
+import { UpgradeBanner } from "./upgrade-banner";
+import { hasFeature } from "@/lib/plans";
 import {
   HelpCircle,
   CheckCircle2,
@@ -26,7 +28,8 @@ const FILTER_KEYS: { key: Filter; tKey: string }[] = [
 ];
 
 export function InsightsPageClient(): React.ReactNode {
-  const { id: workspaceId } = useWorkspace();
+  const workspace = useWorkspace();
+  const { id: workspaceId } = workspace;
   const { t, language } = useLanguage();
   const searchParams = useSearchParams();
   const supabase = createClient();
@@ -75,6 +78,20 @@ export function InsightsPageClient(): React.ReactNode {
     if (!confirm(t('insights.confirmClear'))) return;
     await supabase.from("questions").delete().eq("workspace_id", workspaceId);
     setQuestions([]);
+  }
+
+  if (!hasFeature(workspace.plan_id, "insights")) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{t('insights.title')}</h1>
+          <p className="mt-1 text-muted-foreground">
+            {t('insights.description')}
+          </p>
+        </div>
+        <UpgradeBanner feature="insights" />
+      </div>
+    );
   }
 
   if (loading) {

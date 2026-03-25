@@ -24,6 +24,8 @@ interface ChatWidgetProps {
   /** When provided, messages are persisted to the DB and AI is enabled */
   chatbotId?: string;
   language?: "nb" | "en";
+  /** Hide the 'Powered by ChatPulse' watermark (white-label) */
+  hideWatermark?: boolean;
 }
 
 function getVisitorId(): string {
@@ -46,6 +48,7 @@ export function ChatWidget({
   className,
   chatbotId,
   language,
+  hideWatermark = false,
 }: ChatWidgetProps): React.ReactNode {
   const t = createT((language ?? "nb") as Language);
 
@@ -234,6 +237,7 @@ export function ChatWidget({
           primaryColor={primaryColor}
           ref={inputRef}
           t={t}
+          hideWatermark={hideWatermark}
         />
       </div>
     );
@@ -302,6 +306,7 @@ export function ChatWidget({
           primaryColor={primaryColor}
           ref={inputRef}
           t={t}
+          hideWatermark={hideWatermark}
         />
       </div>
 
@@ -434,6 +439,7 @@ const WidgetInput = ({
   primaryColor,
   ref,
   t,
+  hideWatermark = false,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -441,6 +447,7 @@ const WidgetInput = ({
   primaryColor: string;
   ref: React.RefObject<HTMLInputElement | null>;
   t: TranslateFunction;
+  hideWatermark?: boolean;
 }): React.ReactNode => {
   return (
     <div className="border-t p-3">
@@ -469,16 +476,18 @@ const WidgetInput = ({
           <Send className="h-4 w-4" />
         </button>
       </form>
-      <div className="px-3 pb-1.5 pt-0.5 text-center">
-        <a
-          href="https://chatpulse.no"
-          target="_blank"
-          rel="noopener noreferrer"
-          className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground/70 transition-colors"
-        >
-          {t('widget.poweredBy')}
-        </a>
-      </div>
+      {!hideWatermark && (
+        <div className="px-3 pb-1.5 pt-0.5 text-center">
+          <a
+            href="https://chatpulse.no"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground/70 transition-colors"
+          >
+            {t('widget.poweredBy')}
+          </a>
+        </div>
+      )}
     </div>
   );
 };

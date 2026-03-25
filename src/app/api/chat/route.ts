@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/service";
+import { getPlanLimit } from "@/lib/plans";
 
 export const runtime = "nodejs";
 
@@ -46,6 +47,37 @@ export async function POST(request: Request): Promise<Response> {
 
   if (!config) {
     return Response.json({ error: "Chatbot ikke funnet" }, { status: 404 });
+  }
+
+  // Check message limit for workspace plan
+  const { data: workspace } = await supabase
+    .from("workspaces")
+    .select("plan_id, message_count, billing_cycle_start")
+    .eq("id", config.workspace_id)
+    .single();
+
+  if (workspace) {
+    // Reset monthly counter if billing cycle has elapsed
+    const cycleStart = workspace.billing_cycle_start
+      ? new Date(workspace.billing_cycle_start)
+      : new Date();
+    const now = new Date();
+    const monthMs = 30 * 24 * 60 * 60 * 1000;
+    if (now.getTime() - cycleStart.getTime() > monthMs) {
+      await supabase
+        .from("workspaces")
+        .update({ message_count: 0, billing_cycle_start: now.toISOString() })
+        .eq("id", config.workspace_id);
+      workspace.message_count = 0;
+    }
+
+    const limit = getPlanLimit(workspace.plan_id ?? "free");
+    if (workspace.message_count >= limit) {
+      return Response.json(
+        { error: "Meldingsgrensen er nådd for denne måneden" },
+        { status: 429 }
+      );
+    }
   }
 
   const fallback =
@@ -216,6 +248,14 @@ VIKTIGE REGLER:
         content: aiResponse,
       },
     ]);
+  }
+
+  // 6b. Increment workspace message count
+  if (workspace) {
+    await supabase
+      .from("workspaces")
+      .update({ message_count: (workspace.message_count ?? 0) + 1 })
+      .eq("id", config.workspace_id);
   }
 
   // 7. Detect handoff tag

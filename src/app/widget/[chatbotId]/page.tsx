@@ -1,5 +1,6 @@
 import { ChatWidget } from "@/components/widget/chat-widget";
 import { createClient } from "@/lib/supabase/server";
+import { hasFeature } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
 
@@ -16,7 +17,7 @@ export default async function WidgetPage({
   const supabase = await createClient();
   const { data: config } = await supabase
     .from("chatbot_config")
-    .select("name, welcome_message, widget_styling, logo_url")
+    .select("name, welcome_message, widget_styling, logo_url, workspace_id")
     .eq("id", chatbotId)
     .maybeSingle();
 
@@ -25,6 +26,19 @@ export default async function WidgetPage({
   const styling = config?.widget_styling as { primary_color?: string; position?: string } | null;
   const primaryColor = query.color ?? styling?.primary_color ?? "#6366f1";
   const logoUrl = (config?.logo_url as string | undefined) ?? undefined;
+
+  // Fetch workspace plan for white-label check
+  let hideWatermark = false;
+  if (config?.workspace_id) {
+    const { data: ws } = await supabase
+      .from("workspaces")
+      .select("plan_id")
+      .eq("id", config.workspace_id)
+      .maybeSingle();
+    if (ws?.plan_id) {
+      hideWatermark = hasFeature(ws.plan_id, "white_label");
+    }
+  }
 
   return (
     <div className="flex h-dvh w-full flex-col">
@@ -35,6 +49,7 @@ export default async function WidgetPage({
         welcomeMessage={welcomeMessage}
         primaryColor={primaryColor}
         logoUrl={logoUrl}
+        hideWatermark={hideWatermark}
         className="h-full w-full !rounded-none border-0 shadow-none"
       />
     </div>

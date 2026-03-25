@@ -8,6 +8,8 @@ import type { Lead, LeadStatus, ChatMessage } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "./empty-state";
+import { UpgradeBanner } from "./upgrade-banner";
+import { hasFeature } from "@/lib/plans";
 import {
   Dialog,
   DialogContent,
@@ -97,7 +99,8 @@ function formatDate(dateStr: string, locale: string): string {
 }
 
 export function LeadsPageClient(): React.ReactNode {
-  const { id: workspaceId } = useWorkspace();
+  const workspace = useWorkspace();
+  const { id: workspaceId } = workspace;
   const supabase = createClient();
   const { t, language } = useLanguage();
   const dateLocale = language === 'nb' ? 'nb-NO' : 'en-US';
@@ -226,6 +229,22 @@ export function LeadsPageClient(): React.ReactNode {
     contacted: leads.filter((l) => l.status === "contacted").length,
     resolved: leads.filter((l) => l.status === "resolved").length,
   };
+
+  const hasLeadsFeature = hasFeature(workspace.plan_id, "leads");
+
+  if (!hasLeadsFeature) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{t('leads.title')}</h1>
+          <p className="mt-1 text-muted-foreground">
+            {t('leads.description')}
+          </p>
+        </div>
+        <UpgradeBanner feature="leads" />
+      </div>
+    );
+  }
 
   if (loading) {
     return (

@@ -22,11 +22,14 @@ import { EmptyState } from "./empty-state";
 import { SearchInput } from "./search-input";
 import { Plus, BookOpen, Calendar, Pencil, Upload, FileText, Loader2 } from "lucide-react";
 import type { KnowledgeItem } from "@/lib/types";
+import { hasFeature } from "@/lib/plans";
+import { UpgradeBanner } from "./upgrade-banner";
 
 const ACCEPTED_FILE_TYPES = ".pdf,.docx,.xlsx,.csv,.txt,.md";
 
 export function KnowledgePageClient(): React.ReactNode {
-  const { id: workspaceId } = useWorkspace();
+  const workspace = useWorkspace();
+  const { id: workspaceId } = workspace;
   const supabase = createClient();
   const { t } = useLanguage();
   const [search, setSearch] = useState("");
@@ -179,26 +182,30 @@ export function KnowledgePageClient(): React.ReactNode {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          <input
-            ref={fileInputRef}
-            type="file"
-            accept={ACCEPTED_FILE_TYPES}
-            className="hidden"
-            onChange={handleFileUpload}
-          />
-          <Button
-            variant="outline"
-            className="shrink-0"
-            onClick={() => fileInputRef.current?.click()}
-            disabled={uploading}
-          >
-            {uploading ? (
-              <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-            ) : (
-              <Upload className="mr-2 h-4 w-4" />
-            )}
-            {uploading ? t('knowledge.uploading') : t('knowledge.uploadFile')}
-          </Button>
+          {hasFeature(workspace.plan_id, "document_upload") && (
+            <>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept={ACCEPTED_FILE_TYPES}
+                className="hidden"
+                onChange={handleFileUpload}
+              />
+              <Button
+                variant="outline"
+                className="shrink-0"
+                onClick={() => fileInputRef.current?.click()}
+                disabled={uploading}
+              >
+                {uploading ? (
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                ) : (
+                  <Upload className="mr-2 h-4 w-4" />
+                )}
+                {uploading ? t('knowledge.uploading') : t('knowledge.uploadFile')}
+              </Button>
+            </>
+          )}
           <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingItem(null); }}>
             <DialogTrigger render={<Button className="shrink-0" onClick={openCreate} />}>
               <Plus className="mr-2 h-4 w-4" />
@@ -258,6 +265,11 @@ export function KnowledgePageClient(): React.ReactNode {
           </Dialog>
         </div>
       </div>
+
+      {/* Document upload upgrade banner */}
+      {!hasFeature(workspace.plan_id, "document_upload") && (
+        <UpgradeBanner feature="document_upload" />
+      )}
 
       {/* Upload error */}
       {uploadError && (

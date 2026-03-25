@@ -35,7 +35,11 @@ import {
   RefreshCw,
   Trash2,
   AlertTriangle,
+  CreditCard,
+  Zap,
 } from "lucide-react";
+import { getPlanDetail, getPlanLimit } from "@/lib/plans";
+import type { PlanFeature } from "@/lib/plans";
 
 function generateInviteCode(): string {
   const chars = "ABCDEFGHJKLMNPQRSTUVWXYZ23456789";
@@ -84,6 +88,9 @@ export function SettingsPageClient(): React.ReactNode {
           {t('settings.description')}
         </p>
       </div>
+
+      {/* Plan & Usage */}
+      <PlanCard workspace={workspace} t={t} />
 
       {/* Workspace name */}
       <Card>
@@ -251,5 +258,67 @@ export function SettingsPageClient(): React.ReactNode {
         </CardContent>
       </Card>
     </div>
+  );
+}
+
+function PlanCard({
+  workspace,
+  t,
+}: {
+  workspace: { plan_id: string; message_count: number };
+  t: (key: string, params?: Record<string, string | number>) => string;
+}): React.ReactNode {
+  const plan = getPlanDetail(workspace.plan_id);
+  const limit = getPlanLimit(workspace.plan_id);
+  const used = workspace.message_count;
+  const pct = Math.min((used / limit) * 100, 100);
+
+  return (
+    <Card>
+      <CardHeader>
+        <CardTitle className="flex items-center gap-2 text-lg">
+          <CreditCard className="h-4 w-4 text-primary" />
+          {t('plans.currentPlan')}
+        </CardTitle>
+        <CardDescription>
+          {plan.name} — {plan.priceNok > 0 ? `${plan.priceNok} kr${t('plans.perMonth')}` : t('plans.free')}
+        </CardDescription>
+      </CardHeader>
+      <CardContent className="space-y-4">
+        {/* Usage bar */}
+        <div className="space-y-2">
+          <p className="text-sm text-muted-foreground">
+            {t('plans.usage', { used, limit })}
+          </p>
+          <div className="h-2.5 w-full rounded-full bg-muted">
+            <div
+              className="h-2.5 rounded-full bg-primary transition-all"
+              style={{ width: `${pct}%` }}
+            />
+          </div>
+        </div>
+
+        {/* Features */}
+        <div>
+          <p className="text-sm font-medium mb-2">{t('plans.features')}</p>
+          <ul className="grid gap-1.5 sm:grid-cols-2">
+            {plan.features.map((f) => (
+              <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Check className="h-3.5 w-3.5 text-primary shrink-0" />
+                {t(`plans.feature.${f}` as string)}
+              </li>
+            ))}
+          </ul>
+        </div>
+
+        {/* Upgrade button */}
+        {workspace.plan_id !== "pro" && (
+          <Button variant="outline" className="w-full sm:w-auto">
+            <Zap className="mr-2 h-4 w-4" />
+            {t('plans.upgradePlan')}
+          </Button>
+        )}
+      </CardContent>
+    </Card>
   );
 }

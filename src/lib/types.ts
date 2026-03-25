@@ -19,6 +19,9 @@ export type Workspace = {
   slug: string;
   role: MemberRole;
   language?: string;
+  plan_id: string;
+  message_count: number;
+  billing_cycle_start: string | null;
 };
 
 export type UserInfo = {
@@ -33,6 +36,7 @@ export interface NavItem {
   labelKey: string;
   href: string;
   icon: LucideIcon;
+  requiredFeature?: string;
 }
 
 // --- Mock data types ---
@@ -172,7 +176,15 @@ export interface AdminStats {
 // --- Supabase join result types ---
 
 export interface WorkspaceMembership {
-  workspace: { id: string; name: string; slug: string };
+  workspace: {
+    id: string;
+    name: string;
+    slug: string;
+    language?: string;
+    plan_id: string;
+    message_count: number;
+    billing_cycle_start: string | null;
+  };
   role: MemberRole;
 }
 

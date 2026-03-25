@@ -13,6 +13,8 @@ import { Textarea } from "@/components/ui/textarea";
 import { ChatWidget } from "@/components/widget/chat-widget";
 import { Bot, Eye, Code2, Copy, Check, Upload, Trash2 } from "lucide-react";
 import type { ChatbotConfig } from "@/lib/types";
+import { hasFeature } from "@/lib/plans";
+import { UpgradeBanner } from "./upgrade-banner";
 
 const DEFAULT_STYLING = { primary_color: "#6366f1", position: "right" as const };
 
@@ -189,35 +191,39 @@ export function ChatbotPageClient(): React.ReactNode {
               </div>
               <div className="space-y-2">
                 <Label>{language === "nb" ? "Logo" : "Logo"}</Label>
-                <div className="flex items-center gap-3">
-                  {config.logo_url && (
-                    <img
-                      src={config.logo_url}
-                      alt="Logo"
-                      className="h-10 w-10 rounded-full object-cover border"
-                    />
-                  )}
-                  <label className="cursor-pointer">
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                      className="hidden"
-                      onChange={handleLogoUpload}
-                      disabled={uploading}
-                    />
-                    <span className="inline-flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium hover:bg-accent transition-colors">
-                      <Upload className="h-4 w-4" />
-                      {uploading
-                        ? (language === "nb" ? "Laster opp…" : "Uploading…")
-                        : (language === "nb" ? "Last opp logo" : "Upload logo")}
-                    </span>
-                  </label>
-                  {config.logo_url && (
-                    <Button variant="ghost" size="sm" onClick={handleLogoRemove}>
-                      <Trash2 className="h-4 w-4 text-muted-foreground" />
-                    </Button>
-                  )}
-                </div>
+                {hasFeature(workspace.plan_id, "logo") ? (
+                  <div className="flex items-center gap-3">
+                    {config.logo_url && (
+                      <img
+                        src={config.logo_url}
+                        alt="Logo"
+                        className="h-10 w-10 rounded-full object-cover border"
+                      />
+                    )}
+                    <label className="cursor-pointer">
+                      <input
+                        type="file"
+                        accept="image/png,image/jpeg,image/svg+xml,image/webp"
+                        className="hidden"
+                        onChange={handleLogoUpload}
+                        disabled={uploading}
+                      />
+                      <span className="inline-flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium hover:bg-accent transition-colors">
+                        <Upload className="h-4 w-4" />
+                        {uploading
+                          ? (language === "nb" ? "Laster opp…" : "Uploading…")
+                          : (language === "nb" ? "Last opp logo" : "Upload logo")}
+                      </span>
+                    </label>
+                    {config.logo_url && (
+                      <Button variant="ghost" size="sm" onClick={handleLogoRemove}>
+                        <Trash2 className="h-4 w-4 text-muted-foreground" />
+                      </Button>
+                    )}
+                  </div>
+                ) : (
+                  <UpgradeBanner feature="logo" />
+                )}
               </div>
             </div>
           </div>

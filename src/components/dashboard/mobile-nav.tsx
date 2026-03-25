@@ -3,7 +3,9 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, LogOut } from "lucide-react";
+import { Menu, LogOut, Lock } from "lucide-react";
+import { hasFeature } from "@/lib/plans";
+import type { PlanFeature } from "@/lib/plans";
 import { signOut } from "@/lib/auth-actions";
 import { NAV_ITEMS } from "@/lib/constants";
 import { Button } from "@/components/ui/button";
@@ -85,6 +87,9 @@ export function MobileNav({
           <ul className="space-y-1">
             {NAV_ITEMS.map((item) => {
               const active = isNavActive(item.href, pathname);
+              const locked = item.requiredFeature
+                ? !hasFeature(activeWorkspace.plan_id, item.requiredFeature as PlanFeature)
+                : false;
 
               return (
                 <li key={item.href}>
@@ -94,11 +99,14 @@ export function MobileNav({
                     className={`flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-150 ${
                       active
                         ? "bg-primary/10 text-primary dark:bg-primary/20"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        : locked
+                          ? "text-muted-foreground/50"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
                     }`}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />
-                    {t(item.labelKey)}
+                    <span className="flex-1">{t(item.labelKey)}</span>
+                    {locked && <Lock className="h-3 w-3 shrink-0 text-muted-foreground/40" />}
                   </Link>
                 </li>
               );

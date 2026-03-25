@@ -23,7 +23,7 @@ export default async function DashboardLayout({
   // Get user's workspaces
   const { data: memberships } = await supabase
     .from("members")
-    .select("workspace:workspaces(id, name, slug, language), role")
+    .select("workspace:workspaces(id, name, slug, language, plan_id, message_count, billing_cycle_start), role")
     .eq("user_id", user.id);
 
   if (!memberships || memberships.length === 0) {

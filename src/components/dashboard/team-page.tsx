@@ -28,10 +28,13 @@ import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { UserPlus, CheckCircle2 } from "lucide-react";
 import { ROLE_BADGE_VARIANT } from "@/lib/types";
+import { hasFeature } from "@/lib/plans";
+import { UpgradeBanner } from "./upgrade-banner";
 import type { TeamMember, MemberRole } from "@/lib/types";
 
 export function TeamPageClient(): React.ReactNode {
-  const { id: workspaceId } = useWorkspace();
+  const workspace = useWorkspace();
+  const { id: workspaceId } = workspace;
   const supabase = createClient();
   const { t } = useLanguage();
   const [members, setMembers] = useState<TeamMember[]>([]);
@@ -112,6 +115,7 @@ export function TeamPageClient(): React.ReactNode {
             {t('team.description')}
           </p>
         </div>
+        {hasFeature(workspace.plan_id, "team_members") ? (
         <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
           <DialogTrigger render={<Button className="shrink-0" />}>
             <UserPlus className="mr-2 h-4 w-4" />
@@ -161,7 +165,12 @@ export function TeamPageClient(): React.ReactNode {
             </form>
           </DialogContent>
         </Dialog>
+        ) : null}
       </div>
+
+      {!hasFeature(workspace.plan_id, "team_members") && (
+        <UpgradeBanner feature="team_members" />
+      )}
 
       {/* Members card */}
       <Card>

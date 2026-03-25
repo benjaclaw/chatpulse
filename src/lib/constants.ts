@@ -17,8 +17,8 @@ export const NAV_ITEMS: NavItem[] = [
   { labelKey: "nav.company", href: "/dashboard/company", icon: Building2 },
   { labelKey: "nav.chatbot", href: "/dashboard/chatbot", icon: Bot },
   { labelKey: "nav.conversations", href: "/dashboard/conversations", icon: MessageSquare },
-  { labelKey: "nav.leads", href: "/dashboard/leads", icon: UserPlus },
-  { labelKey: "nav.insights", href: "/dashboard/insights", icon: BarChart3 },
-  { labelKey: "nav.team", href: "/dashboard/team", icon: Users },
+  { labelKey: "nav.leads", href: "/dashboard/leads", icon: UserPlus, requiredFeature: "leads" },
+  { labelKey: "nav.insights", href: "/dashboard/insights", icon: BarChart3, requiredFeature: "insights" },
+  { labelKey: "nav.team", href: "/dashboard/team", icon: Users, requiredFeature: "team_members" },
   { labelKey: "nav.settings", href: "/dashboard/settings", icon: Settings },
 ];

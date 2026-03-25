@@ -209,7 +209,7 @@ export function HomePage(): React.ReactNode {
               {t('landing.pricing.description')}
             </p>
 
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <PricingCard
                 name={t('landing.pricing.free')}
                 price={t('landing.pricing.freePrice')}
@@ -225,31 +225,46 @@ export function HomePage(): React.ReactNode {
                 popularLabel={t('landing.pricing.popular')}
               />
               <PricingCard
-                name={t('landing.pricing.pro')}
-                price={t('landing.pricing.proPrice')}
+                name={t('landing.pricing.basicName')}
+                price={t('landing.pricing.basicPrice')}
                 period={t('landing.pricing.perMonth')}
-                description={t('landing.pricing.proDesc')}
+                description={t('landing.pricing.basicDesc')}
                 features={[
-                  t('landing.pricing.proF1'),
-                  t('landing.pricing.proF2'),
-                  t('landing.pricing.proF3'),
+                  t('landing.pricing.basicF1'),
+                  t('landing.pricing.basicF2'),
+                  t('landing.pricing.basicF3'),
                 ]}
-                cta={t('landing.pricing.proCta')}
+                cta={t('landing.pricing.basicCta')}
+                ctaHref="/signup"
+                popularLabel={t('landing.pricing.popular')}
+              />
+              <PricingCard
+                name={t('landing.pricing.startupName')}
+                price={t('landing.pricing.startupPrice')}
+                period={t('landing.pricing.perMonth')}
+                description={t('landing.pricing.startupDesc')}
+                features={[
+                  t('landing.pricing.startupF1'),
+                  t('landing.pricing.startupF2'),
+                  t('landing.pricing.startupF3'),
+                ]}
+                cta={t('landing.pricing.startupCta')}
                 ctaHref="/signup"
                 highlighted
                 popularLabel={t('landing.pricing.popular')}
               />
               <PricingCard
-                name={t('landing.pricing.enterprise')}
-                price={t('landing.pricing.enterprisePrice')}
-                description={t('landing.pricing.enterpriseDesc')}
+                name={t('landing.pricing.proName')}
+                price={t('landing.pricing.proNewPrice')}
+                period={t('landing.pricing.perMonth')}
+                description={t('landing.pricing.proNewDesc')}
                 features={[
-                  t('landing.pricing.enterpriseF1'),
-                  t('landing.pricing.enterpriseF2'),
-                  t('landing.pricing.enterpriseF3'),
+                  t('landing.pricing.proNewF1'),
+                  t('landing.pricing.proNewF2'),
+                  t('landing.pricing.proNewF3'),
                 ]}
-                cta={t('landing.pricing.enterpriseCta')}
-                ctaHref="mailto:salg@chatpulse.no"
+                cta={t('landing.pricing.proNewCta')}
+                ctaHref="/signup"
                 popularLabel={t('landing.pricing.popular')}
               />
             </div>
