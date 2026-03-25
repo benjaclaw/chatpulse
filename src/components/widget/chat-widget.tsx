@@ -435,6 +435,16 @@ const WidgetInput = ({
           <Send className="h-4 w-4" />
         </button>
       </form>
+      <div className="px-3 pb-1.5 pt-0.5 text-center">
+        <a
+          href="https://chatpulse.no"
+          target="_blank"
+          rel="noopener noreferrer"
+          className="text-[10px] text-muted-foreground/50 hover:text-muted-foreground/70 transition-colors"
+        >
+          Powered by ChatPulse.no
+        </a>
+      </div>
     </div>
   );
 };
