@@ -109,7 +109,19 @@ export function ConversationsPageClient(): React.ReactNode {
       countQuery = countQuery.gte("started_at", dateFrom);
     }
     if (searchDebounced) {
-      countQuery = countQuery.ilike("visitor_id", `%${searchDebounced}%`);
+      // Search by message content: find conversation IDs that have matching messages
+      const { data: matchingConvos } = await supabase
+        .from("messages")
+        .select("conversation_id")
+        .ilike("content", `%${searchDebounced}%`);
+      const convIds = [...new Set((matchingConvos ?? []).map((m: { conversation_id: string }) => m.conversation_id))];
+      if (convIds.length === 0) {
+        setConversations([]);
+        setTotalCount(0);
+        setLoading(false);
+        return;
+      }
+      countQuery = countQuery.in("id", convIds);
     }
 
     // Build data query
@@ -124,7 +136,18 @@ export function ConversationsPageClient(): React.ReactNode {
       dataQuery = dataQuery.gte("started_at", dateFrom);
     }
     if (searchDebounced) {
-      dataQuery = dataQuery.ilike("visitor_id", `%${searchDebounced}%`);
+      const { data: matchingConvos2 } = await supabase
+        .from("messages")
+        .select("conversation_id")
+        .ilike("content", `%${searchDebounced}%`);
+      const convIds2 = [...new Set((matchingConvos2 ?? []).map((m: { conversation_id: string }) => m.conversation_id))];
+      if (convIds2.length === 0) {
+        setConversations([]);
+        setTotalCount(0);
+        setLoading(false);
+        return;
+      }
+      dataQuery = dataQuery.in("id", convIds2);
     }
 
     const [countResult, dataResult] = await Promise.all([countQuery, dataQuery]);
@@ -179,7 +202,7 @@ export function ConversationsPageClient(): React.ReactNode {
       <div className="relative">
         <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
         <Input
-          placeholder="Søk etter besøkende..."
+          placeholder="Søk i meldinger..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="pl-9"
