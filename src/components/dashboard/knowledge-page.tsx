@@ -202,7 +202,7 @@ export function KnowledgePageClient(): React.ReactNode {
               <Plus className="mr-2 h-4 w-4" />
               Legg til
             </DialogTrigger>
-            <DialogContent>
+            <DialogContent className="max-h-[90vh] overflow-y-auto">
               <DialogHeader>
                 <DialogTitle>{editingItem ? "Rediger artikkel" : "Ny artikkel"}</DialogTitle>
                 <DialogDescription>
@@ -240,10 +240,11 @@ export function KnowledgePageClient(): React.ReactNode {
                       id="kb-content"
                       name="content"
                       placeholder="Skriv innholdet her..."
-                      rows={5}
+                      rows={12}
                       required
                       defaultValue={editingItem?.content ?? ""}
                       key={`con-${editingItem?.id ?? "new"}`}
+                      className="max-h-[50vh] resize-y"
                     />
                   </div>
                 </div>

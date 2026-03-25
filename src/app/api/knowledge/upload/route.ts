@@ -1,5 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import { PDFParse } from "pdf-parse";
 import mammoth from "mammoth";
 import * as XLSX from "xlsx";
 
@@ -22,6 +21,7 @@ async function extractText(
 ): Promise<string> {
   switch (extension) {
     case "pdf": {
+      const { PDFParse } = await import("pdf-parse");
       const parser = new PDFParse({ data: new Uint8Array(buffer) });
       const result = await parser.getText();
       return result.text;
@@ -98,7 +98,7 @@ export async function POST(request: Request): Promise<Response> {
 
   // Verify workspace membership
   const { data: membership } = await supabase
-    .from("workspace_members")
+    .from("members")
     .select("role")
     .eq("workspace_id", workspaceId)
     .eq("user_id", user.id)
