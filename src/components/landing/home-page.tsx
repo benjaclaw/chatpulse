@@ -264,22 +264,26 @@ export function HomePage(): React.ReactNode {
             ChatPulse
           </span>
           <div className="flex items-center gap-6 text-sm text-muted-foreground">
-            <a
-              href="https://github.com/benjaclaw/chatpulse"
-              target="_blank"
-              rel="noopener noreferrer"
-              className="transition-colors hover:text-foreground"
-            >
-              GitHub
-            </a>
             <Link
               href="/privacy"
               className="transition-colors hover:text-foreground"
             >
               {t('landing.footer.privacy')}
             </Link>
+            <Link
+              href="/terms"
+              className="transition-colors hover:text-foreground"
+            >
+              {t('landing.footer.terms')}
+            </Link>
+            <Link
+              href="/cookies"
+              className="transition-colors hover:text-foreground"
+            >
+              {t('landing.footer.cookies')}
+            </Link>
             <span>
-              &copy; {new Date().getFullYear()} ChatPulse
+              &copy; {new Date().getFullYear()} Gains AS
             </span>
           </div>
         </div>

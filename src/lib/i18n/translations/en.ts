@@ -341,6 +341,8 @@ const en: Record<string, string> = {
   'landing.pricing.enterpriseCta': 'Contact us',
   'landing.pricing.popular': 'Popular',
   'landing.footer.privacy': 'Privacy',
+  'landing.footer.terms': 'Terms',
+  'landing.footer.cookies': 'Cookies',
   'landing.widget.botName': 'ChatPulse Bot',
   'landing.widget.greeting': 'Hi! How can I help?',
   'landing.widget.userMsg': 'What\'s the delivery time?',
@@ -414,6 +416,12 @@ const en: Record<string, string> = {
   'invite.description': 'Click below to join the workspace and start collaborating.',
   'invite.joining': 'Joining...',
   'invite.accept': 'Accept invite',
+
+  // Cookie banner
+  'cookie.message': 'We use cookies to improve your experience.',
+  'cookie.acceptAll': 'Accept all',
+  'cookie.necessaryOnly': 'Necessary only',
+  'cookie.readMore': 'Read more',
 
   // Role labels
   'role.owner': 'Owner',

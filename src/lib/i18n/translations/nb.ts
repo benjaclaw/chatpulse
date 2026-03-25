@@ -341,6 +341,8 @@ const nb: Record<string, string> = {
   'landing.pricing.enterpriseCta': 'Kontakt oss',
   'landing.pricing.popular': 'Populær',
   'landing.footer.privacy': 'Personvern',
+  'landing.footer.terms': 'Vilkår',
+  'landing.footer.cookies': 'Cookies',
   'landing.widget.botName': 'ChatPulse Bot',
   'landing.widget.greeting': 'Hei! Hvordan kan jeg hjelpe?',
   'landing.widget.userMsg': 'Hva er leveringstiden?',
@@ -414,6 +416,12 @@ const nb: Record<string, string> = {
   'invite.description': 'Klikk nedenfor for å bli med i workspacen og begynne å samarbeide.',
   'invite.joining': 'Blir med...',
   'invite.accept': 'Godta invitasjon',
+
+  // Cookie banner
+  'cookie.message': 'Vi bruker cookies for å forbedre opplevelsen.',
+  'cookie.acceptAll': 'Godta alle',
+  'cookie.necessaryOnly': 'Bare nødvendige',
+  'cookie.readMore': 'Les mer',
 
   // Role labels
   'role.owner': 'Eier',
