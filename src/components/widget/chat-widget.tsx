@@ -72,7 +72,7 @@ export function ChatWidget({
   const workspaceIdRef = useRef<string | null>(null);
 
   useEffect(() => {
-    messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
+    messagesEndRef.current?.scrollIntoView({ behavior: "smooth", block: "nearest" });
   }, [messages, isTyping]);
 
   useEffect(() => {
