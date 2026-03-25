@@ -7,6 +7,7 @@ const nb: Record<string, string> = {
   'nav.conversations': 'Samtaler',
   'nav.leads': 'Leads',
   'nav.insights': 'Innsikt',
+  'nav.analytics': 'Analytics',
   'nav.team': 'Team',
   'nav.settings': 'Innstillinger',
   'nav.newWorkspace': '+ Nytt workspace',
@@ -134,6 +135,23 @@ const nb: Record<string, string> = {
   'insights.lastAsked': 'Sist stilt:',
   'insights.times': 'ganger',
   'insights.confirmClear': 'Er du sikker på at du vil slette alle spørsmål?',
+
+  // Analytics
+  'analytics.title': 'Analytics',
+  'analytics.description': 'Detaljert analyse av chatbotens ytelse og verdi.',
+  'analytics.totalMessages': 'Totale meldinger',
+  'analytics.conversationsThisMonth': 'Samtaler denne måneden',
+  'analytics.avgPerConversation': 'Snitt per samtale',
+  'analytics.leadsCaptured': 'Leads fanget',
+  'analytics.messagesPerDay': 'Meldinger per dag (siste 30 dager)',
+  'analytics.popularHours': 'Populære tidspunkt (time på døgnet)',
+  'analytics.topTopics': 'Topp-temaer',
+  'analytics.noQuestions': 'Ingen spørsmål registrert ennå.',
+  'analytics.answered': 'Besvart',
+  'analytics.unanswered': 'Ubesvart',
+  'analytics.messagesAnswered': 'meldinger besvart av ChatPulse',
+  'analytics.hoursSaved': 'timer spart kundeservice',
+  'analytics.leadsAutomatic': 'leads fanget automatisk',
 
   // Team
   'team.title': 'Team',

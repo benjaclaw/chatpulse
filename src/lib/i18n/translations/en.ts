@@ -7,6 +7,7 @@ const en: Record<string, string> = {
   'nav.conversations': 'Conversations',
   'nav.leads': 'Leads',
   'nav.insights': 'Insights',
+  'nav.analytics': 'Analytics',
   'nav.team': 'Team',
   'nav.settings': 'Settings',
   'nav.newWorkspace': '+ New workspace',
@@ -134,6 +135,23 @@ const en: Record<string, string> = {
   'insights.lastAsked': 'Last asked:',
   'insights.times': 'times',
   'insights.confirmClear': 'Are you sure you want to delete all questions?',
+
+  // Analytics
+  'analytics.title': 'Analytics',
+  'analytics.description': 'Detailed analysis of your chatbot performance and value.',
+  'analytics.totalMessages': 'Total messages',
+  'analytics.conversationsThisMonth': 'Conversations this month',
+  'analytics.avgPerConversation': 'Avg per conversation',
+  'analytics.leadsCaptured': 'Leads captured',
+  'analytics.messagesPerDay': 'Messages per day (last 30 days)',
+  'analytics.popularHours': 'Popular hours (time of day)',
+  'analytics.topTopics': 'Top topics',
+  'analytics.noQuestions': 'No questions recorded yet.',
+  'analytics.answered': 'Answered',
+  'analytics.unanswered': 'Unanswered',
+  'analytics.messagesAnswered': 'messages answered by ChatPulse',
+  'analytics.hoursSaved': 'hours of customer service saved',
+  'analytics.leadsAutomatic': 'leads captured automatically',
 
   // Team
   'team.title': 'Team',
