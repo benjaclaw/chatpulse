@@ -230,42 +230,56 @@ VIKTIGE REGLER:
     aiResponse = aiResponse.replace("[UBESVART]", "").trim();
   }
 
-  // Log every user question — find similar by extracting key words and matching
+  // Log every user question — find similar using multi-strategy matching
   const questionText = message.trim();
   if (questionText.length > 2) {
-    // Normalize: lowercase, strip punctuation for matching
     const normalized = questionText.toLowerCase().replace(/[?!.,;:'"()]/g, "").trim();
-    const words = normalized.split(/\s+/).filter((w) => w.length > 2).slice(0, 6);
+    const words = normalized.split(/\s+/).filter((w) => w.length > 2);
 
-    // Try to find an existing similar question
-    // Match if all significant words appear in the stored question
     let matched = false;
-    if (words.length > 0) {
-      const { data: candidates } = await supabase
-        .from("questions")
-        .select("id, question, count, answered")
-        .eq("workspace_id", config.workspace_id)
-        .limit(100);
+    const { data: candidates } = await supabase
+      .from("questions")
+      .select("id, question, count, answered")
+      .eq("workspace_id", config.workspace_id)
+      .limit(200);
 
-      if (candidates) {
-        for (const candidate of candidates) {
-          const candidateNorm = candidate.question.toLowerCase().replace(/[?!.,;:'"()]/g, "").trim();
-          const candidateWords = new Set(candidateNorm.split(/\s+/));
-          const matchCount = words.filter((w) => candidateWords.has(w)).length;
-          // Consider similar if >70% of words match
-          if (matchCount >= Math.ceil(words.length * 0.7)) {
-            await supabase
-              .from("questions")
-              .update({
-                count: candidate.count + 1,
-                last_asked_at: new Date().toISOString(),
-                // If this time it was answered, mark it
-                answered: candidate.answered || !isUnanswered,
-              })
-              .eq("id", candidate.id);
+    if (candidates && candidates.length > 0) {
+      for (const candidate of candidates) {
+        const candNorm = candidate.question.toLowerCase().replace(/[?!.,;:'"()]/g, "").trim();
+
+        // Strategy 1: One contains the other (substring match)
+        if (candNorm.includes(normalized) || normalized.includes(candNorm)) {
+          matched = true;
+        }
+
+        // Strategy 2: Word overlap — either direction
+        if (!matched && words.length > 0) {
+          const candWords = candNorm.split(/\s+/).filter((w: string) => w.length > 2);
+          const newInCand = words.filter((w) => candWords.includes(w)).length;
+          const candInNew = candWords.filter((w: string) => words.includes(w)).length;
+          // Match if >50% overlap in either direction
+          const overlapA = words.length > 0 ? newInCand / words.length : 0;
+          const overlapB = candWords.length > 0 ? candInNew / candWords.length : 0;
+          if (overlapA >= 0.5 || overlapB >= 0.5) {
             matched = true;
-            break;
           }
+        }
+
+        if (matched) {
+          // Keep the longer/more descriptive question as the canonical text
+          const updateData: Record<string, unknown> = {
+            count: candidate.count + 1,
+            last_asked_at: new Date().toISOString(),
+            answered: candidate.answered || !isUnanswered,
+          };
+          if (questionText.length > candidate.question.length) {
+            updateData.question = questionText;
+          }
+          await supabase
+            .from("questions")
+            .update(updateData)
+            .eq("id", candidate.id);
+          break;
         }
       }
     }
