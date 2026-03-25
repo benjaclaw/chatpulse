@@ -9,6 +9,14 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { EmptyState } from "./empty-state";
 import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogDescription,
+  DialogFooter,
+} from "@/components/ui/dialog";
+import {
   DndContext,
   DragOverlay,
   closestCorners,
@@ -77,12 +85,22 @@ function timeAgo(dateStr: string): string {
   return `${months} ${months === 1 ? "måned" : "måneder"} siden`;
 }
 
+function formatDate(dateStr: string): string {
+  return new Date(dateStr).toLocaleDateString("nb-NO", {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 export function LeadsPageClient(): React.ReactNode {
   const { id: workspaceId } = useWorkspace();
   const supabase = createClient();
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
   const [notesValue, setNotesValue] = useState("");
@@ -92,13 +110,29 @@ export function LeadsPageClient(): React.ReactNode {
   useEffect(() => {
     let cancelled = false;
     async function load() {
+      // Delete archived leads older than 30 days from DB
+      const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+      await supabase
+        .from("leads")
+        .delete()
+        .eq("workspace_id", workspaceId)
+        .eq("status", "archived")
+        .lt("created_at", thirtyDaysAgo.toISOString());
+
       const { data } = await supabase
         .from("leads")
         .select("*")
         .eq("workspace_id", workspaceId)
         .order("created_at", { ascending: false });
       if (!cancelled) {
-        setLeads(data ?? []);
+        // Client-side filter as safety net
+        const cutoff = thirtyDaysAgo.getTime();
+        const filtered = (data ?? []).filter(
+          (l) =>
+            l.status !== "archived" ||
+            new Date(l.created_at).getTime() > cutoff
+        );
+        setLeads(filtered);
         setLoading(false);
       }
     }
@@ -111,6 +145,7 @@ export function LeadsPageClient(): React.ReactNode {
       setLeads((prev) =>
         prev.map((l) => (l.id === id ? { ...l, status } : l))
       );
+      setSelectedLead((prev) => (prev?.id === id ? { ...prev, status } : prev));
       await supabase.from("leads").update({ status }).eq("id", id);
     },
     [supabase]
@@ -120,7 +155,7 @@ export function LeadsPageClient(): React.ReactNode {
     async (id: string) => {
       if (!confirm("Er du sikker på at du vil slette denne leaden?")) return;
       setLeads((prev) => prev.filter((l) => l.id !== id));
-      setExpandedId((prev) => (prev === id ? null : prev));
+      setSelectedLead(null);
       await supabase.from("leads").delete().eq("id", id);
     },
     [supabase]
@@ -131,19 +166,18 @@ export function LeadsPageClient(): React.ReactNode {
       setLeads((prev) =>
         prev.map((l) => (l.id === id ? { ...l, notes: notes || null } : l))
       );
+      setSelectedLead((prev) =>
+        prev?.id === id ? { ...prev, notes: notes || null } : prev
+      );
       await supabase.from("leads").update({ notes: notes || null }).eq("id", id);
     },
     [supabase]
   );
 
-  const toggleExpand = useCallback(
+  const openLeadDetail = useCallback(
     async (lead: Lead) => {
-      if (expandedId === lead.id) {
-        setExpandedId(null);
-        setMessages([]);
-        return;
-      }
-      setExpandedId(lead.id);
+      setSelectedLead(lead);
+      setNotesValue(lead.notes || "");
       setMessages([]);
       if (lead.conversation_id) {
         setLoadingMessages(true);
@@ -156,7 +190,7 @@ export function LeadsPageClient(): React.ReactNode {
         setLoadingMessages(false);
       }
     },
-    [expandedId, supabase]
+    [supabase]
   );
 
   const sensors = useSensors(
@@ -258,14 +292,7 @@ export function LeadsPageClient(): React.ReactNode {
               <KanbanColumn
                 status={activeTab}
                 leads={leads.filter((l) => l.status === activeTab)}
-                expandedId={expandedId}
-                messages={messages}
-                loadingMessages={loadingMessages}
-                notesValue={notesValue}
-                setNotesValue={setNotesValue}
-                onToggleExpand={toggleExpand}
-                onSaveNotes={handleSaveNotes}
-                onDelete={handleDelete}
+                onClickLead={openLeadDetail}
                 isOver={false}
               />
               <DragOverlay>
@@ -283,14 +310,7 @@ export function LeadsPageClient(): React.ReactNode {
                     key={status}
                     status={status}
                     leads={leads.filter((l) => l.status === status)}
-                    expandedId={expandedId}
-                    messages={messages}
-                    loadingMessages={loadingMessages}
-                    notesValue={notesValue}
-                    setNotesValue={setNotesValue}
-                    onToggleExpand={toggleExpand}
-                    onSaveNotes={handleSaveNotes}
-                    onDelete={handleDelete}
+                    onClickLead={openLeadDetail}
                     isOver={activeId !== null}
                   />
                 ))}
@@ -302,6 +322,139 @@ export function LeadsPageClient(): React.ReactNode {
           </div>
         </>
       )}
+
+      {/* Lead detail dialog */}
+      <Dialog
+        open={selectedLead !== null}
+        onOpenChange={(open) => {
+          if (!open) {
+            // Auto-save notes on close
+            if (selectedLead && notesValue !== (selectedLead.notes || "")) {
+              handleSaveNotes(selectedLead.id, notesValue);
+            }
+            setSelectedLead(null);
+          }
+        }}
+      >
+        {selectedLead && (
+          <DialogContent className="sm:max-w-lg">
+            <DialogHeader>
+              <div className="flex items-center gap-2">
+                <DialogTitle>{selectedLead.email}</DialogTitle>
+                <Badge className={cn("text-[10px]", COLUMN_BADGE_COLORS[selectedLead.status])}>
+                  {LEAD_STATUS_LABEL[selectedLead.status]}
+                </Badge>
+              </div>
+              {selectedLead.name && (
+                <DialogDescription>{selectedLead.name}</DialogDescription>
+              )}
+            </DialogHeader>
+
+            <div className="space-y-4">
+              {/* Created date */}
+              <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                <Clock className="h-3.5 w-3.5" />
+                Opprettet {formatDate(selectedLead.created_at)}
+              </div>
+
+              {/* Notes */}
+              <div>
+                <div className="flex items-center gap-2 mb-1.5">
+                  <StickyNote className="h-3.5 w-3.5 text-muted-foreground" />
+                  <span className="text-xs font-medium text-muted-foreground">Notater</span>
+                </div>
+                <textarea
+                  value={notesValue}
+                  onChange={(e) => setNotesValue(e.target.value)}
+                  onBlur={() => {
+                    if (notesValue !== (selectedLead.notes || "")) {
+                      handleSaveNotes(selectedLead.id, notesValue);
+                    }
+                  }}
+                  placeholder="Legg til notater..."
+                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none resize-none placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
+                  rows={3}
+                />
+              </div>
+
+              {/* Conversation history */}
+              {selectedLead.conversation_id && (
+                <div>
+                  <div className="flex items-center gap-2 mb-2">
+                    <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
+                    <span className="text-xs font-medium text-muted-foreground">Samtalehistorikk</span>
+                  </div>
+                  {loadingMessages ? (
+                    <p className="text-sm text-muted-foreground">Laster...</p>
+                  ) : messages.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">Ingen meldinger funnet.</p>
+                  ) : (
+                    <div className="space-y-2 max-h-[50vh] overflow-y-auto rounded-lg border bg-background p-3">
+                      {messages.map((msg) => (
+                        <div
+                          key={msg.id}
+                          className={cn(
+                            "flex gap-2",
+                            msg.role === "user" ? "justify-end" : "justify-start"
+                          )}
+                        >
+                          {msg.role === "assistant" && (
+                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
+                              <Bot className="h-3 w-3" />
+                            </div>
+                          )}
+                          <div
+                            className={cn(
+                              "max-w-[80%] rounded-xl px-3 py-1.5 text-xs leading-relaxed",
+                              msg.role === "user"
+                                ? "rounded-br-sm bg-primary text-white"
+                                : "rounded-bl-sm bg-muted"
+                            )}
+                          >
+                            {msg.content}
+                          </div>
+                          {msg.role === "user" && (
+                            <div className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
+                              <User className="h-3 w-3" />
+                            </div>
+                          )}
+                        </div>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              )}
+            </div>
+
+            <DialogFooter>
+              <div className="flex w-full items-center justify-between">
+                <Button
+                  size="sm"
+                  variant="ghost"
+                  className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs"
+                  onClick={() => handleDelete(selectedLead.id)}
+                >
+                  <Trash2 className="h-3 w-3 mr-1" />
+                  Slett
+                </Button>
+                <div className="flex gap-1.5">
+                  {COLUMNS.filter((s) => s !== selectedLead.status).map((status) => (
+                    <Button
+                      key={status}
+                      size="sm"
+                      variant="outline"
+                      className="text-xs"
+                      onClick={() => handleStatusChange(selectedLead.id, status)}
+                    >
+                      {LEAD_STATUS_LABEL[status]}
+                    </Button>
+                  ))}
+                </div>
+              </div>
+            </DialogFooter>
+          </DialogContent>
+        )}
+      </Dialog>
     </div>
   );
 }
@@ -311,26 +464,12 @@ export function LeadsPageClient(): React.ReactNode {
 function KanbanColumn({
   status,
   leads,
-  expandedId,
-  messages,
-  loadingMessages,
-  notesValue,
-  setNotesValue,
-  onToggleExpand,
-  onSaveNotes,
-  onDelete,
+  onClickLead,
   isOver: parentDragging,
 }: {
   status: LeadStatus;
   leads: Lead[];
-  expandedId: string | null;
-  messages: ChatMessage[];
-  loadingMessages: boolean;
-  notesValue: string;
-  setNotesValue: (v: string) => void;
-  onToggleExpand: (lead: Lead) => void;
-  onSaveNotes: (id: string, notes: string) => void;
-  onDelete: (id: string) => void;
+  onClickLead: (lead: Lead) => void;
   isOver: boolean;
 }): React.ReactNode {
   const { setNodeRef, isOver } = useDroppable({ id: status });
@@ -347,7 +486,12 @@ function KanbanColumn({
     >
       {/* Sticky header */}
       <div className="sticky top-0 z-10 flex items-center justify-between rounded-t-xl px-3 py-2.5 backdrop-blur-sm">
-        <span className="text-sm font-semibold">{LEAD_STATUS_LABEL[status]}</span>
+        <div className="flex flex-col">
+          <span className="text-sm font-semibold">{LEAD_STATUS_LABEL[status]}</span>
+          {status === "archived" && (
+            <span className="text-[10px] text-muted-foreground">(slettes etter 30 dager)</span>
+          )}
+        </div>
         <span className={cn("inline-flex h-5 min-w-[20px] items-center justify-center rounded-full px-1.5 text-xs font-medium", COLUMN_BADGE_COLORS[status])}>
           {leads.length}
         </span>
@@ -359,14 +503,7 @@ function KanbanColumn({
           <LeadCard
             key={lead.id}
             lead={lead}
-            isExpanded={expandedId === lead.id}
-            messages={messages}
-            loadingMessages={loadingMessages}
-            notesValue={notesValue}
-            setNotesValue={setNotesValue}
-            onToggleExpand={onToggleExpand}
-            onSaveNotes={onSaveNotes}
-            onDelete={onDelete}
+            onClickLead={onClickLead}
           />
         ))}
         {leads.length === 0 && (
@@ -383,24 +520,10 @@ function KanbanColumn({
 
 function LeadCard({
   lead,
-  isExpanded,
-  messages,
-  loadingMessages,
-  notesValue,
-  setNotesValue,
-  onToggleExpand,
-  onSaveNotes,
-  onDelete,
+  onClickLead,
 }: {
   lead: Lead;
-  isExpanded: boolean;
-  messages: ChatMessage[];
-  loadingMessages: boolean;
-  notesValue: string;
-  setNotesValue: (v: string) => void;
-  onToggleExpand: (lead: Lead) => void;
-  onSaveNotes: (id: string, notes: string) => void;
-  onDelete: (id: string) => void;
+  onClickLead: (lead: Lead) => void;
 }): React.ReactNode {
   const {
     attributes,
@@ -428,7 +551,7 @@ function LeadCard({
     >
       <div
         className="flex items-start gap-2 p-3 cursor-pointer"
-        onClick={() => onToggleExpand(lead)}
+        onClick={() => onClickLead(lead)}
       >
         {/* Drag handle */}
         <button
@@ -452,137 +575,6 @@ function LeadCard({
           </div>
         </div>
       </div>
-
-      {/* Expanded detail */}
-      {isExpanded && (
-        <div className="border-t px-3 pb-3 pt-2 space-y-3">
-          {/* Notes */}
-          <NotesSection
-            lead={lead}
-            notesValue={notesValue}
-            setNotesValue={setNotesValue}
-            onSaveNotes={onSaveNotes}
-          />
-
-          {/* Conversation */}
-          {lead.conversation_id && (
-            <div>
-              <div className="flex items-center gap-2 mb-2">
-                <MessageSquare className="h-3.5 w-3.5 text-muted-foreground" />
-                <span className="text-xs font-medium text-muted-foreground">Samtalehistorikk</span>
-              </div>
-              {loadingMessages ? (
-                <p className="text-sm text-muted-foreground">Laster...</p>
-              ) : messages.length === 0 ? (
-                <p className="text-sm text-muted-foreground">Ingen meldinger funnet.</p>
-              ) : (
-                <div className="space-y-2 max-h-48 overflow-y-auto rounded-lg border bg-background p-2">
-                  {messages.map((msg) => (
-                    <div
-                      key={msg.id}
-                      className={cn(
-                        "flex gap-2",
-                        msg.role === "user" ? "justify-end" : "justify-start"
-                      )}
-                    >
-                      {msg.role === "assistant" && (
-                        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-primary/10 text-primary">
-                          <Bot className="h-2.5 w-2.5" />
-                        </div>
-                      )}
-                      <div
-                        className={cn(
-                          "max-w-[80%] rounded-xl px-2.5 py-1 text-[11px] leading-relaxed",
-                          msg.role === "user"
-                            ? "rounded-br-sm bg-primary text-white"
-                            : "rounded-bl-sm bg-muted"
-                        )}
-                      >
-                        {msg.content}
-                      </div>
-                      {msg.role === "user" && (
-                        <div className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-muted text-muted-foreground">
-                          <User className="h-2.5 w-2.5" />
-                        </div>
-                      )}
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )}
-
-          {/* Delete */}
-          <div className="flex justify-end pt-1">
-            <Button
-              size="sm"
-              variant="ghost"
-              className="text-destructive hover:text-destructive hover:bg-destructive/10 text-xs h-7"
-              onClick={() => onDelete(lead.id)}
-            >
-              <Trash2 className="h-3 w-3 mr-1" />
-              Slett
-            </Button>
-          </div>
-        </div>
-      )}
-    </div>
-  );
-}
-
-/* ───── Notes section with auto-save on blur ───── */
-
-function NotesSection({
-  lead,
-  notesValue,
-  setNotesValue,
-  onSaveNotes,
-}: {
-  lead: Lead;
-  notesValue: string;
-  setNotesValue: (v: string) => void;
-  onSaveNotes: (id: string, notes: string) => void;
-}): React.ReactNode {
-  const [editing, setEditing] = useState(false);
-  const textareaRef = useRef<HTMLTextAreaElement>(null);
-
-  function startEditing() {
-    setNotesValue(lead.notes || "");
-    setEditing(true);
-    setTimeout(() => textareaRef.current?.focus(), 0);
-  }
-
-  function handleBlur() {
-    setEditing(false);
-    if (notesValue !== (lead.notes || "")) {
-      onSaveNotes(lead.id, notesValue);
-    }
-  }
-
-  return (
-    <div>
-      <div className="flex items-center gap-2 mb-1.5">
-        <StickyNote className="h-3.5 w-3.5 text-muted-foreground" />
-        <span className="text-xs font-medium text-muted-foreground">Notater</span>
-      </div>
-      {editing ? (
-        <textarea
-          ref={textareaRef}
-          value={notesValue}
-          onChange={(e) => setNotesValue(e.target.value)}
-          onBlur={handleBlur}
-          placeholder="Legg til notater..."
-          className="w-full rounded-lg border bg-background px-3 py-2 text-xs outline-none resize-none placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
-          rows={2}
-        />
-      ) : (
-        <button
-          onClick={startEditing}
-          className="w-full text-left rounded-lg border border-dashed p-2 text-xs text-muted-foreground hover:bg-muted/50 transition-colors"
-        >
-          {lead.notes || "Klikk for å legge til notater..."}
-        </button>
-      )}
     </div>
   );
 }
