@@ -18,6 +18,7 @@ import {
 } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import { createT, type Language } from "@/lib/i18n";
+import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 
 export function LoginForm(): React.ReactNode {
   const { error, pending, handleSubmit } = useFormAction();
@@ -41,6 +42,17 @@ export function LoginForm(): React.ReactNode {
         <CardTitle className="text-2xl font-bold">{t('auth.login.title')}</CardTitle>
         <CardDescription>{t('auth.login.description')}</CardDescription>
       </CardHeader>
+      <CardContent className="space-y-4">
+        <GoogleSignInButton />
+        <div className="relative">
+          <div className="absolute inset-0 flex items-center">
+            <span className="w-full border-t" />
+          </div>
+          <div className="relative flex justify-center text-xs uppercase">
+            <span className="bg-card px-2 text-muted-foreground">eller</span>
+          </div>
+        </div>
+      </CardContent>
       <form onSubmit={onSubmit}>
         <CardContent className="space-y-4">
           <FormError message={error} />
