@@ -38,7 +38,7 @@ export async function signup(formData: FormData): Promise<ActionResult> {
     return { error: error.message };
   }
 
-  redirect("/create-workspace");
+  redirect("/check-email");
 }
 
 export async function forgotPassword(email: string): Promise<ActionResult> {

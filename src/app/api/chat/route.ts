@@ -11,7 +11,46 @@ interface ChatRequest {
   language?: string;
 }
 
-// TODO: Add rate limiting here (e.g. per visitorId or IP)
+// --- In-memory rate limiting ---
+interface RateBucket {
+  count: number;
+  resetAt: number;
+}
+
+const visitorRateMap = new Map<string, RateBucket>();
+const chatbotRateMap = new Map<string, RateBucket>();
+
+const VISITOR_LIMIT = 20; // per minute
+const CHATBOT_LIMIT = 100; // per minute
+const WINDOW_MS = 60_000;
+
+// Cleanup stale entries every 5 minutes
+const CLEANUP_INTERVAL = 5 * 60_000;
+let lastCleanup = Date.now();
+
+function cleanupMaps(): void {
+  const now = Date.now();
+  if (now - lastCleanup < CLEANUP_INTERVAL) return;
+  lastCleanup = now;
+  for (const [key, bucket] of visitorRateMap) {
+    if (now > bucket.resetAt) visitorRateMap.delete(key);
+  }
+  for (const [key, bucket] of chatbotRateMap) {
+    if (now > bucket.resetAt) chatbotRateMap.delete(key);
+  }
+}
+
+function checkRate(map: Map<string, RateBucket>, key: string, limit: number): boolean {
+  cleanupMaps();
+  const now = Date.now();
+  const bucket = map.get(key);
+  if (!bucket || now > bucket.resetAt) {
+    map.set(key, { count: 1, resetAt: now + WINDOW_MS });
+    return true;
+  }
+  bucket.count++;
+  return bucket.count <= limit;
+}
 
 export async function POST(request: Request): Promise<Response> {
   const apiKey = process.env.GEMINI_API_KEY;
@@ -34,6 +73,22 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json(
       { error: "Mangler chatbotId, message eller visitorId" },
       { status: 400 }
+    );
+  }
+
+  // Rate limit per visitor
+  if (!checkRate(visitorRateMap, visitorId, VISITOR_LIMIT)) {
+    return Response.json(
+      { error: "Du sender for mange meldinger. Vennligst vent litt før du prøver igjen." },
+      { status: 429 }
+    );
+  }
+
+  // Rate limit per chatbot
+  if (!checkRate(chatbotRateMap, chatbotId, CHATBOT_LIMIT)) {
+    return Response.json(
+      { error: "Denne chatboten mottar for mange forespørsler akkurat nå. Prøv igjen om litt." },
+      { status: 429 }
     );
   }
 

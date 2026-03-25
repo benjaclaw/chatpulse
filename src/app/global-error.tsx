@@ -78,26 +78,47 @@ export default function GlobalError({
               Feil-ID: {error.digest}
             </p>
           )}
-          <button
-            onClick={() => unstable_retry()}
-            type="button"
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 8,
-              height: 40,
-              padding: "0 16px",
-              borderRadius: 8,
-              border: "none",
-              backgroundColor: "#6366f1",
-              color: "#fff",
-              fontSize: 14,
-              fontWeight: 500,
-              cursor: "pointer",
-            }}
-          >
-            Prøv igjen
-          </button>
+          <div style={{ display: "flex", gap: 12 }}>
+            <a
+              href="/"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                height: 40,
+                padding: "0 16px",
+                borderRadius: 8,
+                border: "1px solid #e2e8f0",
+                backgroundColor: "#fff",
+                color: "#0f172a",
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: "pointer",
+                textDecoration: "none",
+              }}
+            >
+              Gå til forsiden
+            </a>
+            <button
+              onClick={() => unstable_retry()}
+              type="button"
+              style={{
+                display: "inline-flex",
+                alignItems: "center",
+                gap: 8,
+                height: 40,
+                padding: "0 16px",
+                borderRadius: 8,
+                border: "none",
+                backgroundColor: "#6366f1",
+                color: "#fff",
+                fontSize: 14,
+                fontWeight: 500,
+                cursor: "pointer",
+              }}
+            >
+              Prøv igjen
+            </button>
+          </div>
         </div>
       </body>
     </html>

@@ -32,10 +32,18 @@ export default function Error({
           Feil-ID: {error.digest}
         </p>
       )}
-      <Button onClick={() => unstable_retry()} className="mt-6 gap-2">
-        <RefreshCw className="h-4 w-4" data-icon="inline-start" />
-        Prøv igjen
-      </Button>
+      <div className="mt-6 flex gap-3">
+        <a
+          href="/"
+          className="inline-flex h-10 items-center gap-2 rounded-lg border border-border bg-background px-4 text-sm font-medium transition-colors hover:bg-muted"
+        >
+          Gå til forsiden
+        </a>
+        <Button onClick={() => unstable_retry()} className="gap-2">
+          <RefreshCw className="h-4 w-4" data-icon="inline-start" />
+          Prøv igjen
+        </Button>
+      </div>
     </div>
   );
 }
