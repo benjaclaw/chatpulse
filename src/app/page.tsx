@@ -29,7 +29,7 @@ const jsonLd = {
   ],
 };
 
-export default function Page() {
+export default function Page(): React.ReactNode {
   return (
     <>
       <script

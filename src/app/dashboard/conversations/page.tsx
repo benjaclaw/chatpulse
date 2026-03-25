@@ -4,6 +4,6 @@ export const metadata = {
   title: "Samtaler",
 };
 
-export default function ConversationsPage() {
+export default function ConversationsPage(): React.ReactNode {
   return <ConversationsPageClient />;
 }

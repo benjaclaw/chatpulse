@@ -4,6 +4,6 @@ export const metadata = {
   title: "Logg inn",
 };
 
-export default function LoginPage() {
+export default function LoginPage(): React.ReactNode {
   return <LoginForm />;
 }

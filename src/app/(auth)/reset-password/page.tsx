@@ -4,6 +4,6 @@ export const metadata = {
   title: "Nytt passord",
 };
 
-export default function ResetPasswordPage() {
+export default function ResetPasswordPage(): React.ReactNode {
   return <ResetPasswordForm />;
 }

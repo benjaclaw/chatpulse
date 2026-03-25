@@ -4,6 +4,6 @@ export const metadata = {
   title: "Glemt passord",
 };
 
-export default function ForgotPasswordPage() {
+export default function ForgotPasswordPage(): React.ReactNode {
   return <ForgotPasswordForm />;
 }

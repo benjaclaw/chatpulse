@@ -4,6 +4,6 @@ export const metadata = {
   title: "Kunnskapsbase",
 };
 
-export default function KnowledgePage() {
+export default function KnowledgePage(): React.ReactNode {
   return <KnowledgePageClient />;
 }

@@ -4,6 +4,6 @@ export const metadata = {
   title: "Innsikt",
 };
 
-export default function InsightsPage() {
+export default function InsightsPage(): React.ReactNode {
   return <InsightsPageClient />;
 }

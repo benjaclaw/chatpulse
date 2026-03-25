@@ -4,6 +4,6 @@ export const metadata = {
   title: "Chatbot",
 };
 
-export default function ChatbotPage() {
+export default function ChatbotPage(): React.ReactNode {
   return <ChatbotPageClient />;
 }
