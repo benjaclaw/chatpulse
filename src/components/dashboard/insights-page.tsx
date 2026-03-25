@@ -12,6 +12,7 @@ import {
   CheckCircle2,
   XCircle,
   TrendingUp,
+  Trash2,
 } from "lucide-react";
 
 type Filter = "all" | "answered" | "unanswered";
@@ -50,6 +51,17 @@ export function InsightsPageClient(): React.ReactNode {
 
   const totalAnswered = questions.filter((q) => q.answered).length;
   const totalUnanswered = questions.filter((q) => !q.answered).length;
+
+  async function handleDelete(id: string) {
+    await supabase.from("questions").delete().eq("id", id);
+    setQuestions((prev) => prev.filter((q) => q.id !== id));
+  }
+
+  async function handleClearAll() {
+    if (!confirm("Er du sikker på at du vil slette alle spørsmål?")) return;
+    await supabase.from("questions").delete().eq("workspace_id", workspaceId);
+    setQuestions([]);
+  }
 
   if (loading) {
     return (
@@ -99,7 +111,8 @@ export function InsightsPageClient(): React.ReactNode {
         </div>
       </div>
 
-      {/* Filter */}
+      {/* Filter + clear */}
+      <div className="flex items-center justify-between">
       <div className="flex gap-2">
         {(
           [
@@ -117,6 +130,13 @@ export function InsightsPageClient(): React.ReactNode {
             {label}
           </Button>
         ))}
+      </div>
+      {questions.length > 0 && (
+        <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive" onClick={handleClearAll}>
+          <Trash2 className="mr-1.5 h-3.5 w-3.5" />
+          Slett alle
+        </Button>
+      )}
       </div>
 
       {/* Bar chart */}
@@ -179,6 +199,13 @@ export function InsightsPageClient(): React.ReactNode {
                     </>
                   )}
                 </Badge>
+                <button
+                  onClick={() => handleDelete(q.id)}
+                  className="rounded-lg p-1.5 text-muted-foreground/50 hover:text-destructive hover:bg-destructive/10 transition-colors"
+                  aria-label="Slett"
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                </button>
               </div>
             </div>
           ))}
