@@ -9,7 +9,7 @@
   var pos = (s && s.getAttribute("data-position")) || g.position || "right";
   var lang = (s && s.getAttribute("data-language")) || g.language || document.documentElement.lang || "";
   if (lang) { lang = lang.split("-")[0].toLowerCase(); }
-  var base = "https://chatpulse-ten.vercel.app";
+  var base = "https://chatpulse.no";
   if (s && s.src) { try { base = new URL(s.src).origin; } catch (_) {} }
   var url = base + "/widget/" + encodeURIComponent(id) + "?color=" + encodeURIComponent(color) + "&position=" + encodeURIComponent(pos) + (lang ? "&lang=" + encodeURIComponent(lang) : "");
   var isOpen = false;

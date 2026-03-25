@@ -47,7 +47,7 @@ export function ChatbotPageClient(): React.ReactNode {
   const [loading, setLoading] = useState(true);
   const { copied, copy } = useClipboard();
 
-  const widgetBase = "https://chatpulse-ten.vercel.app";
+  const widgetBase = "https://chatpulse.no";
   const directLink = config.id ? `${widgetBase}/widget/${config.id}` : "";
   const scriptEmbed = config.id ? `<script async\n  src="${widgetBase}/widget.js"\n  data-chatbot-id="${config.id}"\n  data-primary-color="${config.widget_styling.primary_color}"\n  data-position="${config.widget_styling.position}">\n</script>` : "";
   const iframeEmbed = config.id ? `<iframe\n  src="${widgetBase}/widget/${config.id}"\n  style="width:400px;height:600px;border:none;border-radius:12px;"\n  title="ChatPulse"\n  allow="clipboard-write">\n</iframe>` : "";
