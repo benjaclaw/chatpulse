@@ -360,6 +360,7 @@ export function ChatbotPageClient(): React.ReactNode {
             </h3>
             <ChatWidget
               inline
+              chatbotId={config.id || undefined}
               botName={config.name}
               welcomeMessage={config.welcome_message}
               primaryColor={config.widget_styling.primary_color}
