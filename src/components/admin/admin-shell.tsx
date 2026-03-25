@@ -5,15 +5,17 @@ import { usePathname } from "next/navigation";
 import { Users, Building2, BarChart3, ShieldCheck, ArrowLeft } from "lucide-react";
 import { Separator } from "@/components/ui/separator";
 import { isNavActive } from "@/lib/utils";
-
-const adminNav = [
-  { label: "Statistikk", href: "/admin", icon: BarChart3 },
-  { label: "Brukere", href: "/admin/users", icon: Users },
-  { label: "Workspaces", href: "/admin/workspaces", icon: Building2 },
-];
+import { useLanguage } from "@/lib/i18n/context";
 
 export function AdminShell({ children }: { children: React.ReactNode }): React.ReactNode {
   const pathname = usePathname();
+  const { t } = useLanguage();
+
+  const adminNav = [
+    { label: t('admin.nav.stats'), href: "/admin", icon: BarChart3 },
+    { label: t('admin.nav.users'), href: "/admin/users", icon: Users },
+    { label: t('admin.nav.workspaces'), href: "/admin/workspaces", icon: Building2 },
+  ];
 
   return (
     <div className="flex h-screen overflow-hidden bg-background">
@@ -60,7 +62,7 @@ export function AdminShell({ children }: { children: React.ReactNode }): React.R
             className="flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-all duration-150 hover:bg-muted hover:text-foreground"
           >
             <ArrowLeft className="h-4 w-4 shrink-0" />
-            Tilbake til dashboard
+            {t('admin.nav.backToDashboard')}
           </Link>
         </div>
       </aside>

@@ -369,7 +369,14 @@ const nb: Record<string, string> = {
   'widget.demo3': 'Kundeservice er tilgjengelig mandag til fredag kl. 08:00-16:00.',
   'widget.demo4': 'Fri frakt på bestillinger over 500 kr!',
 
+  // Common
+  'common.unknown': 'Ukjent',
+
   // Admin
+  'admin.nav.stats': 'Statistikk',
+  'admin.nav.users': 'Brukere',
+  'admin.nav.workspaces': 'Workspaces',
+  'admin.nav.backToDashboard': 'Tilbake til dashboard',
   'admin.stats': 'Statistikk',
   'admin.statsDescription': 'Oversikt over alle brukere, workspaces og aktivitet.',
   'admin.totalUsers': 'Totale brukere',

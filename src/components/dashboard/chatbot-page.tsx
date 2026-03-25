@@ -14,24 +14,21 @@ import { ChatWidget } from "@/components/widget/chat-widget";
 import { Bot, Eye, Code2, Copy, Check } from "lucide-react";
 import type { ChatbotConfig } from "@/lib/types";
 
-const defaultConfig = (workspaceId: string): ChatbotConfig => ({
-  id: "",
-  workspace_id: workspaceId,
-  name: "Chatbot",
-  prompt: "Du er en hjelpsom kundeserviceassistent. Svar alltid på norsk. Vær vennlig og profesjonell.",
-  welcome_message: "Hei! Hvordan kan jeg hjelpe deg i dag?",
-  fallback_response: "Beklager, jeg fant ikke svaret på det. Vil du snakke med en av våre medarbeidere?",
-  widget_styling: {
-    primary_color: "#6366f1",
-    position: "right",
-  },
-});
+const DEFAULT_STYLING = { primary_color: "#6366f1", position: "right" as const };
 
 export function ChatbotPageClient(): React.ReactNode {
   const workspace = useWorkspace();
   const supabase = createClient();
   const { t } = useLanguage();
-  const [config, setConfig] = useState<ChatbotConfig>(defaultConfig(workspace.id));
+  const [config, setConfig] = useState<ChatbotConfig>({
+    id: "",
+    workspace_id: workspace.id,
+    name: "Chatbot",
+    prompt: t('chatbot.defaultPrompt'),
+    welcome_message: t('chatbot.defaultWelcome'),
+    fallback_response: t('chatbot.defaultFallback'),
+    widget_styling: DEFAULT_STYLING,
+  });
   const [loading, setLoading] = useState(true);
   const { copied, copy } = useClipboard();
   const { active: saved, trigger: triggerSaved } = useTemporaryFlag();

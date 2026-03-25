@@ -6,7 +6,7 @@ import { redirect } from "next/navigation";
 export const dynamic = "force-dynamic";
 
 export const metadata = {
-  title: "Create Workspace — ChatPulse",
+  title: "Opprett workspace — ChatPulse",
 };
 
 export default async function CreateWorkspacePage(): Promise<React.ReactNode> {

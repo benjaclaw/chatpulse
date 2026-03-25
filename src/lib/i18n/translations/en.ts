@@ -369,7 +369,14 @@ const en: Record<string, string> = {
   'widget.demo3': 'Customer service is available Monday to Friday from 08:00-16:00.',
   'widget.demo4': 'Free shipping on orders over 500 kr!',
 
+  // Common
+  'common.unknown': 'Unknown',
+
   // Admin
+  'admin.nav.stats': 'Statistics',
+  'admin.nav.users': 'Users',
+  'admin.nav.workspaces': 'Workspaces',
+  'admin.nav.backToDashboard': 'Back to dashboard',
   'admin.stats': 'Statistics',
   'admin.statsDescription': 'Overview of all users, workspaces, and activity.',
   'admin.totalUsers': 'Total users',

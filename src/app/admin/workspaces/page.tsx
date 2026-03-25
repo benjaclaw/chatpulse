@@ -24,7 +24,7 @@ export default async function AdminWorkspacesPage(): Promise<React.ReactNode> {
         const email = m.profiles?.email ?? "";
         return {
           id: m.id,
-          name: email.split("@")[0] || "Ukjent",
+          name: email.split("@")[0] || "Unknown",
           email,
           role: m.role,
         };

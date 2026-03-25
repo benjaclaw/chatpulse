@@ -21,7 +21,7 @@ export default async function WidgetPage({
     .maybeSingle();
 
   const botName = config?.name ?? "ChatPulse";
-  const welcomeMessage = config?.welcome_message ?? "Hei! Hvordan kan jeg hjelpe deg?";
+  const welcomeMessage = config?.welcome_message ?? "Hi! How can I help you?";
   const styling = config?.widget_styling as { primary_color?: string; position?: string } | null;
   const primaryColor = query.color ?? styling?.primary_color ?? "#6366f1";
 

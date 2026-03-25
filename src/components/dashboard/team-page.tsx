@@ -50,7 +50,7 @@ export function TeamPageClient(): React.ReactNode {
         const mapped: TeamMember[] = (data ?? []).map((m: Record<string, unknown>) => {
           const profiles = m.profiles as { email: string }[] | { email: string } | null;
           const email = Array.isArray(profiles) ? profiles[0]?.email ?? "" : profiles?.email ?? "";
-          const name = email.split("@")[0] || "Ukjent";
+          const name = email.split("@")[0] || t('common.unknown');
           const initials = name.slice(0, 2).toUpperCase();
           return {
             id: m.id as string,

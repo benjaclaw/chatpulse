@@ -17,7 +17,7 @@ export default async function AdminUsersPage(): Promise<React.ReactNode> {
     const email = profile?.email ?? "";
     return {
       id: m.user_id as string,
-      name: email.split("@")[0] || "Ukjent",
+      name: email.split("@")[0] || "Unknown",
       email,
       role: m.role as MemberRole,
       is_super_admin: profile?.is_super_admin ?? false,
