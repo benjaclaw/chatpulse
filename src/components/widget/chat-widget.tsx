@@ -82,6 +82,14 @@ export function ChatWidget({
 
   const [isOpen, setIsOpen] = useState(inline);
   const [messages, setMessages] = useState<Message[]>(() => {
+    // Restore messages from sessionStorage if available
+    try {
+      const saved = sessionStorage.getItem("chatpulse_messages");
+      if (saved) {
+        const parsed = JSON.parse(saved) as Message[];
+        if (parsed.length > 0) return parsed;
+      }
+    } catch { /* ignore */ }
     if (welcomeMessage) {
       return [{ id: "welcome", role: "assistant", content: welcomeMessage }];
     }
@@ -104,6 +112,15 @@ export function ChatWidget({
   const realtimeChannelRef = useRef<ReturnType<ReturnType<typeof createClient>["channel"]> | null>(null);
   const typingChannelRef = useRef<ReturnType<ReturnType<typeof createClient>["channel"]> | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+  // Persist messages to sessionStorage so they survive page navigation
+  useEffect(() => {
+    try {
+      if (messages.length > 1 || (messages.length === 1 && messages[0].id !== "welcome")) {
+        sessionStorage.setItem("chatpulse_messages", JSON.stringify(messages.slice(-50))); // keep last 50
+      }
+    } catch { /* ignore */ }
+  }, [messages]);
 
   const hasMounted = useRef(false);
   useEffect(() => {
