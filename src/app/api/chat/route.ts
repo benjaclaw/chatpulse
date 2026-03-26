@@ -347,44 +347,23 @@ VIKTIGE REGLER:
   let liveChat = false;
   if (isHandoff && activeConversationId) {
     try {
-      let withinBusinessHours = true;
-      if (workspace) {
-        // Reuse business_hours from the already-fetched workspace data
-        const bh = workspace.business_hours as { enabled?: boolean; timezone?: string; schedule?: Record<string, { start: string; end: string } | null> } | null;
-        if (bh?.enabled && bh.schedule) {
-          const tz = bh.timezone || "Europe/Oslo";
-          const now = new Date();
-          const formatter = new Intl.DateTimeFormat("en-US", { timeZone: tz, weekday: "short", hour: "2-digit", minute: "2-digit", hour12: false });
-          const parts = formatter.formatToParts(now);
-          const weekday = parts.find(p => p.type === "weekday")?.value?.toLowerCase().slice(0, 3) || "";
-          const hour = parts.find(p => p.type === "hour")?.value || "00";
-          const minute = parts.find(p => p.type === "minute")?.value || "00";
-          const currentTime = `${hour}:${minute}`;
-          const daySchedule = bh.schedule[weekday];
-          if (!daySchedule) {
-            withinBusinessHours = false;
-          } else {
-            withinBusinessHours = currentTime >= daySchedule.start && currentTime <= daySchedule.end;
-          }
-        }
-      }
+      // Agent toggle is explicit — if an agent is online, they've chosen to be available
+      // Business hours auto-toggle is handled in sidebar, not here
+      // Business hours only apply when NO agent has explicitly toggled on
+      const { data: onlineAgents } = await supabase
+        .from("agent_presence")
+        .select("user_id")
+        .eq("workspace_id", config.workspace_id)
+        .in("status", ["online", "busy"])
+        .limit(1);
 
-      if (withinBusinessHours) {
-        // Simple toggle check — status is set explicitly by agent
-        const { data: onlineAgents } = await supabase
-          .from("agent_presence")
-          .select("user_id")
-          .eq("workspace_id", config.workspace_id)
-          .in("status", ["online", "busy"])
-          .limit(1);
-
-        if (onlineAgents && onlineAgents.length > 0) {
-          liveChat = true;
-          await supabase
-            .from("conversations")
-            .update({ status: "waiting" })
-            .eq("id", activeConversationId);
-        }
+      if (onlineAgents && onlineAgents.length > 0) {
+        // Agent is explicitly online — allow live chat regardless of business hours
+        liveChat = true;
+        await supabase
+          .from("conversations")
+          .update({ status: "waiting" })
+          .eq("id", activeConversationId);
       }
     } catch (err) {
       console.error("Live chat check error:", err);
