@@ -34,7 +34,7 @@ export function LandingHeader(): React.ReactNode {
             {t("landing.header.pricing")}
           </Link>
           <Link
-            href="/#features"
+            href="/features"
             className={cn(buttonVariants({ variant: "ghost" }))}
           >
             {t("landing.header.features")}
@@ -72,7 +72,7 @@ export function LandingHeader(): React.ReactNode {
               {t("landing.header.pricing")}
             </Link>
             <Link
-              href="/#features"
+              href="/features"
               onClick={() => setMobileOpen(false)}
               className={cn(buttonVariants({ variant: "ghost" }), "w-full justify-start")}
             >
