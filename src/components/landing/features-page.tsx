@@ -318,7 +318,7 @@ export function FeaturesPage(): React.ReactNode {
               href="/signup"
               className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto")}
             >
-              Start gratis
+              Kom i gang
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
             <Link
@@ -385,7 +385,7 @@ export function FeaturesPage(): React.ReactNode {
             Klar til å spare tid på kundeservice?
           </h2>
           <p className="mx-auto mt-4 max-w-xl text-base text-white/80">
-            Kom i gang gratis — ingen kredittkort, ingen bindingstid.
+            Se hva ChatPulse kan gjøre for din bedrift.
           </p>
 
           <div className="mt-10 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row sm:justify-center sm:gap-4">
@@ -396,17 +396,17 @@ export function FeaturesPage(): React.ReactNode {
                 "w-full bg-white text-primary hover:bg-white/90 sm:w-auto"
               )}
             >
-              Start gratis
+              Kom i gang
               <ArrowRight className="ml-2 h-4 w-4" />
             </Link>
             <Link
-              href="/signup?demo=true"
+              href="/pricing"
               className={cn(
                 buttonVariants({ variant: "outline", size: "lg" }),
                 "w-full border-white/30 text-white hover:bg-white/10 sm:w-auto"
               )}
             >
-              Bestill demo
+              Se priser
             </Link>
           </div>
         </FadeIn>
