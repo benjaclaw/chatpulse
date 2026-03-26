@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendBroadcast } from "@/lib/supabase/broadcast";
+import { logError } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -105,7 +106,7 @@ export async function POST(request: Request): Promise<Response> {
       .single();
 
     if (error) {
-      console.error("Agent message insert error:", error);
+      logError("Agent message insert", error);
       return Response.json({ error: "Failed to send message" }, { status: 500 });
     }
 
@@ -159,7 +160,7 @@ export async function POST(request: Request): Promise<Response> {
       .single();
 
     if (error) {
-      console.error("Visitor message insert error:", error);
+      logError("Visitor message insert", error);
       return Response.json({ error: "Failed to send message" }, { status: 500 });
     }
 

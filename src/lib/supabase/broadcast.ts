@@ -3,6 +3,7 @@
  * Reliable approach — subscribe, send, then cleanup.
  */
 import { createClient } from "@supabase/supabase-js";
+import { logError } from "@/lib/logger";
 
 let _broadcastClient: ReturnType<typeof createClient> | null = null;
 
@@ -49,7 +50,7 @@ export async function sendBroadcast(
       payload,
     });
   } catch (err) {
-    console.error("Broadcast error:", err);
+    logError("Broadcast", err);
   } finally {
     client.removeChannel(channel);
   }

@@ -15,6 +15,7 @@ import {
   Zap,
   Puzzle,
   MessageSquare,
+  MessageCircle,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -101,7 +102,7 @@ export function HomePage(): React.ReactNode {
               {t('landing.features.description')}
             </p>
 
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
               <FeatureCard
                 icon={BookOpen}
                 title={t('landing.features.knowledge')}
@@ -116,6 +117,11 @@ export function HomePage(): React.ReactNode {
                 icon={BarChart3}
                 title={t('landing.features.insights')}
                 description={t('landing.features.insightsDesc')}
+              />
+              <FeatureCard
+                icon={MessageCircle}
+                title={t('landing.features.liveChat')}
+                description={t('landing.features.liveChatDesc')}
               />
               <FeatureCard
                 icon={Code2}

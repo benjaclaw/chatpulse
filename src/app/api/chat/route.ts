@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { getPlanLimit } from "@/lib/plans";
+import { logError } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -201,7 +202,7 @@ export async function POST(request: Request): Promise<Response> {
 
   let knowledgeContext = "";
   if ('error' in knowledgeResult && knowledgeResult.error) {
-    console.error("Knowledge search error:", knowledgeResult.error);
+    logError("Knowledge search", knowledgeResult.error);
   }
   if (knowledgeResult.data?.length) {
     knowledgeContext = knowledgeResult.data
@@ -273,7 +274,7 @@ VIKTIGE REGLER:
     );
 
     if (!geminiRes.ok) {
-      console.error("Gemini API error:", geminiRes.status, await geminiRes.text());
+      logError("Gemini API error", `${geminiRes.status} ${await geminiRes.text()}`);
       aiResponse = fallback;
     } else {
       const data = await geminiRes.json();
@@ -281,7 +282,7 @@ VIKTIGE REGLER:
         data?.candidates?.[0]?.content?.parts?.[0]?.text || fallback;
     }
   } catch (err) {
-    console.error("Gemini fetch error:", err);
+    logError("Gemini fetch", err);
     aiResponse = fallback;
   }
 
@@ -299,7 +300,7 @@ VIKTIGE REGLER:
       .single();
 
     if (convoError) {
-      console.error("Conversation insert error:", convoError);
+      logError("Conversation insert", convoError);
     }
 
     activeConversationId = newConvo?.id ?? null;
@@ -366,7 +367,7 @@ VIKTIGE REGLER:
           .eq("id", activeConversationId);
       }
     } catch (err) {
-      console.error("Live chat check error:", err);
+      logError("Live chat check", err);
     }
   }
 
@@ -441,7 +442,7 @@ VIKTIGE REGLER:
           });
         }
       } catch (err) {
-        console.error("Question tracking error:", err);
+        logError("Question tracking", err);
       }
     };
 
@@ -452,7 +453,7 @@ VIKTIGE REGLER:
         new Promise((_, reject) => setTimeout(() => reject(new Error("Question tracking timed out")), 5000)),
       ]);
     } catch (err) {
-      console.error("Question tracking failed or timed out:", err);
+      logError("Question tracking timeout", err);
     }
   }
 

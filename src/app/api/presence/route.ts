@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { logError } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -48,7 +49,7 @@ export async function PUT(request: Request): Promise<Response> {
     }, { onConflict: "user_id,workspace_id" });
 
   if (error) {
-    console.error("Presence update error:", error);
+    logError("Presence update", error);
     return Response.json({ error: "Failed to update presence" }, { status: 500 });
   }
 
@@ -74,7 +75,7 @@ export async function GET(request: Request): Promise<Response> {
     .in("status", ["online", "busy"]);
 
   if (error) {
-    console.error("Presence check error:", error);
+    logError("Presence check", error);
     return Response.json({ online: false, agentCount: 0 });
   }
 

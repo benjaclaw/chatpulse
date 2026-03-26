@@ -11,7 +11,7 @@ export type PlanFeature =
 
 export type PlanId = "free" | "basic" | "startup" | "pro";
 
-export const PLAN_FEATURES: Record<PlanId, PlanFeature[]> = {
+const PLAN_FEATURES: Record<PlanId, PlanFeature[]> = {
   free: ["basic_chat", "knowledge_base"],
   basic: ["basic_chat", "knowledge_base", "insights", "leads"],
   startup: [
@@ -36,7 +36,7 @@ export const PLAN_FEATURES: Record<PlanId, PlanFeature[]> = {
   ],
 };
 
-export const PLAN_LIMITS: Record<PlanId, number> = {
+const PLAN_LIMITS: Record<PlanId, number> = {
   free: 100,
   basic: 1000,
   startup: 3000,

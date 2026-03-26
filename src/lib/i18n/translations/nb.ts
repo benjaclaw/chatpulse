@@ -327,6 +327,8 @@ const nb: Record<string, string> = {
   'landing.features.insightsDesc': 'Se hva kundene spør om. Finn hull i dokumentasjonen.',
   'landing.features.integration': 'Enkel integrasjon',
   'landing.features.integrationDesc': 'Én kodelinje. Fungerer på alle nettsider.',
+  'landing.features.liveChat': 'Live chat',
+  'landing.features.liveChatDesc': 'Snakk direkte med kunder når AI-en ikke strekker til.',
   'landing.demo.badge': 'Interaktiv demo',
   'landing.demo.title': 'Prøv chatboten selv',
   'landing.demo.description': 'Skriv en melding og se hvordan ChatPulse svarer kundene dine.',

@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendBroadcast } from "@/lib/supabase/broadcast";
+import { logError } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -35,7 +36,7 @@ export async function POST(request: Request): Promise<Response> {
     .select("id");
 
   if (convError) {
-    console.error("Claim error:", convError);
+    logError("Claim conversation", convError);
     return Response.json({ error: "Failed to claim" }, { status: 500 });
   }
 

@@ -102,20 +102,6 @@ export interface Lead {
   created_at: string;
 }
 
-export const LEAD_STATUS_LABEL: Record<LeadStatus, string> = {
-  new: "Ny",
-  contacted: "Kontaktet",
-  resolved: "Løst",
-  archived: "Arkivert",
-};
-
-export const LEAD_STATUS_VARIANT: Record<LeadStatus, "default" | "secondary" | "outline" | "destructive"> = {
-  new: "default",
-  contacted: "secondary",
-  resolved: "outline",
-  archived: "outline",
-};
-
 export interface TeamMember {
   id: string;
   name: string;
@@ -214,8 +200,3 @@ export const ROLE_BADGE_VARIANT: Record<MemberRole, "default" | "secondary" | "o
   member: "outline",
 };
 
-export const ROLE_LABEL: Record<MemberRole, string> = {
-  owner: "Eier",
-  admin: "Admin",
-  member: "Medlem",
-};

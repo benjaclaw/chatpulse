@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/service";
+import { logError } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
@@ -64,7 +65,7 @@ export async function POST(request: Request): Promise<Response> {
     .single();
 
   if (error) {
-    console.error("Lead insert error:", error);
+    logError("Lead insert", error);
     return Response.json({ error: "Kunne ikke opprette lead" }, { status: 500 });
   }
 

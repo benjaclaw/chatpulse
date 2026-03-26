@@ -327,6 +327,8 @@ const en: Record<string, string> = {
   'landing.features.insightsDesc': 'See what customers ask about. Find gaps in your documentation.',
   'landing.features.integration': 'Easy integration',
   'landing.features.integrationDesc': 'One line of code. Works on all websites.',
+  'landing.features.liveChat': 'Live chat',
+  'landing.features.liveChatDesc': 'Talk directly with customers when the AI can\'t handle it.',
   'landing.demo.badge': 'Interactive demo',
   'landing.demo.title': 'Try the chatbot yourself',
   'landing.demo.description': 'Type a message and see how ChatPulse responds to your customers.',
