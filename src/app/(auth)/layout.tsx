@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { LandingHeader } from "@/components/landing/header";
+import { LandingFooter } from "@/components/landing/footer";
 
 export default function AuthLayout({
   children,
@@ -6,25 +7,21 @@ export default function AuthLayout({
   children: React.ReactNode;
 }): React.ReactNode {
   return (
-    <div className="relative flex min-h-screen items-center justify-center bg-background p-4">
-      {/* Subtle background gradient */}
-      <div className="pointer-events-none absolute inset-0 overflow-hidden">
-        <div className="absolute top-0 left-1/2 h-[400px] w-[600px] -translate-x-1/2 rounded-full bg-primary/5 blur-3xl dark:bg-primary/10" />
-      </div>
+    <div className="flex min-h-screen flex-col bg-background">
+      <LandingHeader />
 
-      <div className="relative z-10 w-full max-w-md">
-        {/* Logo */}
-        <div className="mb-8 text-center">
-          <Link
-            href="/"
-            className="inline-block font-heading text-2xl font-bold text-primary transition-opacity hover:opacity-80"
-          >
-            ChatPulse
-          </Link>
+      <main className="relative flex flex-1 items-center justify-center p-4">
+        {/* Subtle background gradient */}
+        <div className="pointer-events-none absolute inset-0 overflow-hidden">
+          <div className="absolute top-0 left-1/2 h-[400px] w-[600px] -translate-x-1/2 rounded-full bg-primary/5 blur-3xl dark:bg-primary/10" />
         </div>
 
-        {children}
-      </div>
+        <div className="relative z-10 w-full max-w-md">
+          {children}
+        </div>
+      </main>
+
+      <LandingFooter />
     </div>
   );
 }
