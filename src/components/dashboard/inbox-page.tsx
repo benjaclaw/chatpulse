@@ -201,14 +201,10 @@ export function InboxPageClient(): React.ReactNode {
     async function loadMessages() {
       const { data, error } = await supabase
         .from("messages")
-        .select("id, role, content, created_at")
+        .select("id, role, content, created_at, metadata")
         .eq("conversation_id", selectedId)
         .order("created_at", { ascending: true });
 
-      if (error) {
-        console.error("loadMessages error:", error);
-      }
-      console.log("loadMessages:", selectedId, "got", data?.length ?? 0, "messages");
       if (data) setMessages(data as InboxMessage[]);
 
       // Load lead info for this conversation
