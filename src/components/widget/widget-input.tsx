@@ -56,14 +56,11 @@ export const WidgetInput = ({
           <button
             type="button"
             onClick={() => {
-              const msg = i18nLang === "nb"
-                ? "Er du sikker på at du vil starte ny chat? Nåværende samtale avsluttes."
-                : "Are you sure you want to start a new chat? The current conversation will end.";
-              if (confirm(msg)) onEndChat();
+                if (confirm(t('widget.confirmNewChat'))) onEndChat();
             }}
             className="text-xs text-muted-foreground hover:text-destructive transition-colors"
           >
-            {i18nLang === "nb" ? "\u21BB Start ny chat" : "\u21BB Start new chat"}
+            {t('widget.restartNewChat')}
           </button>
         </div>
       )}

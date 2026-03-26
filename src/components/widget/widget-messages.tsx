@@ -1,4 +1,5 @@
 import { cn } from "@/lib/utils";
+import { createT, type Language } from "@/lib/i18n";
 
 interface Message {
   id: string;
@@ -29,6 +30,8 @@ export const MessageList = ({
   choiceButtons?: React.ReactNode;
   chatEndedButton?: React.ReactNode;
 }): React.ReactNode => {
+  const t = createT((i18nLang === "nb" || i18nLang === "en" ? i18nLang : "nb") as Language);
+
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
       {messages.map((msg) => (
@@ -54,7 +57,7 @@ export const MessageList = ({
           >
             {msg.role === "agent" && (
               <p className="text-[10px] font-medium text-primary mb-0.5">
-                {i18nLang === "nb" ? "Medarbeider" : "Agent"}
+                {t('widget.agentLabel')}
               </p>
             )}
             <SimpleMarkdown text={msg.content} />
@@ -66,7 +69,7 @@ export const MessageList = ({
       {queuePosition != null && queuePosition > 0 && (
         <div className="flex justify-start">
           <div className="rounded-2xl rounded-bl-md bg-muted/60 px-4 py-2 text-xs text-muted-foreground">
-            {i18nLang === "nb" ? `Du er nr. ${queuePosition} i k\u00f8en` : `You are #${queuePosition} in the queue`}
+            {t('widget.queuePosition').replace('{position}', String(queuePosition))}
           </div>
         </div>
       )}
@@ -76,7 +79,7 @@ export const MessageList = ({
           <div className="flex items-center gap-1.5 rounded-2xl rounded-bl-md bg-muted px-4 py-3">
             {agentTyping && (
               <span className="text-[10px] text-muted-foreground mr-1">
-                {i18nLang === "nb" ? "Medarbeider skriver" : "Agent typing"}
+                {t('widget.agentTyping')}
               </span>
             )}
             <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40 [animation-delay:0ms]" />

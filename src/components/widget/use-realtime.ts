@@ -1,6 +1,6 @@
 import { useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
-import type { Language } from "@/lib/i18n";
+import { createT, type Language } from "@/lib/i18n";
 
 interface Message {
   id: string;
@@ -23,6 +23,7 @@ export function useRealtimeSubscription(
 ) {
   const subscribeToRealtime = useCallback((conversationId: string) => {
     const supabase = createClient();
+    const t = createT(i18nLang);
 
     // Message subscription via broadcast
     const channel = supabase

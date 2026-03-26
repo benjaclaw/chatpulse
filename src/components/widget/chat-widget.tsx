@@ -224,7 +224,7 @@ export function ChatWidget({
         if (res.status === 410) {
           setLiveChatMode(false); conversationIdRef.current = null; setHasInteracted(false);
           try { sessionStorage.removeItem("chatpulse_live_chat_mode"); sessionStorage.removeItem("chatpulse_conversation_id"); sessionStorage.removeItem("chatpulse_workspace_id"); } catch { /* sessionStorage may be unavailable in embedded widget iframes */ }
-          setMessages((prev) => [...prev, { id: `closed-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? "Samtalen er avsluttet." : "The conversation has ended." }]);
+          setMessages((prev) => [...prev, { id: `closed-${Date.now()}`, role: "assistant", content: t('widget.conversationEnded') }]);
           return;
         }
       } catch {
@@ -278,7 +278,7 @@ export function ChatWidget({
       pendingLiveChatRef.current = null;
       setLiveChatMode(true);
       try { sessionStorage.setItem("chatpulse_live_chat_mode", "true"); sessionStorage.setItem("chatpulse_conversation_id", pending.conversationId); if (pending.workspaceId) sessionStorage.setItem("chatpulse_workspace_id", pending.workspaceId); } catch { /* sessionStorage may be unavailable in embedded widget iframes */ }
-      setMessages((prev) => [...prev, { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? `Takk, ${name || email}! Du settes n\u00e5 i kontakt med en medarbeider. Det kan ta noen minutter.` : `Thanks, ${name || email}! You're being connected to an agent. It may take a few minutes.` }]);
+      setMessages((prev) => [...prev, { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: t('widget.handoffConnecting').replace('{name}', name || email) }]);
       subscribeToRealtime(pending.conversationId);
       if (pending.workspaceId) fetchQueuePosition(pending.conversationId, pending.workspaceId);
     } else {
@@ -290,15 +290,15 @@ export function ChatWidget({
   const choiceButtons = showChoices ? (
     <div className="flex flex-col gap-2 px-1">
       <button type="button" onClick={() => { inputRef.current?.focus(); inputRef.current?.scrollIntoView({ behavior: "smooth" }); if (inputRef.current) { inputRef.current.style.borderColor = primaryColor; inputRef.current.style.boxShadow = `0 0 0 2px ${primaryColor}33`; setTimeout(() => { if (inputRef.current) { inputRef.current.style.borderColor = ""; inputRef.current.style.boxShadow = ""; } }, 2000); } }} className="rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:bg-opacity-10" style={{ borderColor: primaryColor, color: primaryColor }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = primaryColor + "1a")} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}>
-        {i18nLang === "nb" ? "\uD83D\uDCAC Still et sp\u00f8rsm\u00e5l" : "\uD83D\uDCAC Ask a question"}
+        {t('widget.askQuestion')}
       </button>
-      <button type="button" onClick={() => handleSend(i18nLang === "nb" ? "Jeg vil gjerne snakke med en medarbeider" : "I would like to speak with a representative")} className="rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:bg-opacity-10" style={{ borderColor: primaryColor, color: primaryColor }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = primaryColor + "1a")} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}>
-        {i18nLang === "nb" ? "\uD83D\uDC64 Snakk med menneske" : "\uD83D\uDC64 Talk to a person"}
+      <button type="button" onClick={() => handleSend(t('widget.speakWithRep'))} className="rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:bg-opacity-10" style={{ borderColor: primaryColor, color: primaryColor }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = primaryColor + "1a")} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}>
+        {t('widget.talkToPerson')}
       </button>
     </div>
   ) : null;
 
-  const headerSubtext = liveChatMode ? "Live chat" : agentsOnline ? (i18nLang === "nb" ? "Kundeservice er online" : "Support is online") : (i18nLang === "nb" ? "AI-assistent" : "AI assistant");
+  const headerSubtext = liveChatMode ? "Live chat" : agentsOnline ? t('widget.supportOnline') : t('widget.aiAssistant');
 
   const resetChat = () => {
     setLiveChatMode(false); conversationIdRef.current = null; setHasInteracted(false); setChatEnded(false); setHandoffTriggered(false); setHandoffSubmitted(false); pendingLiveChatRef.current = null;
@@ -309,7 +309,7 @@ export function ChatWidget({
   const restartButton = chatEnded ? (
     <div className="flex justify-center py-2">
       <button onClick={() => { setChatEnded(false); setHasInteracted(false); setHandoffTriggered(false); setHandoffSubmitted(false); setMessages([{ id: "welcome", role: "assistant", content: welcomeMessage || t('widget.defaultWelcome') }]); try { sessionStorage.removeItem("chatpulse_messages"); } catch { /* sessionStorage may be unavailable */ } }} className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted" style={{ borderColor: primaryColor, color: primaryColor }}>
-        {i18nLang === "nb" ? "Start ny chat" : "Start new chat"}
+        {t('widget.startNewChat')}
       </button>
     </div>
   ) : null;

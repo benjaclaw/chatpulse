@@ -25,7 +25,7 @@ export default async function WidgetPage({
   const lang = query.lang ?? undefined;
   const welcomeMessagesMap = (config?.welcome_messages as Record<string, string> | null) ?? {};
   const welcomeMessage =
-    (lang && welcomeMessagesMap[lang]) || config?.welcome_message || "Hi! How can I help you?";
+    (lang && welcomeMessagesMap[lang]) || config?.welcome_message || "Hei! Hvordan kan jeg hjelpe deg?";
   const styling = config?.widget_styling as { primary_color?: string; position?: string } | null;
   const primaryColor = styling?.primary_color ?? query.color ?? "#6366f1";
   const rawLogoUrl = (config?.logo_url as string | undefined) ?? undefined;

@@ -5,7 +5,7 @@ export default function robots(): MetadataRoute.Robots {
     rules: {
       userAgent: "*",
       allow: "/",
-      disallow: ["/dashboard/", "/admin/", "/widget/"],
+      disallow: ["/dashboard/", "/admin/", "/widget/", "/api/"],
     },
     sitemap: "https://chatpulse.no/sitemap.xml",
   };
