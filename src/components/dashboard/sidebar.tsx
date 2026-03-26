@@ -54,15 +54,16 @@ export function Sidebar({
     isOnlineRef.current = isOnline;
   }, [isOnline]);
 
-  // Fetch initial presence status from DB
+  // On mount: if localStorage says online, immediately send heartbeat to refresh presence
+  // Don't fetch from DB — localStorage is the source of truth for user intent
   useEffect(() => {
-    fetch(`/api/presence-status?workspaceId=${activeWorkspace.id}`)
-      .then((res) => res.json())
-      .then((data: { online: boolean }) => {
-        setIsOnline(data.online);
-        localStorage.setItem(LS_KEY, String(data.online));
-      })
-      .catch(() => {});
+    if (localStorage.getItem(LS_KEY) === "true") {
+      fetch("/api/presence", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId: activeWorkspace.id, status: "online" }),
+      }).catch(() => {});
+    }
   }, [activeWorkspace.id]);
 
   // Update presence API
