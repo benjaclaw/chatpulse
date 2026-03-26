@@ -601,7 +601,7 @@ export function InboxPageClient(): React.ReactNode {
                           <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
                         )}
                         <span className="text-xs font-medium truncate">
-                          {conv.lead_name || conv.lead_email || conv.visitor_id?.slice(0, 8)}
+                          {conv.lead_name || conv.lead_email || t('inbox.visitor')}
                         </span>
                         <span className={cn(
                           "ml-auto text-[10px] px-1.5 py-0.5 rounded-full font-medium",

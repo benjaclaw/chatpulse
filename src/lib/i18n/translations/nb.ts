@@ -644,6 +644,7 @@ const nb: Record<string, string> = {
   'sidebar.chatAvailable': 'Tilgjengelig for chat',
   'sidebar.chatUnavailable': 'Ikke tilgjengelig',
   'inbox.loadMore': 'Last flere samtaler',
+  'inbox.visitor': 'Besøkende',
 
   // Settings: Business hours
   'settings.businessHours.title': 'Bemanningstider',
