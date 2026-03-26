@@ -81,8 +81,15 @@ export async function GET(request: Request): Promise<Response> {
     return Response.json({ online: false, agentCount: 0 });
   }
 
-  return Response.json({
-    online: (agents?.length ?? 0) > 0,
-    agentCount: agents?.length ?? 0,
-  });
+  return Response.json(
+    {
+      online: (agents?.length ?? 0) > 0,
+      agentCount: agents?.length ?? 0,
+    },
+    {
+      headers: {
+        "Cache-Control": "private, no-cache, max-age=0",
+      },
+    }
+  );
 }

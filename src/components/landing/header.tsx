@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Menu, X } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -21,7 +22,7 @@ export function LandingHeader(): React.ReactNode {
     <header className="sticky top-0 z-40 border-b bg-background/80 backdrop-blur-sm">
       <div className="flex h-16 items-center justify-between px-4 sm:px-6 lg:px-8">
         <Link href="/" className="flex items-center">
-          <img src="/logo.svg" alt="ChatPulse" className="h-6" />
+          <Image src="/logo.svg" alt="ChatPulse" width={120} height={24} priority />
         </Link>
 
         {/* Desktop nav */}

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useMemo, useCallback, memo } from "react";
 import { useSearchParams } from "next/navigation";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
@@ -58,21 +58,24 @@ export function InsightsPageClient(): React.ReactNode {
     return () => { cancelled = true; };
   }, [workspaceId, supabase]);
 
-  const filtered = questions
-    .filter((q) => {
-      if (filter === "answered") return q.answered;
-      if (filter === "unanswered") return !q.answered;
-      return true;
-    })
-    .sort((a, b) => b.count - a.count);
+  const filtered = useMemo(() =>
+    questions
+      .filter((q) => {
+        if (filter === "answered") return q.answered;
+        if (filter === "unanswered") return !q.answered;
+        return true;
+      })
+      .sort((a, b) => b.count - a.count),
+    [questions, filter]
+  );
 
-  const totalAnswered = questions.filter((q) => q.answered).length;
-  const totalUnanswered = questions.filter((q) => !q.answered).length;
+  const totalAnswered = useMemo(() => questions.filter((q) => q.answered).length, [questions]);
+  const totalUnanswered = useMemo(() => questions.filter((q) => !q.answered).length, [questions]);
 
-  async function handleDelete(id: string) {
+  const handleDelete = useCallback(async (id: string) => {
     await supabase.from("questions").delete().eq("id", id);
     setQuestions((prev) => prev.filter((q) => q.id !== id));
-  }
+  }, [supabase]);
 
   async function handleClearAll() {
     if (!confirm(t('insights.confirmClear'))) return;
@@ -240,7 +243,7 @@ export function InsightsPageClient(): React.ReactNode {
   );
 }
 
-function BarChart({ questions, maxCount }: { questions: Question[]; maxCount: number }): React.ReactNode {
+const BarChart = memo(function BarChart({ questions, maxCount }: { questions: Question[]; maxCount: number }) {
   return (
     <div className="space-y-3">
       {questions.map((q) => {
@@ -265,4 +268,4 @@ function BarChart({ questions, maxCount }: { questions: Question[]; maxCount: nu
       })}
     </div>
   );
-}
+});

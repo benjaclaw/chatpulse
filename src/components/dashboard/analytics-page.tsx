@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, memo } from "react";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/lib/i18n/context";
@@ -290,7 +290,7 @@ export function AnalyticsPageClient(): React.ReactNode {
   );
 }
 
-function StatCard({
+const StatCard = memo(function StatCard({
   icon: Icon,
   label,
   value,
@@ -298,7 +298,7 @@ function StatCard({
   icon: React.ComponentType<{ className?: string }>;
   label: string;
   value: string;
-}): React.ReactNode {
+}) {
   return (
     <div className="rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md">
       <div className="flex items-center gap-3">
@@ -310,9 +310,9 @@ function StatCard({
       <p className="mt-3 text-3xl font-bold">{value}</p>
     </div>
   );
-}
+});
 
-function DailyBarChart({ data }: { data: DailyCount[] }): React.ReactNode {
+const DailyBarChart = memo(function DailyBarChart({ data }: { data: DailyCount[] }) {
   const maxCount = Math.max(...data.map((d) => d.count), 1);
 
   return (
@@ -349,9 +349,9 @@ function DailyBarChart({ data }: { data: DailyCount[] }): React.ReactNode {
       </div>
     </div>
   );
-}
+});
 
-function HourlyBarChart({ data }: { data: HourlyCount[] }): React.ReactNode {
+const HourlyBarChart = memo(function HourlyBarChart({ data }: { data: HourlyCount[] }) {
   const maxCount = Math.max(...data.map((d) => d.count), 1);
 
   return (
@@ -375,4 +375,4 @@ function HourlyBarChart({ data }: { data: HourlyCount[] }): React.ReactNode {
       })}
     </div>
   );
-}
+});

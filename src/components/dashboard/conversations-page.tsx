@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useMemo } from "react";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
 import { Badge } from "@/components/ui/badge";
@@ -163,7 +163,7 @@ export function ConversationsPageClient(): React.ReactNode {
   }, [fetchConversations]);
 
   // Load messages when expanding a conversation
-  async function handleExpand(id: string) {
+  const handleExpand = useCallback(async (id: string) => {
     if (expandedId === id) {
       setExpandedId(null);
       return;
@@ -177,9 +177,9 @@ export function ConversationsPageClient(): React.ReactNode {
       .order("created_at", { ascending: true });
     setExpandedMessages((data as ChatMessage[]) ?? []);
     setMessagesLoading(false);
-  }
+  }, [expandedId, supabase]);
 
-  const totalPages = Math.ceil(totalCount / PAGE_SIZE);
+  const totalPages = useMemo(() => Math.ceil(totalCount / PAGE_SIZE), [totalCount]);
 
   return (
     <div className="space-y-6">

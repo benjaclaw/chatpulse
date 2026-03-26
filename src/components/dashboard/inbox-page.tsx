@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef, useCallback } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/lib/i18n/context";
@@ -489,19 +489,25 @@ export function InboxPageClient(): React.ReactNode {
   }, [workspace.id]);
 
   const selectedConv = conversations.find((c) => c.id === selectedId);
-  const filteredCanned = showCannedMenu
-    ? cannedResponses.filter(
-        (cr) =>
-          input.length <= 1 ||
-          cr.shortcut.toLowerCase().includes(input.slice(1).toLowerCase()) ||
-          cr.title.toLowerCase().includes(input.slice(1).toLowerCase())
-      )
-    : [];
+  const filteredCanned = useMemo(() =>
+    showCannedMenu
+      ? cannedResponses.filter(
+          (cr) =>
+            input.length <= 1 ||
+            cr.shortcut.toLowerCase().includes(input.slice(1).toLowerCase()) ||
+            cr.title.toLowerCase().includes(input.slice(1).toLowerCase())
+        )
+      : [],
+    [showCannedMenu, cannedResponses, input]
+  );
 
   // Visible messages (filter out internal notes for the "Chat" tab)
-  const visibleMessages = showNotes
-    ? messages
-    : messages.filter((m) => !(m.metadata?.internal_note));
+  const visibleMessages = useMemo(() =>
+    showNotes
+      ? messages
+      : messages.filter((m) => !(m.metadata?.internal_note)),
+    [showNotes, messages]
+  );
 
   return (
     <div className="space-y-4">

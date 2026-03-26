@@ -469,11 +469,18 @@ VIKTIGE REGLER:
   }
 
   // 9. Return response
-  return Response.json({
-    response: aiResponse,
-    conversationId: activeConversationId,
-    workspaceId: config.workspace_id,
-    ...(isHandoff && { handoff: true }),
-    ...(isHandoff && { liveChat }),
-  });
+  return Response.json(
+    {
+      response: aiResponse,
+      conversationId: activeConversationId,
+      workspaceId: config.workspace_id,
+      ...(isHandoff && { handoff: true }),
+      ...(isHandoff && { liveChat }),
+    },
+    {
+      headers: {
+        "Cache-Control": "no-store",
+      },
+    }
+  );
 }

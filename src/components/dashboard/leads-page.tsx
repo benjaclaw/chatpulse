@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback, useRef, useMemo, memo } from "react";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/lib/i18n/context";
@@ -223,12 +223,12 @@ export function LeadsPageClient(): React.ReactNode {
 
   const activeLead = activeId ? leads.find((l) => l.id === activeId) : null;
 
-  const stats = {
+  const stats = useMemo(() => ({
     total: leads.length,
     new: leads.filter((l) => l.status === "new").length,
     contacted: leads.filter((l) => l.status === "contacted").length,
     resolved: leads.filter((l) => l.status === "resolved").length,
-  };
+  }), [leads]);
 
   const hasLeadsFeature = hasFeature(workspace.plan_id, "leads");
 
@@ -544,13 +544,13 @@ function KanbanColumn({
 
 /* ───── Draggable lead card ───── */
 
-function LeadCard({
+const LeadCard = memo(function LeadCard({
   lead,
   onClickLead,
 }: {
   lead: Lead;
   onClickLead: (lead: Lead) => void;
-}): React.ReactNode {
+}) {
   const { t } = useLanguage();
   const {
     attributes,
@@ -604,7 +604,7 @@ function LeadCard({
       </div>
     </div>
   );
-}
+});
 
 /* ───── Drag overlay card ───── */
 
@@ -633,7 +633,7 @@ function LeadCardOverlay({ lead }: { lead: Lead }): React.ReactNode {
 
 /* ───── Stat card ───── */
 
-function StatCard({
+const StatCard = memo(function StatCard({
   icon: Icon,
   label,
   value,
@@ -643,7 +643,7 @@ function StatCard({
   label: string;
   value: number;
   className?: string;
-}): React.ReactNode {
+}) {
   return (
     <div className="rounded-xl border bg-card p-5 shadow-sm">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -653,4 +653,4 @@ function StatCard({
       <p className="mt-2 text-2xl font-bold">{value}</p>
     </div>
   );
-}
+});
