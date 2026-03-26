@@ -629,6 +629,7 @@ const en: Record<string, string> = {
   'inbox.selectConversation': 'Select a conversation',
   'inbox.claim': 'Claim',
   'inbox.close': 'Close',
+  'inbox.confirmClose': 'This will end the conversation with the customer. Are you sure?',
   'inbox.notes': 'Notes',
   'inbox.transfer': 'Transfer',
   'inbox.transferTo': 'Transfer to',

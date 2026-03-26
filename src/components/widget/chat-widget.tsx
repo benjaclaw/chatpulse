@@ -99,6 +99,7 @@ export function ChatWidget({
   const [isTyping, setIsTyping] = useState(false);
   const [handoffTriggered, setHandoffTriggered] = useState(false);
   const [handoffSubmitted, setHandoffSubmitted] = useState(false);
+  const [chatEnded, setChatEnded] = useState(false);
   const [liveChatMode, setLiveChatMode] = useState(false);
   const [agentTyping, setAgentTyping] = useState(false);
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
@@ -227,6 +228,7 @@ export function ChatWidget({
             setLiveChatMode(false);
             conversationIdRef.current = null;
             setHasInteracted(false);
+            setChatEnded(true);
             // FIX 3: Clear session on close
             try {
               sessionStorage.removeItem("chatpulse_live_chat_mode");
@@ -235,7 +237,7 @@ export function ChatWidget({
             } catch { /* ignore */ }
             setMessages((prev) => [
               ...prev,
-              { id: `closed-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? "Samtalen er avsluttet. Takk for at du tok kontakt! Du kan starte en ny samtale når som helst." : "The conversation has ended. Thanks for reaching out! You can start a new conversation anytime." },
+              { id: `closed-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? "Samtalen er avsluttet. Takk for at du tok kontakt!" : "The conversation has ended. Thanks for reaching out!" },
             ]);
           } else if (payload.new.status === "ai") {
             // FIX 4: Sent back to AI mode by server
@@ -398,7 +400,7 @@ export function ChatWidget({
           } catch { /* ignore */ }
           setMessages((prev) => [
             ...prev,
-            { id: `closed-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? "Samtalen er avsluttet. Du kan starte en ny samtale når som helst." : "The conversation has ended. You can start a new conversation anytime." },
+            { id: `closed-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? "Samtalen er avsluttet." : "The conversation has ended." },
           ]);
           return;
         }
@@ -609,6 +611,23 @@ export function ChatWidget({
             ) : null
           }
           choiceButtons={choiceButtons}
+          chatEndedButton={chatEnded ? (
+            <div className="flex justify-center py-2">
+              <button
+                onClick={() => {
+                  setChatEnded(false);
+                  setHandoffTriggered(false);
+                  setHandoffSubmitted(false);
+                  setMessages([{ id: "welcome", role: "assistant", content: welcomeMessage || t('widget.defaultWelcome') }]);
+                  try { sessionStorage.removeItem("chatpulse_messages"); } catch {}
+                }}
+                className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+                style={{ borderColor: primaryColor, color: primaryColor }}
+              >
+                {i18nLang === "nb" ? "Start ny chat" : "Start new chat"}
+              </button>
+            </div>
+          ) : null}
         />
         <WidgetInput
           value={input}
@@ -689,6 +708,23 @@ export function ChatWidget({
             ) : null
           }
           choiceButtons={choiceButtons}
+          chatEndedButton={chatEnded ? (
+            <div className="flex justify-center py-2">
+              <button
+                onClick={() => {
+                  setChatEnded(false);
+                  setHandoffTriggered(false);
+                  setHandoffSubmitted(false);
+                  setMessages([{ id: "welcome", role: "assistant", content: welcomeMessage || t('widget.defaultWelcome') }]);
+                  try { sessionStorage.removeItem("chatpulse_messages"); } catch {}
+                }}
+                className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted"
+                style={{ borderColor: primaryColor, color: primaryColor }}
+              >
+                {i18nLang === "nb" ? "Start ny chat" : "Start new chat"}
+              </button>
+            </div>
+          ) : null}
         />
         <WidgetInput
           value={input}
@@ -792,6 +828,7 @@ const MessageList = ({
   queuePosition,
   i18nLang,
   choiceButtons,
+  chatEndedButton,
 }: {
   messages: Message[];
   isTyping: boolean;
@@ -802,6 +839,7 @@ const MessageList = ({
   queuePosition?: number | null;
   i18nLang?: string;
   choiceButtons?: React.ReactNode;
+  chatEndedButton?: React.ReactNode;
 }): React.ReactNode => {
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -836,6 +874,7 @@ const MessageList = ({
         </div>
       ))}
       {choiceButtons}
+      {chatEndedButton}
       {queuePosition != null && queuePosition > 0 && (
         <div className="flex justify-start">
           <div className="rounded-2xl rounded-bl-md bg-muted/60 px-4 py-2 text-xs text-muted-foreground">

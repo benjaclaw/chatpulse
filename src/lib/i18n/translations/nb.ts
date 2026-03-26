@@ -629,6 +629,7 @@ const nb: Record<string, string> = {
   'inbox.selectConversation': 'Velg en samtale',
   'inbox.claim': 'Ta samtale',
   'inbox.close': 'Lukk',
+  'inbox.confirmClose': 'Dette avslutter samtalen med kunden. Er du sikker?',
   'inbox.notes': 'Notater',
   'inbox.transfer': 'Overfør',
   'inbox.transferTo': 'Overfør til',

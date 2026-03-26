@@ -280,11 +280,17 @@ export function InboxPageClient(): React.ReactNode {
 
     if (!serviceRes.ok) {
       loadConversations();
+    } else {
+      // Switch to "Active" tab after claiming
+      setFilter("human");
+      loadConversations();
     }
   }
 
   // Close a conversation
   async function handleClose(conversationId: string) {
+    if (!confirm(t('inbox.confirmClose'))) return;
+
     setConversations((prev) =>
       prev.map((c) =>
         c.id === conversationId ? { ...c, status: "closed" } : c
