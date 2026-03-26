@@ -305,6 +305,16 @@ VIKTIGE REGLER:
     activeConversationId = newConvo?.id ?? null;
   }
 
+  // 7. Detect and strip tags BEFORE saving to DB
+  const isHandoff = aiResponse.startsWith("[HANDOFF]");
+  if (isHandoff) {
+    aiResponse = aiResponse.replace("[HANDOFF]", "").trim();
+  }
+  const isUnanswered = aiResponse.startsWith("[UBESVART]");
+  if (isUnanswered) {
+    aiResponse = aiResponse.replace("[UBESVART]", "").trim();
+  }
+
   // Run message insert and workspace count update in parallel
   {
     const msgInsert = activeConversationId
@@ -331,12 +341,6 @@ VIKTIGE REGLER:
       : null;
 
     await Promise.all([msgInsert, countUpdate].filter(Boolean));
-  }
-
-  // 7. Detect handoff tag
-  const isHandoff = aiResponse.startsWith("[HANDOFF]");
-  if (isHandoff) {
-    aiResponse = aiResponse.replace("[HANDOFF]", "").trim();
   }
 
   // 7b. If handoff, check if live agents are online (direct DB query, no self-fetch)
@@ -388,10 +392,7 @@ VIKTIGE REGLER:
   }
 
   // 8. Track ALL questions for insights
-  const isUnanswered = aiResponse.startsWith("[UBESVART]");
-  if (isUnanswered) {
-    aiResponse = aiResponse.replace("[UBESVART]", "").trim();
-  }
+  // (isUnanswered already detected and stripped above)
 
   // Log every user question — find similar using multi-strategy matching
   // Run this without awaiting to avoid blocking the response
