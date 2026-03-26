@@ -25,6 +25,8 @@ interface InboxConversation {
   started_at: string;
   assigned_to: string | null;
   first_message?: string;
+  lead_name?: string;
+  lead_email?: string;
 }
 
 interface InboxMessage {
@@ -115,29 +117,49 @@ export function InboxPageClient(): React.ReactNode {
 
     if (data) {
       setHasMore(data.length === 50);
-      // Fetch first message for each conversation
+      // Fetch first messages and lead info in parallel
       const convIds = data.map((c: InboxConversation) => c.id);
-      const { data: firstMessages } = await supabase
-        .from("messages")
-        .select("conversation_id, content")
-        .in("conversation_id", convIds.length > 0 ? convIds : ["_none_"])
-        .eq("role", "user")
-        .order("created_at", { ascending: true });
+      const [firstMsgResult, leadsResult] = await Promise.all([
+        supabase
+          .from("messages")
+          .select("conversation_id, content")
+          .in("conversation_id", convIds.length > 0 ? convIds : ["_none_"])
+          .eq("role", "user")
+          .order("created_at", { ascending: true }),
+        supabase
+          .from("leads")
+          .select("conversation_id, name, email")
+          .in("conversation_id", convIds.length > 0 ? convIds : ["_none_"]),
+      ]);
 
       const firstMsgMap = new Map<string, string>();
-      if (firstMessages) {
-        for (const msg of firstMessages) {
+      if (firstMsgResult.data) {
+        for (const msg of firstMsgResult.data) {
           if (!firstMsgMap.has(msg.conversation_id)) {
             firstMsgMap.set(msg.conversation_id, msg.content);
           }
         }
       }
 
+      const leadMap = new Map<string, { name?: string; email?: string }>();
+      if (leadsResult.data) {
+        for (const lead of leadsResult.data) {
+          if (lead.conversation_id) {
+            leadMap.set(lead.conversation_id, { name: lead.name ?? undefined, email: lead.email ?? undefined });
+          }
+        }
+      }
+
       setConversations(
-        data.map((c: InboxConversation) => ({
-          ...c,
-          first_message: firstMsgMap.get(c.id) || "",
-        }))
+        data.map((c: InboxConversation) => {
+          const lead = leadMap.get(c.id);
+          return {
+            ...c,
+            first_message: firstMsgMap.get(c.id) || "",
+            lead_name: lead?.name,
+            lead_email: lead?.email,
+          };
+        })
       );
     }
     setLoading(false);
@@ -579,7 +601,7 @@ export function InboxPageClient(): React.ReactNode {
                           <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
                         )}
                         <span className="text-xs font-medium truncate">
-                          {conv.visitor_id?.slice(0, 8)}
+                          {conv.lead_name || conv.lead_email || conv.visitor_id?.slice(0, 8)}
                         </span>
                         <span className={cn(
                           "ml-auto text-[10px] px-1.5 py-0.5 rounded-full font-medium",
@@ -612,24 +634,31 @@ export function InboxPageClient(): React.ReactNode {
                         .range(conversations.length, conversations.length + 49);
                       if (data) {
                         const convIds = data.map((c: InboxConversation) => c.id);
-                        const { data: firstMessages } = await supabase
-                          .from("messages")
-                          .select("conversation_id, content")
-                          .in("conversation_id", convIds.length > 0 ? convIds : ["_none_"])
-                          .eq("role", "user")
-                          .order("created_at", { ascending: true });
+                        const [fmRes, ldRes] = await Promise.all([
+                          supabase.from("messages").select("conversation_id, content")
+                            .in("conversation_id", convIds.length > 0 ? convIds : ["_none_"])
+                            .eq("role", "user").order("created_at", { ascending: true }),
+                          supabase.from("leads").select("conversation_id, name, email")
+                            .in("conversation_id", convIds.length > 0 ? convIds : ["_none_"]),
+                        ]);
                         const firstMsgMap = new Map<string, string>();
-                        if (firstMessages) {
-                          for (const msg of firstMessages) {
+                        if (fmRes.data) {
+                          for (const msg of fmRes.data) {
                             if (!firstMsgMap.has(msg.conversation_id)) {
                               firstMsgMap.set(msg.conversation_id, msg.content);
                             }
                           }
                         }
-                        const newConvs = data.map((c: InboxConversation) => ({
-                          ...c,
-                          first_message: firstMsgMap.get(c.id) || "",
-                        }));
+                        const leadMap = new Map<string, { name?: string; email?: string }>();
+                        if (ldRes.data) {
+                          for (const ld of ldRes.data) {
+                            if (ld.conversation_id) leadMap.set(ld.conversation_id, { name: ld.name ?? undefined, email: ld.email ?? undefined });
+                          }
+                        }
+                        const newConvs = data.map((c: InboxConversation) => {
+                          const lead = leadMap.get(c.id);
+                          return { ...c, first_message: firstMsgMap.get(c.id) || "", lead_name: lead?.name, lead_email: lead?.email };
+                        });
                         setConversations((prev) => [...prev, ...newConvs]);
                         setHasMore(data.length === 50);
                       }
