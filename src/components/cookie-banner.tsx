@@ -34,6 +34,8 @@ export function CookieBanner(): React.ReactNode {
   const [lang, setLang] = useState<Language>("nb");
 
   useEffect(() => {
+    // Don't show cookie banner in widget iframe
+    if (window.location.pathname.startsWith("/widget")) return;
     if (!getStoredConsent()) {
       setVisible(true);
     }
