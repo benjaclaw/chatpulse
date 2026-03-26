@@ -507,7 +507,9 @@ export function ChatWidget({
     }
   }
 
-  const showChoices = agentsOnline && !liveChatMode && (!hasInteracted || chatEnded);
+  // Always show choice buttons when agents are online and not in live chat mode
+  // They appear at the bottom of the message list as a persistent option
+  const showChoices = agentsOnline && !liveChatMode && !handoffTriggered;
   const choiceButtons = showChoices ? (
     <div className="flex flex-col gap-2 px-1">
       <button
@@ -626,11 +628,11 @@ export function ChatWidget({
           hideWatermark={hideWatermark}
           placeholderText={placeholder}
           i18nLang={i18nLang}
-          onEndChat={liveChatMode ? () => {
+          onEndChat={messages.length > 1 ? () => {
             setLiveChatMode(false);
             conversationIdRef.current = null;
             setHasInteracted(false);
-            setChatEnded(true);
+            setChatEnded(false);
             setHandoffTriggered(false);
             setHandoffSubmitted(false);
             pendingLiveChatRef.current = null;
@@ -638,8 +640,9 @@ export function ChatWidget({
               sessionStorage.removeItem('chatpulse_live_chat_mode');
               sessionStorage.removeItem('chatpulse_conversation_id');
               sessionStorage.removeItem('chatpulse_workspace_id');
+              sessionStorage.removeItem('chatpulse_messages');
             } catch {}
-            setMessages(prev => [...prev, { id: 'ended-' + Date.now(), role: 'assistant' as const, content: i18nLang === 'nb' ? 'Du avsluttet samtalen.' : 'You ended the conversation.' }]);
+            setMessages([{ id: 'welcome', role: 'assistant' as const, content: welcomeMessage || t('widget.defaultWelcome') }]);
           } : undefined}
         />
       </div>
@@ -740,11 +743,11 @@ export function ChatWidget({
           hideWatermark={hideWatermark}
           placeholderText={placeholder}
           i18nLang={i18nLang}
-          onEndChat={liveChatMode ? () => {
+          onEndChat={messages.length > 1 ? () => {
             setLiveChatMode(false);
             conversationIdRef.current = null;
             setHasInteracted(false);
-            setChatEnded(true);
+            setChatEnded(false);
             setHandoffTriggered(false);
             setHandoffSubmitted(false);
             pendingLiveChatRef.current = null;
@@ -752,8 +755,9 @@ export function ChatWidget({
               sessionStorage.removeItem('chatpulse_live_chat_mode');
               sessionStorage.removeItem('chatpulse_conversation_id');
               sessionStorage.removeItem('chatpulse_workspace_id');
+              sessionStorage.removeItem('chatpulse_messages');
             } catch {}
-            setMessages(prev => [...prev, { id: 'ended-' + Date.now(), role: 'assistant' as const, content: i18nLang === 'nb' ? 'Du avsluttet samtalen.' : 'You ended the conversation.' }]);
+            setMessages([{ id: 'welcome', role: 'assistant' as const, content: welcomeMessage || t('widget.defaultWelcome') }]);
           } : undefined}
         />
       </div>
@@ -976,7 +980,7 @@ const WidgetInput = ({
             onClick={onEndChat}
             className="text-xs text-muted-foreground hover:text-destructive transition-colors"
           >
-            {i18nLang === "nb" ? "Avslutt samtalen" : "End conversation"}
+            {i18nLang === "nb" ? "↻ Start ny chat" : "↻ Start new chat"}
           </button>
         </div>
       )}
