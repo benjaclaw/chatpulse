@@ -27,6 +27,19 @@ export async function POST(request: Request): Promise<Response> {
 
   const supabase = createServiceClient();
 
+  // Check if conversation is already being handled by an agent
+  let leadStatus = "new";
+  if (conversationId) {
+    const { data: conv } = await supabase
+      .from("conversations")
+      .select("status")
+      .eq("id", conversationId)
+      .single();
+    if (conv && (conv.status === "human" || conv.status === "waiting")) {
+      leadStatus = "contacted";
+    }
+  }
+
   const { data, error } = await supabase
     .from("leads")
     .insert({
@@ -34,7 +47,7 @@ export async function POST(request: Request): Promise<Response> {
       conversation_id: conversationId || null,
       email: email.trim(),
       name: name?.trim() || null,
-      status: "new",
+      status: leadStatus,
     })
     .select()
     .single();

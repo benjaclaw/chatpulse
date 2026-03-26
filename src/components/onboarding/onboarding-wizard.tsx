@@ -158,6 +158,7 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
   // Step 2: Company info
   const [companyEmail, setCompanyEmail] = useState(userEmail ?? "");
   const [phone, setPhone] = useState("");
+  const [address, setAddress] = useState("");
   const [website, setWebsite] = useState("");
   const [openingHours, setOpeningHours] = useState("");
 
@@ -279,6 +280,7 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
       companyData.name = workspaceName;
       if (companyEmail) companyData.email = companyEmail;
       if (phone) companyData.phone = phone;
+      if (address) companyData.address = address;
       if (website) companyData.website = website;
       if (openingHours) companyData.hours = openingHours;
       if (industry) companyData.industry = industry;
@@ -501,6 +503,16 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
                   value={phone}
                   onChange={(e) => setPhone(e.target.value)}
                   placeholder={t("onboarding.phonePlaceholder")}
+                />
+              </div>
+
+              <div className="space-y-2">
+                <Label htmlFor="address">{t("onboarding.address")}</Label>
+                <Input
+                  id="address"
+                  value={address}
+                  onChange={(e) => setAddress(e.target.value)}
+                  placeholder={t("onboarding.addressPlaceholder")}
                 />
               </div>
 

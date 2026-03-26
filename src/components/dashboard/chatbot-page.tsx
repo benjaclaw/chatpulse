@@ -11,7 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
 import { ChatWidget } from "@/components/widget/chat-widget";
-import { Bot, Eye, Code2, Copy, Check, Upload, Trash2, Globe, Plus, X } from "lucide-react";
+import { Bot, Eye, Code2, Copy, Check, Upload, Trash2, Globe, Plus, X, MessageSquare } from "lucide-react";
 import type { ChatbotConfig } from "@/lib/types";
 import { hasFeature } from "@/lib/plans";
 import { UpgradeBanner } from "./upgrade-banner";
@@ -433,6 +433,9 @@ export function ChatbotPageClient(): React.ReactNode {
             )}
           </Button>
 
+          {/* Canned Responses */}
+          <CannedResponsesCard workspaceId={workspace.id} t={t} />
+
           {/* Share & Embed */}
           <div className="rounded-xl border bg-card p-6 shadow-sm">
             <h3 className="flex items-center gap-2 font-semibold">
@@ -507,6 +510,142 @@ export function ChatbotPageClient(): React.ReactNode {
               logoUrl={config.logo_url}
             />
           </div>
+        </div>
+      </div>
+    </div>
+  );
+}
+
+interface CannedResponseItem {
+  id: string;
+  shortcut: string;
+  title: string;
+  content: string;
+}
+
+function CannedResponsesCard({
+  workspaceId,
+  t,
+}: {
+  workspaceId: string;
+  t: (key: string) => string;
+}): React.ReactNode {
+  const supabase = createClient();
+  const [responses, setResponses] = useState<CannedResponseItem[]>([]);
+  const [shortcut, setShortcut] = useState("");
+  const [title, setTitle] = useState("");
+  const [content, setContent] = useState("");
+
+  useEffect(() => {
+    supabase
+      .from("canned_responses")
+      .select("*")
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: true })
+      .then(({ data }) => {
+        if (data) setResponses(data);
+      });
+  }, [workspaceId]);
+
+  async function handleAdd() {
+    if (!shortcut.trim() || !title.trim() || !content.trim()) return;
+
+    const { data } = await supabase
+      .from("canned_responses")
+      .insert({
+        workspace_id: workspaceId,
+        shortcut: shortcut.trim(),
+        title: title.trim(),
+        content: content.trim(),
+      })
+      .select()
+      .single();
+
+    if (data) {
+      setResponses((prev) => [...prev, data]);
+      setShortcut("");
+      setTitle("");
+      setContent("");
+    }
+  }
+
+  async function handleDelete(id: string) {
+    setResponses((prev) => prev.filter((r) => r.id !== id));
+    await supabase.from("canned_responses").delete().eq("id", id);
+  }
+
+  return (
+    <div className="rounded-xl border bg-card p-6 shadow-sm">
+      <h3 className="flex items-center gap-2 font-semibold">
+        <MessageSquare className="h-4 w-4 text-primary" />
+        {t('settings.cannedResponses.title')}
+      </h3>
+      <p className="mt-1 text-xs text-muted-foreground">{t('settings.cannedResponses.description')}</p>
+      <div className="mt-4 space-y-4">
+        {responses.length === 0 ? (
+          <p className="text-sm text-muted-foreground">{t('settings.cannedResponses.empty')}</p>
+        ) : (
+          <div className="space-y-2">
+            {responses.map((r) => (
+              <div key={r.id} className="flex items-start gap-2 rounded-lg border p-3">
+                <div className="flex-1 min-w-0">
+                  <div className="flex items-center gap-2">
+                    <code className="text-xs bg-muted px-1.5 py-0.5 rounded">/{r.shortcut}</code>
+                    <span className="text-sm font-medium">{r.title}</span>
+                  </div>
+                  <p className="mt-1 text-xs text-muted-foreground truncate">{r.content}</p>
+                </div>
+                <button
+                  onClick={() => handleDelete(r.id)}
+                  className="shrink-0 rounded p-1 text-muted-foreground hover:bg-muted hover:text-destructive transition-colors"
+                >
+                  <X className="h-3.5 w-3.5" />
+                </button>
+              </div>
+            ))}
+          </div>
+        )}
+
+        <div className="space-y-2 rounded-lg border p-3">
+          <div className="grid grid-cols-2 gap-2">
+            <div>
+              <Label className="text-xs">{t('settings.cannedResponses.shortcut')}</Label>
+              <Input
+                value={shortcut}
+                onChange={(e) => setShortcut(e.target.value)}
+                placeholder={t('settings.cannedResponses.shortcutPlaceholder')}
+                className="h-8 text-xs mt-1"
+              />
+            </div>
+            <div>
+              <Label className="text-xs">{t('settings.cannedResponses.titleLabel')}</Label>
+              <Input
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                placeholder={t('settings.cannedResponses.titlePlaceholder')}
+                className="h-8 text-xs mt-1"
+              />
+            </div>
+          </div>
+          <div>
+            <Label className="text-xs">{t('settings.cannedResponses.content')}</Label>
+            <textarea
+              value={content}
+              onChange={(e) => setContent(e.target.value)}
+              placeholder={t('settings.cannedResponses.contentPlaceholder')}
+              className="mt-1 flex w-full rounded-lg border border-input bg-background px-3 py-2 text-xs transition-colors focus-visible:border-ring focus-visible:ring-3 focus-visible:ring-ring/50 focus-visible:outline-none"
+              rows={2}
+            />
+          </div>
+          <Button
+            size="sm"
+            onClick={handleAdd}
+            disabled={!shortcut.trim() || !title.trim() || !content.trim()}
+            className="h-7 text-xs"
+          >
+            <Plus className="h-3 w-3 mr-1" />
+            {t('settings.cannedResponses.add')}
+          </Button>
         </div>
       </div>
     </div>

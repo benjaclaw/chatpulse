@@ -403,7 +403,7 @@ export function FeaturesPage(): React.ReactNode {
               href="/pricing"
               className={cn(
                 buttonVariants({ variant: "outline", size: "lg" }),
-                "w-full border-white/30 text-white hover:bg-white/10 sm:w-auto"
+                "w-full border-white/50 text-white bg-white/10 hover:bg-white/20 sm:w-auto"
               )}
             >
               Se priser

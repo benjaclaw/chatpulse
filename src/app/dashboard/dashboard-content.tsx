@@ -1,5 +1,6 @@
 "use client";
 
+import { useState, useEffect } from "react";
 import {
   BookOpen,
   MessageSquare,
@@ -11,6 +12,8 @@ import {
 } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/context";
+import { useWorkspace } from "@/contexts/workspace-context";
+import { createClient } from "@/lib/supabase/client";
 
 interface DashboardStats {
   totalConversations: number;
@@ -19,8 +22,96 @@ interface DashboardStats {
   teamMembers: number;
 }
 
+interface ActivityItem {
+  id: string;
+  icon: string;
+  description: string;
+  time: string;
+  timestamp: number;
+}
+
+function relativeTime(date: Date, t: (key: string) => string): string {
+  const now = Date.now();
+  const diff = now - date.getTime();
+  const minutes = Math.floor(diff / 60_000);
+  if (minutes < 1) return t("leads.time.now");
+  if (minutes < 60) return `${minutes} ${t("dashboard.time.minAgo")}`;
+  const hours = Math.floor(minutes / 60);
+  if (hours < 24) return `${hours} ${t("dashboard.time.hoursAgo")}`;
+  const days = Math.floor(hours / 24);
+  return `${days} ${t("dashboard.time.daysAgo")}`;
+}
+
 export function DashboardContent({ stats }: { stats: DashboardStats }): React.ReactNode {
   const { t } = useLanguage();
+  const workspace = useWorkspace();
+  const supabase = createClient();
+  const [hasKnowledge, setHasKnowledge] = useState<boolean | null>(null);
+  const [activities, setActivities] = useState<ActivityItem[]>([]);
+  const [loadingActivity, setLoadingActivity] = useState(true);
+
+  useEffect(() => {
+    // Check if workspace has knowledge items
+    supabase
+      .from("knowledge")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspace.id)
+      .then(({ count }) => {
+        setHasKnowledge((count ?? 0) > 0);
+      });
+
+    // Fetch recent activity
+    async function fetchActivity() {
+      const items: ActivityItem[] = [];
+
+      const { data: convs } = await supabase
+        .from("conversations")
+        .select("id, status, created_at, visitor_id, leads(name, email)")
+        .eq("workspace_id", workspace.id)
+        .order("created_at", { ascending: false })
+        .limit(10);
+
+      if (convs) {
+        for (const conv of convs) {
+          const lead = Array.isArray(conv.leads) ? conv.leads[0] : conv.leads;
+          const name = lead?.name || lead?.email || t("inbox.visitor");
+          const created = new Date(conv.created_at);
+
+          if (conv.status === "closed") {
+            items.push({
+              id: `closed-${conv.id}`,
+              icon: "\u2705",
+              description: t("inbox.closed"),
+              time: relativeTime(created, t),
+              timestamp: created.getTime(),
+            });
+          } else if (conv.status === "human") {
+            items.push({
+              id: `claimed-${conv.id}`,
+              icon: "\uD83D\uDC64",
+              description: `${name}`,
+              time: relativeTime(created, t),
+              timestamp: created.getTime(),
+            });
+          } else {
+            items.push({
+              id: `new-${conv.id}`,
+              icon: "\uD83D\uDCAC",
+              description: name,
+              time: relativeTime(created, t),
+              timestamp: created.getTime(),
+            });
+          }
+        }
+      }
+
+      items.sort((a, b) => b.timestamp - a.timestamp);
+      setActivities(items.slice(0, 10));
+      setLoadingActivity(false);
+    }
+
+    fetchActivity();
+  }, [workspace.id]);
 
   return (
     <div className="space-y-8">
@@ -32,29 +123,31 @@ export function DashboardContent({ stats }: { stats: DashboardStats }): React.Re
         </p>
       </div>
 
-      {/* Onboarding banner */}
-      <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-primary/5 via-background to-accent/5 p-6 dark:from-primary/10 dark:to-accent/10">
-        <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-4">
-            <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary sm:flex">
-              <Rocket className="h-6 w-6" />
+      {/* Onboarding banner — hidden when workspace has knowledge */}
+      {hasKnowledge === false && (
+        <div className="relative overflow-hidden rounded-xl border bg-gradient-to-br from-primary/5 via-background to-accent/5 p-6 dark:from-primary/10 dark:to-accent/10">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
+            <div className="flex items-start gap-4">
+              <div className="hidden h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary sm:flex">
+                <Rocket className="h-6 w-6" />
+              </div>
+              <div>
+                <h2 className="text-lg font-semibold">{t('dashboard.onboarding.title')}</h2>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t('dashboard.onboarding.description')}
+                </p>
+              </div>
             </div>
-            <div>
-              <h2 className="text-lg font-semibold">{t('dashboard.onboarding.title')}</h2>
-              <p className="mt-1 text-sm text-muted-foreground">
-                {t('dashboard.onboarding.description')}
-              </p>
-            </div>
+            <Link
+              href="/dashboard/knowledge"
+              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
+            >
+              {t('dashboard.onboarding.cta')}
+              <ArrowRight className="h-4 w-4" />
+            </Link>
           </div>
-          <Link
-            href="/dashboard/knowledge"
-            className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
-          >
-            {t('dashboard.onboarding.cta')}
-            <ArrowRight className="h-4 w-4" />
-          </Link>
         </div>
-      </div>
+      )}
 
       {/* Stats cards */}
       <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
@@ -89,14 +182,22 @@ export function DashboardContent({ stats }: { stats: DashboardStats }): React.Re
         <div className="rounded-xl border bg-card p-6 shadow-sm">
           <h3 className="text-base font-semibold">{t('dashboard.recentActivity')}</h3>
           <div className="mt-4 space-y-3">
-            {stats.totalConversations === 0 ? (
+            {loadingActivity ? (
+              <p className="py-8 text-center text-sm text-muted-foreground">
+                {t('common.loading')}
+              </p>
+            ) : activities.length === 0 ? (
               <p className="py-8 text-center text-sm text-muted-foreground">
                 {t('dashboard.noActivity')}
               </p>
             ) : (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                {t('dashboard.activityLogSoon')}
-              </p>
+              activities.map((a) => (
+                <div key={a.id} className="flex items-center gap-3 text-sm">
+                  <span className="text-base">{a.icon}</span>
+                  <span className="flex-1 truncate">{a.description}</span>
+                  <span className="shrink-0 text-xs text-muted-foreground">{a.time}</span>
+                </div>
+              ))
             )}
           </div>
         </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronsUpDown, LogOut, Lock } from "lucide-react";
@@ -57,8 +57,11 @@ export function Sidebar({
     }).catch(() => {});
   }, [activeWorkspace.id]);
 
+  const manualOverride = useRef(false);
+
   // Toggle online status — just flips the DB status, no heartbeat needed
   async function toggleOnline() {
+    manualOverride.current = true;
     const newStatus = !isOnline;
     setIsOnline(newStatus);
     localStorage.setItem(LS_KEY, String(newStatus));
@@ -69,11 +72,60 @@ export function Sidebar({
     }).catch(() => {});
   }
 
-  // No heartbeat needed — toggle is explicit. Status stays until changed.
-  // beforeunload not needed either — if user closes tab while "online",
-  // they stay online (intentional). They can toggle off when they return.
+  // Business hours auto-toggle
+  const checkBusinessHours = useCallback(async () => {
+    if (manualOverride.current) return;
 
-  // Note: removed all heartbeat/interval/unload logic. Simple toggle.
+    const { data } = await supabase
+      .from("workspaces")
+      .select("business_hours")
+      .eq("id", activeWorkspace.id)
+      .single();
+
+    const bh = data?.business_hours as {
+      enabled?: boolean;
+      timezone?: string;
+      schedule?: Record<string, { start: string; end: string } | null>;
+    } | null;
+
+    if (!bh?.enabled || !bh.schedule) return;
+
+    const tz = bh.timezone || "Europe/Oslo";
+    const now = new Date();
+    const formatter = new Intl.DateTimeFormat("en-US", {
+      timeZone: tz,
+      weekday: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+      hour12: false,
+    });
+    const parts = formatter.formatToParts(now);
+    const weekday = parts.find((p) => p.type === "weekday")?.value?.toLowerCase().slice(0, 3) || "";
+    const hour = parts.find((p) => p.type === "hour")?.value || "00";
+    const minute = parts.find((p) => p.type === "minute")?.value || "00";
+    const currentTime = `${hour}:${minute}`;
+    const daySchedule = bh.schedule[weekday];
+
+    const shouldBeOnline = daySchedule
+      ? currentTime >= daySchedule.start && currentTime <= daySchedule.end
+      : false;
+
+    if (shouldBeOnline !== isOnline) {
+      setIsOnline(shouldBeOnline);
+      localStorage.setItem(LS_KEY, String(shouldBeOnline));
+      fetch("/api/presence", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId: activeWorkspace.id, status: shouldBeOnline ? "online" : "offline" }),
+      }).catch(() => {});
+    }
+  }, [activeWorkspace.id, isOnline, supabase]);
+
+  useEffect(() => {
+    checkBusinessHours();
+    const interval = setInterval(checkBusinessHours, 60_000);
+    return () => clearInterval(interval);
+  }, [checkBusinessHours]);
 
   // Fetch waiting count + realtime subscription
   useEffect(() => {

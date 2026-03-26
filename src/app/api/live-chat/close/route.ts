@@ -37,6 +37,12 @@ export async function POST(request: Request): Promise<Response> {
     .eq("conversation_id", conversationId)
     .is("resolved_at", null);
 
+  // Update lead status to resolved
+  await service
+    .from("leads")
+    .update({ status: "resolved" })
+    .eq("conversation_id", conversationId);
+
   // Broadcast status change to widget
   await sendBroadcast(`conv-status-${conversationId}`, "status-change", {
     status: "closed",
