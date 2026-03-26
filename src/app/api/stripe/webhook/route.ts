@@ -1,4 +1,4 @@
-import { stripe, STRIPE_PRICE_MAP } from "@/lib/stripe";
+import { getStripe, STRIPE_PRICE_MAP } from "@/lib/stripe";
 import { createServiceClient } from "@/lib/supabase/service";
 import type { PlanId } from "@/lib/plans";
 
@@ -14,7 +14,7 @@ export async function POST(request: Request): Promise<Response> {
 
   let event;
   try {
-    event = stripe.webhooks.constructEvent(
+    event = getStripe().webhooks.constructEvent(
       body,
       signature,
       process.env.STRIPE_WEBHOOK_SECRET!

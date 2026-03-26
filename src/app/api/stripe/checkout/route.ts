@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { stripe, STRIPE_PRICE_MAP } from "@/lib/stripe";
+import { getStripe, STRIPE_PRICE_MAP } from "@/lib/stripe";
 import type { PlanId } from "@/lib/plans";
 
 export const runtime = "nodejs";
@@ -43,7 +43,7 @@ export async function POST(request: Request): Promise<Response> {
 
   const appUrl = process.env.NEXT_PUBLIC_APP_URL || "https://chatpulse.no";
 
-  const session = await stripe.checkout.sessions.create({
+  const session = await getStripe().checkout.sessions.create({
     mode: "subscription",
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${appUrl}/dashboard/settings?upgrade=success`,
