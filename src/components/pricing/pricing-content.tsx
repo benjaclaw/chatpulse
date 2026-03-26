@@ -102,6 +102,8 @@ export function PricingContent(): React.ReactNode {
                 t("pricing.basicF2"),
                 t("pricing.basicF3"),
                 t("pricing.basicF4"),
+                t("pricing.basicF5"),
+                t("pricing.basicF6"),
               ]}
               cta={t("pricing.basicCta")}
               ctaHref="/signup"
@@ -116,6 +118,7 @@ export function PricingContent(): React.ReactNode {
               popular
               popularLabel={t("pricing.popular")}
               features={[
+                t("pricing.startupF1"),
                 t("pricing.startupF2"),
                 t("pricing.startupF3"),
                 t("pricing.startupF4"),
@@ -133,12 +136,12 @@ export function PricingContent(): React.ReactNode {
               price={t("pricing.proPrice")}
               period={t("pricing.perMonth")}
               features={[
+                t("pricing.proF1"),
                 t("pricing.proF2"),
                 t("pricing.proF3"),
                 t("pricing.proF4"),
                 t("pricing.proF5"),
                 t("pricing.proF6"),
-                t("pricing.proF7"),
               ]}
               cta={t("pricing.proCta")}
               ctaHref="/signup"

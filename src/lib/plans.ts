@@ -71,7 +71,7 @@ export const PLAN_DETAILS: PlanDetail[] = [
   },
   {
     id: "startup",
-    name: "Startup",
+    name: "Starter",
     priceNok: 990,
     messageLimit: 3000,
     features: PLAN_FEATURES.startup,
