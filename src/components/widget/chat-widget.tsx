@@ -998,7 +998,12 @@ const WidgetInput = ({
         <div className="pt-1 text-center">
           <button
             type="button"
-            onClick={onEndChat}
+            onClick={() => {
+              const msg = i18nLang === "nb"
+                ? "Er du sikker på at du vil starte ny chat? Nåværende samtale avsluttes."
+                : "Are you sure you want to start a new chat? The current conversation will end.";
+              if (confirm(msg)) onEndChat();
+            }}
             className="text-xs text-muted-foreground hover:text-destructive transition-colors"
           >
             {i18nLang === "nb" ? "↻ Start ny chat" : "↻ Start new chat"}
