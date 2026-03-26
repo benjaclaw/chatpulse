@@ -351,7 +351,7 @@ export function InboxPageClient(): React.ReactNode {
       if (typingChannelRef.current) {
         supabase.removeChannel(typingChannelRef.current);
       }
-      typingChannelRef.current = supabase.channel(`typing-agent-${selectedId}`);
+      typingChannelRef.current = supabase.channel(`typing-${selectedId}`);
       typingChannelRef.current.subscribe();
       typingChannelIdRef.current = selectedId;
     }
