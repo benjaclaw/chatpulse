@@ -79,7 +79,7 @@ export function ChatWidget({
         const parsed = JSON.parse(saved) as Message[];
         if (parsed.length > 0) return parsed;
       }
-    } catch { /* ignore */ }
+    } catch { /* sessionStorage may be unavailable in embedded widget iframes */ }
     if (welcomeMessage) return [{ id: "welcome", role: "assistant", content: welcomeMessage }];
     return defaultMessages;
   });
@@ -96,7 +96,7 @@ export function ChatWidget({
     try {
       const saved = sessionStorage.getItem("chatpulse_messages");
       if (saved) return (JSON.parse(saved) as Message[]).some((m) => m.role === "user");
-    } catch { /* ignore */ }
+    } catch { /* sessionStorage may be unavailable in embedded widget iframes */ }
     return false;
   });
 
@@ -121,7 +121,7 @@ export function ChatWidget({
       if (messages.length > 1 || (messages.length === 1 && messages[0].id !== "welcome")) {
         sessionStorage.setItem("chatpulse_messages", JSON.stringify(messages.slice(-50)));
       }
-    } catch { /* ignore */ }
+    } catch { /* sessionStorage may be unavailable in embedded widget iframes */ }
   }, [messages]);
 
   const hasMounted = useRef(false);
@@ -140,7 +140,7 @@ export function ChatWidget({
           if (data.workspaceId) workspaceIdRef.current = data.workspaceId;
           setAgentsOnline(!!data.agentsOnline);
         })
-        .catch(() => {});
+        .catch((err) => console.error('Widget config fetch failed:', err));
     }
   }, [isOpen, chatbotId]);
 
@@ -198,7 +198,7 @@ export function ChatWidget({
     try {
       const res = await fetch(`/api/widget-queue?conversationId=${encodeURIComponent(conversationId)}&workspaceId=${encodeURIComponent(wsId)}`);
       if (res.ok) { const data = await res.json() as { position: number }; setQueuePosition(data.position > 0 ? data.position : null); }
-    } catch { /* ignore */ }
+    } catch (err) { console.error('Queue position fetch failed:', err); }
   }, []);
 
   const sendVisitorTyping = useCallback(() => {
@@ -223,7 +223,7 @@ export function ChatWidget({
         });
         if (res.status === 410) {
           setLiveChatMode(false); conversationIdRef.current = null; setHasInteracted(false);
-          try { sessionStorage.removeItem("chatpulse_live_chat_mode"); sessionStorage.removeItem("chatpulse_conversation_id"); sessionStorage.removeItem("chatpulse_workspace_id"); } catch { /* ignore */ }
+          try { sessionStorage.removeItem("chatpulse_live_chat_mode"); sessionStorage.removeItem("chatpulse_conversation_id"); sessionStorage.removeItem("chatpulse_workspace_id"); } catch { /* sessionStorage may be unavailable in embedded widget iframes */ }
           setMessages((prev) => [...prev, { id: `closed-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? "Samtalen er avsluttet." : "The conversation has ended." }]);
           return;
         }
@@ -277,7 +277,7 @@ export function ChatWidget({
     if (pending) {
       pendingLiveChatRef.current = null;
       setLiveChatMode(true);
-      try { sessionStorage.setItem("chatpulse_live_chat_mode", "true"); sessionStorage.setItem("chatpulse_conversation_id", pending.conversationId); if (pending.workspaceId) sessionStorage.setItem("chatpulse_workspace_id", pending.workspaceId); } catch { /* ignore */ }
+      try { sessionStorage.setItem("chatpulse_live_chat_mode", "true"); sessionStorage.setItem("chatpulse_conversation_id", pending.conversationId); if (pending.workspaceId) sessionStorage.setItem("chatpulse_workspace_id", pending.workspaceId); } catch { /* sessionStorage may be unavailable in embedded widget iframes */ }
       setMessages((prev) => [...prev, { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? `Takk, ${name || email}! Du settes n\u00e5 i kontakt med en medarbeider. Det kan ta noen minutter.` : `Thanks, ${name || email}! You're being connected to an agent. It may take a few minutes.` }]);
       subscribeToRealtime(pending.conversationId);
       if (pending.workspaceId) fetchQueuePosition(pending.conversationId, pending.workspaceId);
@@ -302,13 +302,13 @@ export function ChatWidget({
 
   const resetChat = () => {
     setLiveChatMode(false); conversationIdRef.current = null; setHasInteracted(false); setChatEnded(false); setHandoffTriggered(false); setHandoffSubmitted(false); pendingLiveChatRef.current = null;
-    try { sessionStorage.removeItem('chatpulse_live_chat_mode'); sessionStorage.removeItem('chatpulse_conversation_id'); sessionStorage.removeItem('chatpulse_workspace_id'); sessionStorage.removeItem('chatpulse_messages'); } catch {}
+    try { sessionStorage.removeItem('chatpulse_live_chat_mode'); sessionStorage.removeItem('chatpulse_conversation_id'); sessionStorage.removeItem('chatpulse_workspace_id'); sessionStorage.removeItem('chatpulse_messages'); } catch { /* sessionStorage may be unavailable in embedded widget iframes */ }
     setMessages([{ id: 'welcome', role: 'assistant' as const, content: welcomeMessage || t('widget.defaultWelcome') }]);
   };
 
   const restartButton = chatEnded ? (
     <div className="flex justify-center py-2">
-      <button onClick={() => { setChatEnded(false); setHasInteracted(false); setHandoffTriggered(false); setHandoffSubmitted(false); setMessages([{ id: "welcome", role: "assistant", content: welcomeMessage || t('widget.defaultWelcome') }]); try { sessionStorage.removeItem("chatpulse_messages"); } catch {} }} className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted" style={{ borderColor: primaryColor, color: primaryColor }}>
+      <button onClick={() => { setChatEnded(false); setHasInteracted(false); setHandoffTriggered(false); setHandoffSubmitted(false); setMessages([{ id: "welcome", role: "assistant", content: welcomeMessage || t('widget.defaultWelcome') }]); try { sessionStorage.removeItem("chatpulse_messages"); } catch { /* sessionStorage may be unavailable */ } }} className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted" style={{ borderColor: primaryColor, color: primaryColor }}>
         {i18nLang === "nb" ? "Start ny chat" : "Start new chat"}
       </button>
     </div>

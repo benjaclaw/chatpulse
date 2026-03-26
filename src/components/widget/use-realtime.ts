@@ -83,7 +83,7 @@ export function useRealtimeSubscription(
               sessionStorage.removeItem("chatpulse_live_chat_mode");
               sessionStorage.removeItem("chatpulse_conversation_id");
               sessionStorage.removeItem("chatpulse_workspace_id");
-            } catch { /* ignore */ }
+            } catch { /* sessionStorage may be unavailable in embedded widget iframes */ }
             setMessages((prev) => [
               ...prev,
               { id: `closed-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? "Samtalen er avsluttet. Takk for at du tok kontakt!" : "The conversation has ended. Thanks for reaching out!" },
@@ -96,7 +96,7 @@ export function useRealtimeSubscription(
               sessionStorage.removeItem("chatpulse_live_chat_mode");
               sessionStorage.removeItem("chatpulse_conversation_id");
               sessionStorage.removeItem("chatpulse_workspace_id");
-            } catch { /* ignore */ }
+            } catch { /* sessionStorage may be unavailable in embedded widget iframes */ }
           }
         }
       )

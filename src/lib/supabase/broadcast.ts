@@ -20,32 +20,37 @@ export async function sendBroadcast(
   event: string,
   payload: Record<string, unknown>
 ): Promise<void> {
+  const client = getBroadcastClient();
+  const channel = client.channel(topic);
+
   try {
-    const client = getBroadcastClient();
-    const channel = client.channel(topic);
-    
+    let subscribed = false;
+
     await new Promise<void>((resolve, reject) => {
       const timeout = setTimeout(() => {
-        client.removeChannel(channel);
+        if (!subscribed) {
+          client.removeChannel(channel);
+        }
         reject(new Error("Broadcast subscribe timeout"));
       }, 5000);
-      
+
       channel.subscribe((status: string) => {
         if (status === "SUBSCRIBED") {
+          subscribed = true;
           clearTimeout(timeout);
           resolve();
         }
       });
     });
-    
+
     await channel.send({
       type: "broadcast",
       event,
       payload,
     });
-    
-    client.removeChannel(channel);
   } catch (err) {
     console.error("Broadcast error:", err);
+  } finally {
+    client.removeChannel(channel);
   }
 }

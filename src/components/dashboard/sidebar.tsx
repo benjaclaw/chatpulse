@@ -54,7 +54,7 @@ export function Sidebar({
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ workspaceId: activeWorkspace.id, status }),
-    }).catch(() => {});
+    }).catch((err) => console.error('Presence sync failed:', err));
   }, [activeWorkspace.id]);
 
   const manualOverride = useRef(false);
@@ -69,7 +69,7 @@ export function Sidebar({
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ workspaceId: activeWorkspace.id, status: newStatus ? "online" : "offline" }),
-    }).catch(() => {});
+    }).catch((err) => console.error('Presence toggle failed:', err));
   }
 
   // Business hours auto-toggle
@@ -117,7 +117,7 @@ export function Sidebar({
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ workspaceId: activeWorkspace.id, status: shouldBeOnline ? "online" : "offline" }),
-      }).catch(() => {});
+      }).catch((err) => console.error('Business hours presence update failed:', err));
     }
   }, [activeWorkspace.id, isOnline, supabase]);
 
