@@ -338,19 +338,6 @@ function PlanCard({
           </div>
         </div>
 
-        {/* Features */}
-        <div>
-          <p className="text-sm font-medium mb-2">{t('plans.features')}</p>
-          <ul className="grid gap-1.5 sm:grid-cols-2">
-            {plan.features.map((f) => (
-              <li key={f} className="flex items-center gap-2 text-sm text-muted-foreground">
-                <Check className="h-3.5 w-3.5 text-primary shrink-0" />
-                {t(`plans.feature.${f}` as string)}
-              </li>
-            ))}
-          </ul>
-        </div>
-
         {/* Upgrade button */}
         {workspace.plan_id !== "pro" && (
           <Button variant="outline" className="w-full sm:w-auto">

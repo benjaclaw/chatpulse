@@ -218,8 +218,8 @@ export function KnowledgePageClient(): React.ReactNode {
           </p>
         </div>
         <div className="flex items-center gap-2">
-          {hasFeature(workspace.plan_id, "document_upload") && (
-            <>
+          {/* Document upload available for all plans */}
+          <>
               <input
                 ref={fileInputRef}
                 type="file"
@@ -241,7 +241,6 @@ export function KnowledgePageClient(): React.ReactNode {
                 {uploading ? t('knowledge.uploading') : t('knowledge.uploadFile')}
               </Button>
             </>
-          )}
           <Dialog open={dialogOpen} onOpenChange={(open) => { setDialogOpen(open); if (!open) setEditingItem(null); }}>
             <DialogTrigger render={<Button className="shrink-0" onClick={openCreate} />}>
               <Plus className="mr-2 h-4 w-4" />
@@ -302,10 +301,7 @@ export function KnowledgePageClient(): React.ReactNode {
         </div>
       </div>
 
-      {/* Document upload upgrade banner */}
-      {!hasFeature(workspace.plan_id, "document_upload") && (
-        <UpgradeBanner feature="document_upload" />
-      )}
+
 
       {/* Upload error */}
       {uploadError && (
