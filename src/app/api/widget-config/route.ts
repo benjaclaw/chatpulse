@@ -25,15 +25,12 @@ export async function GET(request: Request): Promise<Response> {
 
   const workspaceId = config.workspace_id;
 
-  // Check agent presence (same logic as /api/presence GET)
-  const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
-
+  // Check agent presence — simple toggle check, no heartbeat/timeout
   const { data: agents } = await supabase
     .from("agent_presence")
     .select("user_id")
     .eq("workspace_id", workspaceId)
-    .in("status", ["online", "busy"])
-    .gte("last_seen_at", twoMinAgo);
+    .in("status", ["online", "busy"]);
 
   return Response.json(
     {

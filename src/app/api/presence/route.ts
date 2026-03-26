@@ -66,15 +66,12 @@ export async function GET(request: Request): Promise<Response> {
 
   const supabase = createServiceClient();
 
-  // Consider agents online if last_seen_at within 2 minutes
-  const twoMinAgo = new Date(Date.now() - 2 * 60 * 1000).toISOString();
-
+  // Simple toggle check — status is set explicitly by agent
   const { data: agents, error } = await supabase
     .from("agent_presence")
     .select("user_id")
     .eq("workspace_id", workspaceId)
-    .in("status", ["online", "busy"])
-    .gte("last_seen_at", twoMinAgo);
+    .in("status", ["online", "busy"]);
 
   if (error) {
     console.error("Presence check error:", error);

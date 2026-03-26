@@ -366,14 +366,12 @@ VIKTIGE REGLER:
       }
 
       if (withinBusinessHours) {
-        // Direct DB query instead of self-fetch to /api/presence
-        const twoMinutesAgo = new Date(Date.now() - 2 * 60_000).toISOString();
+        // Simple toggle check — status is set explicitly by agent
         const { data: onlineAgents } = await supabase
           .from("agent_presence")
           .select("user_id")
           .eq("workspace_id", config.workspace_id)
           .in("status", ["online", "busy"])
-          .gte("last_seen_at", twoMinutesAgo)
           .limit(1);
 
         if (onlineAgents && onlineAgents.length > 0) {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronsUpDown, LogOut, Lock } from "lucide-react";
@@ -47,80 +47,33 @@ export function Sidebar({
   });
   const [waitingCount, setWaitingCount] = useState(0);
   const supabase = createClient();
-  const isOnlineRef = useRef(isOnline);
-
-  // Keep ref in sync for use in beforeunload
+  // On mount: sync toggle state to DB
   useEffect(() => {
-    isOnlineRef.current = isOnline;
-  }, [isOnline]);
-
-  // On mount: if localStorage says online, immediately send heartbeat to refresh presence
-  // Don't fetch from DB — localStorage is the source of truth for user intent
-  useEffect(() => {
-    if (localStorage.getItem(LS_KEY) === "true") {
-      fetch("/api/presence", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceId: activeWorkspace.id, status: "online" }),
-      }).catch(() => {});
-    }
-  }, [activeWorkspace.id]);
-
-  // Update presence API
-  const updatePresence = useCallback(async (status: "online" | "offline") => {
-    await fetch("/api/presence", {
+    const status = localStorage.getItem(LS_KEY) === "true" ? "online" : "offline";
+    fetch("/api/presence", {
       method: "PUT",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ workspaceId: activeWorkspace.id, status }),
-    });
+    }).catch(() => {});
   }, [activeWorkspace.id]);
 
-  // Toggle online status
+  // Toggle online status — just flips the DB status, no heartbeat needed
   async function toggleOnline() {
     const newStatus = !isOnline;
     setIsOnline(newStatus);
     localStorage.setItem(LS_KEY, String(newStatus));
-    await updatePresence(newStatus ? "online" : "offline");
+    await fetch("/api/presence", {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ workspaceId: activeWorkspace.id, status: newStatus ? "online" : "offline" }),
+    }).catch(() => {});
   }
 
-  // Heartbeat when online, stop when offline
-  useEffect(() => {
-    if (!isOnline) {
-      updatePresence("offline").catch(() => {});
-      return;
-    }
+  // No heartbeat needed — toggle is explicit. Status stays until changed.
+  // beforeunload not needed either — if user closes tab while "online",
+  // they stay online (intentional). They can toggle off when they return.
 
-    const sendHeartbeat = () => {
-      fetch("/api/presence", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceId: activeWorkspace.id, status: "online" }),
-      }).catch(() => {});
-    };
-
-    sendHeartbeat();
-    const interval = setInterval(sendHeartbeat, 30_000);
-
-    return () => {
-      clearInterval(interval);
-      // Don't send offline on cleanup — 2-minute timeout handles stale agents
-    };
-  }, [isOnline, activeWorkspace.id]);
-
-  // Reliable offline signal on page unload (only if online)
-  useEffect(() => {
-    const handleUnload = () => {
-      if (!isOnlineRef.current) return;
-      fetch("/api/presence", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceId: activeWorkspace.id, status: "offline" }),
-        keepalive: true,
-      }).catch(() => {});
-    };
-    window.addEventListener("beforeunload", handleUnload);
-    return () => window.removeEventListener("beforeunload", handleUnload);
-  }, [activeWorkspace.id]);
+  // Note: removed all heartbeat/interval/unload logic. Simple toggle.
 
   // Fetch waiting count + realtime subscription
   useEffect(() => {
