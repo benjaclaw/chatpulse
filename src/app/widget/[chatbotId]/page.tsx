@@ -27,7 +27,7 @@ export default async function WidgetPage({
   const welcomeMessage =
     (lang && welcomeMessagesMap[lang]) || config?.welcome_message || "Hi! How can I help you?";
   const styling = config?.widget_styling as { primary_color?: string; position?: string } | null;
-  const primaryColor = query.color ?? styling?.primary_color ?? "#6366f1";
+  const primaryColor = styling?.primary_color ?? query.color ?? "#6366f1";
   const rawLogoUrl = (config?.logo_url as string | undefined) ?? undefined;
 
   // Check workspace plan features (fetched via join above — no extra query)
