@@ -507,7 +507,8 @@ export function ChatWidget({
     }
   }
 
-  const choiceButtons = agentsOnline && !hasInteracted && !liveChatMode ? (
+  const showChoices = agentsOnline && !liveChatMode && (!hasInteracted || chatEnded);
+  const choiceButtons = showChoices ? (
     <div className="flex flex-col gap-2 px-1">
       <button
         type="button"
@@ -598,6 +599,7 @@ export function ChatWidget({
               <button
                 onClick={() => {
                   setChatEnded(false);
+                  setHasInteracted(false);
                   setHandoffTriggered(false);
                   setHandoffSubmitted(false);
                   setMessages([{ id: "welcome", role: "assistant", content: welcomeMessage || t('widget.defaultWelcome') }]);
@@ -711,6 +713,7 @@ export function ChatWidget({
               <button
                 onClick={() => {
                   setChatEnded(false);
+                  setHasInteracted(false);
                   setHandoffTriggered(false);
                   setHandoffSubmitted(false);
                   setMessages([{ id: "welcome", role: "assistant", content: welcomeMessage || t('widget.defaultWelcome') }]);
