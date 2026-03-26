@@ -13,9 +13,9 @@ export function getStripe(): Stripe {
   return _stripe;
 }
 
-/** Map plan IDs to Stripe Price IDs — fill in after creating products in Stripe */
+/** Map plan IDs to Stripe Price IDs — read from environment */
 export const STRIPE_PRICE_MAP: Record<Exclude<PlanId, "free">, string> = {
-  basic: "price_1TFIQECWS4OJVOagpmCJTFOr",
-  startup: "price_1TFIQFCWS4OJVOagDDG63IHz",
-  pro: "price_1TFIQFCWS4OJVOagPQfCDkZN",
+  basic: process.env.STRIPE_PRICE_BASIC || "",
+  startup: process.env.STRIPE_PRICE_STARTUP || "",
+  pro: process.env.STRIPE_PRICE_PRO || "",
 };

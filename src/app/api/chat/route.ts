@@ -408,7 +408,8 @@ VIKTIGE REGLER:
           .from("questions")
           .select("id, question, count, answered")
           .eq("workspace_id", config.workspace_id)
-          .limit(200);
+          .order("count", { ascending: false })
+          .limit(50); // Top 50 by frequency is sufficient; consider pg_trgm index for better matching
 
         if (candidates && candidates.length > 0) {
           for (const candidate of candidates) {

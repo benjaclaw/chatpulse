@@ -22,32 +22,44 @@ export async function GET(request: Request): Promise<Response> {
     return Response.json({ closed: 0 });
   }
 
-  let closedCount = 0;
+  // Batch-fetch last message time for ALL conversations in one query
+  const convIds = staleConvs.map((c) => c.id);
+  const { data: lastMessages } = await supabase
+    .from("messages")
+    .select("conversation_id, created_at")
+    .in("conversation_id", convIds)
+    .order("created_at", { ascending: false });
 
-  for (const conv of staleConvs) {
-    // Check last message time
-    const { data: lastMsg } = await supabase
-      .from("messages")
-      .select("created_at")
-      .eq("conversation_id", conv.id)
-      .order("created_at", { ascending: false })
-      .limit(1)
-      .maybeSingle();
-
-    if (!lastMsg || new Date(lastMsg.created_at).getTime() < Date.now() - 30 * 60 * 1000) {
-      await supabase
-        .from("conversations")
-        .update({ status: "closed" })
-        .eq("id", conv.id);
-
-      await supabase
-        .from("agent_assignments")
-        .update({ resolved_at: new Date().toISOString() })
-        .eq("conversation_id", conv.id)
-        .is("resolved_at", null);
-
-      closedCount++;
+  const lastMsgMap = new Map<string, string>();
+  for (const msg of lastMessages ?? []) {
+    if (!lastMsgMap.has(msg.conversation_id)) {
+      lastMsgMap.set(msg.conversation_id, msg.created_at);
     }
+  }
+
+  const thirtyMinAgo = Date.now() - 30 * 60 * 1000;
+  const toClose: string[] = [];
+  for (const conv of staleConvs) {
+    const lastAt = lastMsgMap.get(conv.id);
+    if (!lastAt || new Date(lastAt).getTime() < thirtyMinAgo) {
+      toClose.push(conv.id);
+    }
+  }
+
+  let closedCount = 0;
+  if (toClose.length > 0) {
+    await supabase
+      .from("conversations")
+      .update({ status: "closed" })
+      .in("id", toClose);
+
+    await supabase
+      .from("agent_assignments")
+      .update({ resolved_at: new Date().toISOString() })
+      .in("conversation_id", toClose)
+      .is("resolved_at", null);
+
+    closedCount = toClose.length;
   }
 
   // FIX 4: Handle waiting conversations stuck without online agents

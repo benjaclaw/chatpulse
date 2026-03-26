@@ -27,6 +27,17 @@ export async function POST(request: Request): Promise<Response> {
 
   const supabase = createServiceClient();
 
+  // Validate that workspace exists
+  const { data: ws } = await supabase
+    .from("workspaces")
+    .select("id")
+    .eq("id", workspaceId)
+    .maybeSingle();
+
+  if (!ws) {
+    return Response.json({ error: "Workspace ikke funnet" }, { status: 404 });
+  }
+
   // Check if conversation is already being handled by an agent
   let leadStatus = "new";
   if (conversationId) {
