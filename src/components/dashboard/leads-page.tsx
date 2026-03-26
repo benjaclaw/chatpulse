@@ -129,7 +129,7 @@ export function LeadsPageClient(): React.ReactNode {
 
       const { data } = await supabase
         .from("leads")
-        .select("*")
+        .select("id, workspace_id, email, name, status, notes, created_at, conversation_id")
         .eq("workspace_id", workspaceId)
         .order("created_at", { ascending: false });
       if (!cancelled) {

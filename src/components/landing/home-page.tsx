@@ -1,6 +1,7 @@
 "use client";
 
 import { useState } from "react";
+import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   BookOpen,
@@ -16,12 +17,21 @@ import {
   MessageSquare,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
-import { ChatWidget } from "@/components/widget/chat-widget";
 import { cn } from "@/lib/utils";
 import { createT, type Language } from "@/lib/i18n";
 import { LandingHeader } from "./header";
 import { LandingFooter } from "./footer";
 import { GoogleHeroButton } from "@/components/auth/google-sign-in-button";
+
+const ChatWidget = dynamic(
+  () => import("@/components/widget/chat-widget").then((m) => m.ChatWidget),
+  {
+    loading: () => (
+      <div className="flex flex-col overflow-hidden rounded-xl border bg-card shadow-lg h-[420px] animate-pulse" />
+    ),
+    ssr: false,
+  }
+);
 
 export function HomePage(): React.ReactNode {
   const [language] = useState<Language>(() => {

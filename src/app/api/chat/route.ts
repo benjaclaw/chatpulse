@@ -151,60 +151,62 @@ export async function POST(request: Request): Promise<Response> {
   const fallback =
     config.fallback_response || "Beklager, noe gikk galt. Prøv igjen senere.";
 
-  // 2. Get conversation history (last 10 messages) if conversationId exists
-  let history: { role: string; content: string }[] = [];
-  if (conversationId) {
-    const { data: msgs } = await supabase
-      .from("messages")
-      .select("role, content")
-      .eq("conversation_id", conversationId)
-      .order("created_at", { ascending: true })
-      .limit(10);
-    if (msgs) {
-      history = msgs;
-    }
-  }
-
-  // 3. Fetch company info if available
-  const { data: companyInfo } = await supabase
-    .from("company_info")
-    .select("data")
-    .eq("workspace_id", config.workspace_id)
-    .maybeSingle();
-
-  // 4. Search knowledge base with ILIKE on keywords from the message
+  // 2. Fetch history, company info, and knowledge in parallel
   const words = message
     .trim()
     .split(/\s+/)
     .filter((w) => w.length > 2)
     .slice(0, 5);
 
+  const historyPromise = conversationId
+    ? supabase
+        .from("messages")
+        .select("role, content")
+        .eq("conversation_id", conversationId)
+        .order("created_at", { ascending: true })
+        .limit(10)
+    : Promise.resolve({ data: null });
+
+  const companyInfoPromise = supabase
+    .from("company_info")
+    .select("data")
+    .eq("workspace_id", config.workspace_id)
+    .maybeSingle();
+
+  const knowledgePromise = words.length > 0
+    ? (() => {
+        const orFilter = words
+          .map((w) => {
+            const safe = w.replace(/[%_'"()]/g, "");
+            return `title.ilike.%${safe}%,content.ilike.%${safe}%`;
+          })
+          .join(",");
+        return supabase
+          .from("knowledge")
+          .select("title, content")
+          .eq("workspace_id", config.workspace_id)
+          .or(orFilter)
+          .limit(5);
+      })()
+    : Promise.resolve({ data: null, error: null });
+
+  const [historyResult, companyInfoResult, knowledgeResult] = await Promise.all([
+    historyPromise,
+    companyInfoPromise,
+    knowledgePromise,
+  ]);
+
+  const history: { role: string; content: string }[] = historyResult.data ?? [];
+  const companyInfo = companyInfoResult.data;
+
   let knowledgeContext = "";
-  if (words.length > 0) {
-    const orFilter = words
-      .map((w) => {
-        // Escape special characters for PostgREST ILIKE
-        const safe = w.replace(/[%_'"()]/g, "");
-        return `title.ilike.%${safe}%,content.ilike.%${safe}%`;
-      })
-      .join(",");
-
-    const { data: articles, error: kbError } = await supabase
-      .from("knowledge")
-      .select("title, content")
-      .eq("workspace_id", config.workspace_id)
-      .or(orFilter)
-      .limit(5);
-
-    if (kbError) {
-      console.error("Knowledge search error:", kbError);
-    }
-
-    if (articles?.length) {
-      knowledgeContext = articles
-        .map((a, i) => `[${i + 1}] ${a.title}\n${a.content}`)
-        .join("\n\n");
-    }
+  if ('error' in knowledgeResult && knowledgeResult.error) {
+    console.error("Knowledge search error:", knowledgeResult.error);
+  }
+  if (knowledgeResult.data?.length) {
+    knowledgeContext = knowledgeResult.data
+      .map((a: { title: string; content: string }, i: number) => `[${i + 1}] ${a.title}\n${a.content}`)
+      .join("\n\n");
   }
 
   // 4. Build prompt

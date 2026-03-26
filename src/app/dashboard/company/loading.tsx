@@ -1,0 +1,19 @@
+export default function CompanyLoading(): React.ReactNode {
+  return (
+    <div className="space-y-6">
+      <div>
+        <div className="h-9 w-44 animate-pulse rounded-lg bg-muted" />
+        <div className="mt-2 h-5 w-72 animate-pulse rounded-md bg-muted" />
+      </div>
+      <div className="rounded-xl border bg-card p-6 shadow-sm space-y-4">
+        {Array.from({ length: 5 }).map((_, i) => (
+          <div key={i} className="space-y-2">
+            <div className="h-4 w-24 animate-pulse rounded bg-muted" />
+            <div className="h-10 w-full animate-pulse rounded-lg bg-muted" />
+          </div>
+        ))}
+        <div className="h-10 w-32 animate-pulse rounded-lg bg-muted" />
+      </div>
+    </div>
+  );
+}

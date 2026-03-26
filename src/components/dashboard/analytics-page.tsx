@@ -74,10 +74,10 @@ export function AnalyticsPageClient(): React.ReactNode {
             .from("leads")
             .select("id", { count: "exact", head: true })
             .eq("workspace_id", workspaceId),
-          // Message dates for last 30 days (for charts)
+          // Message dates for last 30 days (for charts) — only fetch created_at
           supabase
             .from("messages")
-            .select("created_at, conversation:conversations!inner(workspace_id)")
+            .select("created_at, conversation:conversations!inner(id)")
             .eq("conversations.workspace_id", workspaceId)
             .gte("created_at", thirtyDaysAgo.toISOString()),
           // Top questions

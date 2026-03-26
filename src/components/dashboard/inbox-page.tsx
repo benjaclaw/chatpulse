@@ -145,7 +145,7 @@ export function InboxPageClient(): React.ReactNode {
   useEffect(() => {
     supabase
       .from("canned_responses")
-      .select("*")
+      .select("id, shortcut, title, content")
       .eq("workspace_id", workspace.id)
       .then(({ data }) => {
         if (data) setCannedResponses(data);
@@ -402,7 +402,7 @@ export function InboxPageClient(): React.ReactNode {
     loadConversations();
   }
 
-  // Load online agents for transfer
+  // Load online agents for transfer (single batch query instead of N+1)
   async function loadOnlineAgents() {
     const { data } = await supabase
       .from("agent_presence")
@@ -411,22 +411,26 @@ export function InboxPageClient(): React.ReactNode {
       .in("status", ["online", "busy"]);
 
     if (data) {
-      // Get user info
-      const agents: OnlineAgent[] = [];
-      for (const item of data) {
-        if (item.user_id === userId) continue;
-        const { data: member } = await supabase
+      const otherAgentIds = data
+        .map((item) => item.user_id)
+        .filter((id) => id !== userId);
+
+      if (otherAgentIds.length > 0) {
+        const { data: members } = await supabase
           .from("members")
           .select("user_id")
-          .eq("user_id", item.user_id)
           .eq("workspace_id", workspace.id)
-          .single();
+          .in("user_id", otherAgentIds);
 
-        if (member) {
-          agents.push({ user_id: item.user_id, email: item.user_id });
-        }
+        const validIds = new Set((members ?? []).map((m) => m.user_id));
+        setOnlineAgents(
+          otherAgentIds
+            .filter((id) => validIds.has(id))
+            .map((id) => ({ user_id: id, email: id }))
+        );
+      } else {
+        setOnlineAgents([]);
       }
-      setOnlineAgents(agents);
     }
     setShowTransfer(true);
   }

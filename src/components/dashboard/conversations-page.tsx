@@ -103,30 +103,30 @@ export function ConversationsPageClient(): React.ReactNode {
     const to = from + PAGE_SIZE - 1;
     const dateFrom = getDateFrom(dateRange);
 
+    // Search once and reuse the IDs for both count and data queries
+    let searchConvIds: string[] | null = null;
+    if (searchDebounced) {
+      const { data: matchingConvos } = await supabase
+        .from("messages")
+        .select("conversation_id")
+        .ilike("content", `%${searchDebounced}%`);
+      searchConvIds = [...new Set((matchingConvos ?? []).map((m: { conversation_id: string }) => m.conversation_id))];
+      if (searchConvIds.length === 0) {
+        setConversations([]);
+        setTotalCount(0);
+        setLoading(false);
+        return;
+      }
+    }
+
     // Build count query
     let countQuery = supabase
       .from("conversations")
       .select("id", { count: "exact", head: true })
       .eq("workspace_id", workspaceId);
 
-    if (dateFrom) {
-      countQuery = countQuery.gte("started_at", dateFrom);
-    }
-    if (searchDebounced) {
-      // Search by message content: find conversation IDs that have matching messages
-      const { data: matchingConvos } = await supabase
-        .from("messages")
-        .select("conversation_id")
-        .ilike("content", `%${searchDebounced}%`);
-      const convIds = [...new Set((matchingConvos ?? []).map((m: { conversation_id: string }) => m.conversation_id))];
-      if (convIds.length === 0) {
-        setConversations([]);
-        setTotalCount(0);
-        setLoading(false);
-        return;
-      }
-      countQuery = countQuery.in("id", convIds);
-    }
+    if (dateFrom) countQuery = countQuery.gte("started_at", dateFrom);
+    if (searchConvIds) countQuery = countQuery.in("id", searchConvIds);
 
     // Build data query
     let dataQuery = supabase
@@ -136,23 +136,8 @@ export function ConversationsPageClient(): React.ReactNode {
       .order("started_at", { ascending: false })
       .range(from, to);
 
-    if (dateFrom) {
-      dataQuery = dataQuery.gte("started_at", dateFrom);
-    }
-    if (searchDebounced) {
-      const { data: matchingConvos2 } = await supabase
-        .from("messages")
-        .select("conversation_id")
-        .ilike("content", `%${searchDebounced}%`);
-      const convIds2 = [...new Set((matchingConvos2 ?? []).map((m: { conversation_id: string }) => m.conversation_id))];
-      if (convIds2.length === 0) {
-        setConversations([]);
-        setTotalCount(0);
-        setLoading(false);
-        return;
-      }
-      dataQuery = dataQuery.in("id", convIds2);
-    }
+    if (dateFrom) dataQuery = dataQuery.gte("started_at", dateFrom);
+    if (searchConvIds) dataQuery = dataQuery.in("id", searchConvIds);
 
     const [countResult, dataResult] = await Promise.all([countQuery, dataQuery]);
 
