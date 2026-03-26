@@ -17,6 +17,8 @@ import {
   XCircle,
   TrendingUp,
   Trash2,
+  ChevronLeft,
+  ChevronRight,
 } from "lucide-react";
 
 type Filter = "all" | "answered" | "unanswered";
@@ -26,6 +28,8 @@ const FILTER_KEYS: { key: Filter; tKey: string }[] = [
   { key: "answered", tKey: "insights.filterAnswered" },
   { key: "unanswered", tKey: "insights.filterUnanswered" },
 ];
+
+const PAGE_SIZE = 25;
 
 export function InsightsPageClient(): React.ReactNode {
   const workspace = useWorkspace();
@@ -40,48 +44,88 @@ export function InsightsPageClient(): React.ReactNode {
     ["all", "answered", "unanswered"].includes(initialFilter) ? initialFilter : "all"
   );
   const [loading, setLoading] = useState(true);
+  const [page, setPage] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+  const [totalAnswered, setTotalAnswered] = useState(0);
+  const [totalUnanswered, setTotalUnanswered] = useState(0);
+
+  // Reset page when filter changes
+  useEffect(() => {
+    setPage(0);
+  }, [filter]);
+
+  const fetchQuestions = useCallback(async () => {
+    setLoading(true);
+
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
+    // Count queries for stats (always unfiltered for the stat cards)
+    const answeredCountQuery = supabase
+      .from("questions")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspaceId)
+      .eq("answered", true);
+
+    const unansweredCountQuery = supabase
+      .from("questions")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspaceId)
+      .eq("answered", false);
+
+    // Filtered count query
+    let filteredCountQuery = supabase
+      .from("questions")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspaceId);
+    if (filter === "answered") filteredCountQuery = filteredCountQuery.eq("answered", true);
+    if (filter === "unanswered") filteredCountQuery = filteredCountQuery.eq("answered", false);
+
+    // Data query with filter and pagination
+    let dataQuery = supabase
+      .from("questions")
+      .select("id, question, count, last_asked_at, answered")
+      .eq("workspace_id", workspaceId)
+      .order("count", { ascending: false })
+      .range(from, to);
+    if (filter === "answered") dataQuery = dataQuery.eq("answered", true);
+    if (filter === "unanswered") dataQuery = dataQuery.eq("answered", false);
+
+    const [answeredResult, unansweredResult, filteredCountResult, dataResult] = await Promise.all([
+      answeredCountQuery,
+      unansweredCountQuery,
+      filteredCountQuery,
+      dataQuery,
+    ]);
+
+    setTotalAnswered(answeredResult.count ?? 0);
+    setTotalUnanswered(unansweredResult.count ?? 0);
+    setTotalCount(filteredCountResult.count ?? 0);
+    setQuestions(dataResult.data ?? []);
+    setLoading(false);
+  }, [workspaceId, supabase, page, filter]);
 
   useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      const { data } = await supabase
-        .from("questions")
-        .select("id, question, count, last_asked_at, answered")
-        .eq("workspace_id", workspaceId)
-        .order("count", { ascending: false });
-      if (!cancelled) {
-        setQuestions(data ?? []);
-        setLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [workspaceId, supabase]);
-
-  const filtered = useMemo(() =>
-    questions
-      .filter((q) => {
-        if (filter === "answered") return q.answered;
-        if (filter === "unanswered") return !q.answered;
-        return true;
-      })
-      .sort((a, b) => b.count - a.count),
-    [questions, filter]
-  );
-
-  const totalAnswered = useMemo(() => questions.filter((q) => q.answered).length, [questions]);
-  const totalUnanswered = useMemo(() => questions.filter((q) => !q.answered).length, [questions]);
+    fetchQuestions();
+  }, [fetchQuestions]);
 
   const handleDelete = useCallback(async (id: string) => {
     await supabase.from("questions").delete().eq("id", id);
     setQuestions((prev) => prev.filter((q) => q.id !== id));
+    setTotalCount((prev) => prev - 1);
   }, [supabase]);
 
   async function handleClearAll() {
     if (!confirm(t('insights.confirmClear'))) return;
     await supabase.from("questions").delete().eq("workspace_id", workspaceId);
     setQuestions([]);
+    setTotalCount(0);
+    setTotalAnswered(0);
+    setTotalUnanswered(0);
   }
+
+  const totalPages = useMemo(() => Math.ceil(totalCount / PAGE_SIZE), [totalCount]);
+  const totalQuestionsCount = totalAnswered + totalUnanswered;
 
   if (!hasFeature(workspace.plan_id, "insights")) {
     return (
@@ -97,7 +141,7 @@ export function InsightsPageClient(): React.ReactNode {
     );
   }
 
-  if (loading) {
+  if (loading && questions.length === 0) {
     return (
       <div className="space-y-6">
         <div>
@@ -127,7 +171,7 @@ export function InsightsPageClient(): React.ReactNode {
             <TrendingUp className="h-4 w-4" />
             {t('insights.totalQuestions')}
           </div>
-          <p className="mt-2 text-2xl font-bold">{questions.length}</p>
+          <p className="mt-2 text-2xl font-bold">{totalQuestionsCount}</p>
         </div>
         <div className="rounded-xl border bg-card p-5 shadow-sm">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -159,7 +203,7 @@ export function InsightsPageClient(): React.ReactNode {
           </Button>
         ))}
       </div>
-      {questions.length > 0 && (
+      {totalQuestionsCount > 0 && (
         <Button variant="ghost" size="sm" className="text-muted-foreground hover:text-destructive" onClick={handleClearAll}>
           <Trash2 className="mr-1.5 h-3.5 w-3.5" />
           {t('insights.clearAll')}
@@ -170,7 +214,7 @@ export function InsightsPageClient(): React.ReactNode {
       {/* Bar chart */}
       <div className="rounded-xl border bg-card p-6 shadow-sm">
         <h3 className="text-base font-semibold mb-4">{t('insights.topQuestions')}</h3>
-        <BarChart questions={filtered.slice(0, 8)} maxCount={Math.max(...filtered.map((x) => x.count), 0)} />
+        <BarChart questions={questions.slice(0, 8)} maxCount={Math.max(...questions.map((x) => x.count), 0)} />
         <div className="mt-4 flex items-center gap-4 text-xs text-muted-foreground">
           <div className="flex items-center gap-1.5">
             <span className="inline-block h-2.5 w-2.5 rounded-full bg-success" />
@@ -184,7 +228,7 @@ export function InsightsPageClient(): React.ReactNode {
       </div>
 
       {/* Questions list */}
-      {filtered.length === 0 ? (
+      {questions.length === 0 ? (
         <EmptyState
           icon={HelpCircle}
           title={t('insights.empty')}
@@ -192,13 +236,13 @@ export function InsightsPageClient(): React.ReactNode {
         />
       ) : (
         <div className="space-y-2">
-          {filtered.map((q, i) => (
+          {questions.map((q, i) => (
             <div
               key={q.id}
               className="flex items-center gap-4 rounded-xl border bg-card p-4 shadow-sm transition-all duration-200 hover:shadow-md"
             >
               <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-primary/10 text-sm font-bold text-primary">
-                {i + 1}
+                {page * PAGE_SIZE + i + 1}
               </div>
               <div className="flex-1 min-w-0">
                 <p className="text-sm font-medium">{q.question}</p>
@@ -237,6 +281,33 @@ export function InsightsPageClient(): React.ReactNode {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page === 0}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            {t('common.previous')}
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            {t('common.pageOf', { page: page + 1, total: totalPages })}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= totalPages - 1}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            {t('common.next')}
+            <ChevronRight className="ml-1 h-4 w-4" />
+          </Button>
         </div>
       )}
     </div>

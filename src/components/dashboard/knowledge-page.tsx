@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useRef } from "react";
+import { useState, useEffect, useRef, useCallback, useMemo } from "react";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/lib/i18n/context";
@@ -20,12 +20,13 @@ import {
 } from "@/components/ui/dialog";
 import { EmptyState } from "./empty-state";
 import { SearchInput } from "./search-input";
-import { Plus, BookOpen, Calendar, Pencil, Upload, FileText, Loader2 } from "lucide-react";
+import { Plus, BookOpen, Calendar, Pencil, Upload, FileText, Loader2, ChevronLeft, ChevronRight } from "lucide-react";
 import type { KnowledgeItem } from "@/lib/types";
 import { hasFeature } from "@/lib/plans";
 import { UpgradeBanner } from "./upgrade-banner";
 
 const ACCEPTED_FILE_TYPES = ".pdf,.docx,.xlsx,.csv,.txt,.md";
+const PAGE_SIZE = 20;
 
 export function KnowledgePageClient(): React.ReactNode {
   const workspace = useWorkspace();
@@ -33,6 +34,7 @@ export function KnowledgePageClient(): React.ReactNode {
   const supabase = createClient();
   const { t } = useLanguage();
   const [search, setSearch] = useState("");
+  const [searchDebounced, setSearchDebounced] = useState("");
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingItem, setEditingItem] = useState<KnowledgeItem | null>(null);
   const [items, setItems] = useState<KnowledgeItem[]>([]);
@@ -40,30 +42,62 @@ export function KnowledgePageClient(): React.ReactNode {
   const [uploading, setUploading] = useState(false);
   const [uploadError, setUploadError] = useState<string | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [page, setPage] = useState(0);
+  const [totalCount, setTotalCount] = useState(0);
+
+  // Debounce search
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      setSearchDebounced(search);
+      setPage(0);
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [search]);
+
+  const fetchItems = useCallback(async () => {
+    setLoading(true);
+
+    const from = page * PAGE_SIZE;
+    const to = from + PAGE_SIZE - 1;
+
+    // Count query
+    let countQuery = supabase
+      .from("knowledge")
+      .select("id", { count: "exact", head: true })
+      .eq("workspace_id", workspaceId);
+
+    if (searchDebounced) {
+      countQuery = countQuery.or(
+        `title.ilike.%${searchDebounced}%,content.ilike.%${searchDebounced}%,category.ilike.%${searchDebounced}%`
+      );
+    }
+
+    // Data query
+    let dataQuery = supabase
+      .from("knowledge")
+      .select("id, title, content, category, created_at, file_url, file_name")
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: false })
+      .range(from, to);
+
+    if (searchDebounced) {
+      dataQuery = dataQuery.or(
+        `title.ilike.%${searchDebounced}%,content.ilike.%${searchDebounced}%,category.ilike.%${searchDebounced}%`
+      );
+    }
+
+    const [countResult, dataResult] = await Promise.all([countQuery, dataQuery]);
+
+    setTotalCount(countResult.count ?? 0);
+    setItems(dataResult.data ?? []);
+    setLoading(false);
+  }, [workspaceId, supabase, page, searchDebounced]);
 
   useEffect(() => {
-    let cancelled = false;
-    async function load() {
-      const { data } = await supabase
-        .from("knowledge")
-        .select("id, title, content, category, created_at, file_url, file_name")
-        .eq("workspace_id", workspaceId)
-        .order("created_at", { ascending: false });
-      if (!cancelled) {
-        setItems(data ?? []);
-        setLoading(false);
-      }
-    }
-    load();
-    return () => { cancelled = true; };
-  }, [workspaceId, supabase]);
+    fetchItems();
+  }, [fetchItems]);
 
-  const filtered = items.filter(
-    (item) =>
-      item.title.toLowerCase().includes(search.toLowerCase()) ||
-      item.content.toLowerCase().includes(search.toLowerCase()) ||
-      item.category.toLowerCase().includes(search.toLowerCase())
-  );
+  const totalPages = useMemo(() => Math.ceil(totalCount / PAGE_SIZE), [totalCount]);
 
   function openCreate() {
     setEditingItem(null);
@@ -110,7 +144,8 @@ export function KnowledgePageClient(): React.ReactNode {
         .single();
 
       if (data) {
-        setItems((prev) => [data, ...prev]);
+        // Refresh to get correct pagination
+        fetchItems();
       }
     }
 
@@ -150,7 +185,8 @@ export function KnowledgePageClient(): React.ReactNode {
         return;
       }
 
-      setItems((prev) => [result, ...prev]);
+      // Refresh to get correct pagination
+      fetchItems();
     } catch {
       setUploadError(t('knowledge.uploadFailedNetwork'));
     } finally {
@@ -158,7 +194,7 @@ export function KnowledgePageClient(): React.ReactNode {
     }
   }
 
-  if (loading) {
+  if (loading && items.length === 0 && page === 0) {
     return (
       <div className="space-y-6">
         <div>
@@ -286,11 +322,11 @@ export function KnowledgePageClient(): React.ReactNode {
       />
 
       {/* Items list */}
-      {filtered.length === 0 ? (
+      {items.length === 0 ? (
         <KnowledgeEmptyState search={search} onAdd={openCreate} t={t} />
       ) : (
         <div className="space-y-3">
-          {filtered.map((item) => (
+          {items.map((item) => (
             <div
               key={item.id}
               className="group rounded-xl border bg-card p-5 shadow-sm transition-all duration-200 hover:shadow-md"
@@ -326,6 +362,33 @@ export function KnowledgePageClient(): React.ReactNode {
               </div>
             </div>
           ))}
+        </div>
+      )}
+
+      {/* Pagination */}
+      {totalPages > 1 && (
+        <div className="flex items-center justify-center gap-4">
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page === 0}
+            onClick={() => setPage((p) => p - 1)}
+          >
+            <ChevronLeft className="mr-1 h-4 w-4" />
+            {t('common.previous')}
+          </Button>
+          <span className="text-sm text-muted-foreground">
+            {t('common.pageOf', { page: page + 1, total: totalPages })}
+          </span>
+          <Button
+            variant="outline"
+            size="sm"
+            disabled={page >= totalPages - 1}
+            onClick={() => setPage((p) => p + 1)}
+          >
+            {t('common.next')}
+            <ChevronRight className="ml-1 h-4 w-4" />
+          </Button>
         </div>
       )}
     </div>

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback, useRef, useMemo, memo } from "react";
+import { useState, useEffect, useCallback, memo } from "react";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/lib/i18n/context";
@@ -50,6 +50,7 @@ import {
 import { cn } from "@/lib/utils";
 import type { TranslateFunction } from "@/lib/i18n";
 
+const PAGE_SIZE = 50;
 const COLUMNS: LeadStatus[] = ["new", "contacted", "resolved", "archived"];
 
 const COLUMN_COLORS: Record<LeadStatus, string> = {
@@ -106,6 +107,8 @@ export function LeadsPageClient(): React.ReactNode {
   const dateLocale = language === 'nb' ? 'nb-NO' : 'en-US';
   const [leads, setLeads] = useState<Lead[]>([]);
   const [loading, setLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [selectedLead, setSelectedLead] = useState<Lead | null>(null);
   const [messages, setMessages] = useState<ChatMessage[]>([]);
   const [loadingMessages, setLoadingMessages] = useState(false);
@@ -131,7 +134,8 @@ export function LeadsPageClient(): React.ReactNode {
         .from("leads")
         .select("id, workspace_id, email, name, status, notes, created_at, conversation_id")
         .eq("workspace_id", workspaceId)
-        .order("created_at", { ascending: false });
+        .order("created_at", { ascending: false })
+        .limit(PAGE_SIZE);
       if (!cancelled) {
         // Client-side filter as safety net
         const cutoff = thirtyDaysAgo.getTime();
@@ -141,6 +145,7 @@ export function LeadsPageClient(): React.ReactNode {
             new Date(l.created_at).getTime() > cutoff
         );
         setLeads(filtered);
+        setHasMore((data ?? []).length === PAGE_SIZE);
         setLoading(false);
       }
     }
@@ -223,12 +228,49 @@ export function LeadsPageClient(): React.ReactNode {
 
   const activeLead = activeId ? leads.find((l) => l.id === activeId) : null;
 
-  const stats = useMemo(() => ({
-    total: leads.length,
-    new: leads.filter((l) => l.status === "new").length,
-    contacted: leads.filter((l) => l.status === "contacted").length,
-    resolved: leads.filter((l) => l.status === "resolved").length,
-  }), [leads]);
+  const [stats, setStats] = useState({ total: 0, new: 0, contacted: 0, resolved: 0 });
+
+  // Fetch stats from count queries
+  useEffect(() => {
+    let cancelled = false;
+    async function fetchStats() {
+      const [totalRes, newRes, contactedRes, resolvedRes] = await Promise.all([
+        supabase.from("leads").select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId),
+        supabase.from("leads").select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId).eq("status", "new"),
+        supabase.from("leads").select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId).eq("status", "contacted"),
+        supabase.from("leads").select("id", { count: "exact", head: true }).eq("workspace_id", workspaceId).eq("status", "resolved"),
+      ]);
+      if (!cancelled) {
+        setStats({
+          total: totalRes.count ?? 0,
+          new: newRes.count ?? 0,
+          contacted: contactedRes.count ?? 0,
+          resolved: resolvedRes.count ?? 0,
+        });
+      }
+    }
+    fetchStats();
+    return () => { cancelled = true; };
+  }, [workspaceId, supabase, leads]);
+
+  const handleLoadMore = useCallback(async () => {
+    setLoadingMore(true);
+    const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000);
+    const { data } = await supabase
+      .from("leads")
+      .select("id, workspace_id, email, name, status, notes, created_at, conversation_id")
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: false })
+      .range(leads.length, leads.length + PAGE_SIZE - 1);
+
+    const cutoff = thirtyDaysAgo.getTime();
+    const filtered = (data ?? []).filter(
+      (l) => l.status !== "archived" || new Date(l.created_at).getTime() > cutoff
+    );
+    setLeads((prev) => [...prev, ...filtered]);
+    setHasMore((data ?? []).length === PAGE_SIZE);
+    setLoadingMore(false);
+  }, [workspaceId, supabase, leads.length]);
 
   const hasLeadsFeature = hasFeature(workspace.plan_id, "leads");
 
@@ -344,6 +386,19 @@ export function LeadsPageClient(): React.ReactNode {
               </DragOverlay>
             </DndContext>
           </div>
+
+          {/* Load more */}
+          {hasMore && (
+            <div className="flex justify-center">
+              <Button
+                variant="outline"
+                onClick={handleLoadMore}
+                disabled={loadingMore}
+              >
+                {loadingMore ? t('common.loading') : t('leads.loadMore')}
+              </Button>
+            </div>
+          )}
         </>
       )}
 

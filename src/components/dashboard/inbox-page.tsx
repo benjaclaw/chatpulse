@@ -78,6 +78,8 @@ export function InboxPageClient(): React.ReactNode {
   const [input, setInput] = useState("");
   const [filter, setFilter] = useState<"waiting" | "human" | "closed">("waiting");
   const [loading, setLoading] = useState(true);
+  const [hasMore, setHasMore] = useState(false);
+  const [loadingMore, setLoadingMore] = useState(false);
   const [showNotes, setShowNotes] = useState(false);
   const [noteInput, setNoteInput] = useState("");
   const [showTransfer, setShowTransfer] = useState(false);
@@ -108,9 +110,10 @@ export function InboxPageClient(): React.ReactNode {
       .eq("workspace_id", workspace.id)
       .in("status", filter === "waiting" ? ["waiting"] : filter === "human" ? ["human"] : ["closed"])
       .order("started_at", { ascending: false })
-      .limit(100);
+      .limit(50);
 
     if (data) {
+      setHasMore(data.length === 50);
       // Fetch first message for each conversation
       const convIds = data.map((c: InboxConversation) => c.id);
       const { data: firstMessages } = await supabase
@@ -567,41 +570,85 @@ export function InboxPageClient(): React.ReactNode {
                 {t('inbox.empty')}
               </div>
             ) : (
-              conversations.map((conv) => (
-                <button
-                  key={conv.id}
-                  onClick={() => setSelectedId(conv.id)}
-                  className={cn(
-                    "flex w-full items-start gap-3 border-b p-3 text-left transition-colors hover:bg-muted/50",
-                    selectedId === conv.id && "bg-muted"
-                  )}
-                >
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2">
-                      {conv.status === "waiting" && (
-                        <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
-                      )}
-                      <span className="text-xs font-medium truncate">
-                        {conv.visitor_id?.slice(0, 8)}
-                      </span>
-                      <span className={cn(
-                        "ml-auto text-[10px] px-1.5 py-0.5 rounded-full font-medium",
-                        conv.status === "waiting" && "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-                        conv.status === "human" && "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-                        conv.status === "closed" && "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
-                      )}>
-                        {conv.status === "waiting" ? t('inbox.waiting') : conv.status === "human" ? t('inbox.active') : t('inbox.closed')}
-                      </span>
+              <>
+                {conversations.map((conv) => (
+                  <button
+                    key={conv.id}
+                    onClick={() => setSelectedId(conv.id)}
+                    className={cn(
+                      "flex w-full items-start gap-3 border-b p-3 text-left transition-colors hover:bg-muted/50",
+                      selectedId === conv.id && "bg-muted"
+                    )}
+                  >
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        {conv.status === "waiting" && (
+                          <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
+                        )}
+                        <span className="text-xs font-medium truncate">
+                          {conv.visitor_id?.slice(0, 8)}
+                        </span>
+                        <span className={cn(
+                          "ml-auto text-[10px] px-1.5 py-0.5 rounded-full font-medium",
+                          conv.status === "waiting" && "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+                          conv.status === "human" && "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+                          conv.status === "closed" && "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                        )}>
+                          {conv.status === "waiting" ? t('inbox.waiting') : conv.status === "human" ? t('inbox.active') : t('inbox.closed')}
+                        </span>
+                      </div>
+                      <p className="mt-1 text-xs text-muted-foreground truncate">
+                        {conv.first_message || t('inbox.noPreview')}
+                      </p>
+                      <p className="mt-0.5 text-[10px] text-muted-foreground/60">
+                        {new Date(conv.started_at).toLocaleString()}
+                      </p>
                     </div>
-                    <p className="mt-1 text-xs text-muted-foreground truncate">
-                      {conv.first_message || t('inbox.noPreview')}
-                    </p>
-                    <p className="mt-0.5 text-[10px] text-muted-foreground/60">
-                      {new Date(conv.started_at).toLocaleString()}
-                    </p>
-                  </div>
-                </button>
-              ))
+                  </button>
+                ))}
+                {hasMore && (
+                  <button
+                    onClick={async () => {
+                      setLoadingMore(true);
+                      const { data } = await supabase
+                        .from("conversations")
+                        .select("id, visitor_id, status, started_at, assigned_to")
+                        .eq("workspace_id", workspace.id)
+                        .in("status", filter === "waiting" ? ["waiting"] : filter === "human" ? ["human"] : ["closed"])
+                        .order("started_at", { ascending: false })
+                        .range(conversations.length, conversations.length + 49);
+                      if (data) {
+                        const convIds = data.map((c: InboxConversation) => c.id);
+                        const { data: firstMessages } = await supabase
+                          .from("messages")
+                          .select("conversation_id, content")
+                          .in("conversation_id", convIds.length > 0 ? convIds : ["_none_"])
+                          .eq("role", "user")
+                          .order("created_at", { ascending: true });
+                        const firstMsgMap = new Map<string, string>();
+                        if (firstMessages) {
+                          for (const msg of firstMessages) {
+                            if (!firstMsgMap.has(msg.conversation_id)) {
+                              firstMsgMap.set(msg.conversation_id, msg.content);
+                            }
+                          }
+                        }
+                        const newConvs = data.map((c: InboxConversation) => ({
+                          ...c,
+                          first_message: firstMsgMap.get(c.id) || "",
+                        }));
+                        setConversations((prev) => [...prev, ...newConvs]);
+                        setHasMore(data.length === 50);
+                      }
+                      setLoadingMore(false);
+                    }}
+                    disabled={loadingMore}
+                    className="w-full p-3 text-center text-xs text-primary hover:bg-muted/50 transition-colors disabled:opacity-50"
+                  >
+                    {loadingMore ? t('common.loading') : t('inbox.loadMore')}
+                  </button>
+                )}
+              </>
             )}
           </div>
         </div>

@@ -202,6 +202,7 @@ const en: Record<string, string> = {
   'leads.time.daysAgo': '{n} days ago',
   'leads.time.monthAgo': '{n} month ago',
   'leads.time.monthsAgo': '{n} months ago',
+  'leads.loadMore': 'Load more leads',
 
   // Settings
   'settings.title': 'Settings',
@@ -253,6 +254,10 @@ const en: Record<string, string> = {
   'common.copyCode': 'Copy code',
   'common.loading': 'Loading...',
   'common.delete': 'Delete',
+  'common.previous': 'Previous',
+  'common.next': 'Next',
+  'common.pageOf': 'Page {page} of {total}',
+  'common.loadMore': 'Load more',
 
   // Auth
   'auth.login.title': 'Welcome back',
@@ -635,6 +640,7 @@ const en: Record<string, string> = {
   'inbox.internalNote': 'Internal note',
   'inbox.goOnline': 'Go online',
   'inbox.goOffline': 'Go offline',
+  'inbox.loadMore': 'Load more conversations',
 
   // Settings: Business hours
   'settings.businessHours.title': 'Business Hours',

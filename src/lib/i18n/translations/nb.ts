@@ -202,6 +202,7 @@ const nb: Record<string, string> = {
   'leads.time.daysAgo': '{n} dager siden',
   'leads.time.monthAgo': '{n} måned siden',
   'leads.time.monthsAgo': '{n} måneder siden',
+  'leads.loadMore': 'Last flere leads',
 
   // Settings
   'settings.title': 'Innstillinger',
@@ -253,6 +254,10 @@ const nb: Record<string, string> = {
   'common.copyCode': 'Kopier kode',
   'common.loading': 'Laster...',
   'common.delete': 'Slett',
+  'common.previous': 'Forrige',
+  'common.next': 'Neste',
+  'common.pageOf': 'Side {page} av {total}',
+  'common.loadMore': 'Last flere',
 
   // Auth
   'auth.login.title': 'Velkommen tilbake',
@@ -635,6 +640,7 @@ const nb: Record<string, string> = {
   'inbox.internalNote': 'Internt notat',
   'inbox.goOnline': 'Gå online',
   'inbox.goOffline': 'Gå offline',
+  'inbox.loadMore': 'Last flere samtaler',
 
   // Settings: Business hours
   'settings.businessHours.title': 'Bemanningstider',
