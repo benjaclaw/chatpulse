@@ -11,14 +11,12 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   const supabase = createServiceClient();
-  const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-
-  // Find human conversations where the conversation started > 30 min ago
+  // Fetch ALL human conversations (limit 200 for safety) — check last message time instead of started_at
   const { data: staleConvs } = await supabase
     .from("conversations")
     .select("id")
     .eq("status", "human")
-    .lt("started_at", thirtyMinAgo);
+    .limit(200);
 
   if (!staleConvs || staleConvs.length === 0) {
     return Response.json({ closed: 0 });
@@ -34,9 +32,9 @@ export async function GET(request: Request): Promise<Response> {
       .eq("conversation_id", conv.id)
       .order("created_at", { ascending: false })
       .limit(1)
-      .single();
+      .maybeSingle();
 
-    if (lastMsg && new Date(lastMsg.created_at).getTime() < Date.now() - 30 * 60 * 1000) {
+    if (!lastMsg || new Date(lastMsg.created_at).getTime() < Date.now() - 30 * 60 * 1000) {
       await supabase
         .from("conversations")
         .update({ status: "closed" })

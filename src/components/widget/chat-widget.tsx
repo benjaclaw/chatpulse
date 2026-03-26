@@ -623,6 +623,22 @@ export function ChatWidget({
           t={t}
           hideWatermark={hideWatermark}
           placeholderText={placeholder}
+          i18nLang={i18nLang}
+          onEndChat={liveChatMode ? () => {
+            setLiveChatMode(false);
+            conversationIdRef.current = null;
+            setHasInteracted(false);
+            setChatEnded(true);
+            setHandoffTriggered(false);
+            setHandoffSubmitted(false);
+            pendingLiveChatRef.current = null;
+            try {
+              sessionStorage.removeItem('chatpulse_live_chat_mode');
+              sessionStorage.removeItem('chatpulse_conversation_id');
+              sessionStorage.removeItem('chatpulse_workspace_id');
+            } catch {}
+            setMessages(prev => [...prev, { id: 'ended-' + Date.now(), role: 'assistant' as const, content: i18nLang === 'nb' ? 'Du avsluttet samtalen.' : 'You ended the conversation.' }]);
+          } : undefined}
         />
       </div>
     );
@@ -720,6 +736,22 @@ export function ChatWidget({
           t={t}
           hideWatermark={hideWatermark}
           placeholderText={placeholder}
+          i18nLang={i18nLang}
+          onEndChat={liveChatMode ? () => {
+            setLiveChatMode(false);
+            conversationIdRef.current = null;
+            setHasInteracted(false);
+            setChatEnded(true);
+            setHandoffTriggered(false);
+            setHandoffSubmitted(false);
+            pendingLiveChatRef.current = null;
+            try {
+              sessionStorage.removeItem('chatpulse_live_chat_mode');
+              sessionStorage.removeItem('chatpulse_conversation_id');
+              sessionStorage.removeItem('chatpulse_workspace_id');
+            } catch {}
+            setMessages(prev => [...prev, { id: 'ended-' + Date.now(), role: 'assistant' as const, content: i18nLang === 'nb' ? 'Du avsluttet samtalen.' : 'You ended the conversation.' }]);
+          } : undefined}
         />
       </div>
 
@@ -893,6 +925,8 @@ const WidgetInput = ({
   t,
   hideWatermark = false,
   placeholderText,
+  onEndChat,
+  i18nLang,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -902,6 +936,8 @@ const WidgetInput = ({
   t: TranslateFunction;
   hideWatermark?: boolean;
   placeholderText?: string;
+  onEndChat?: () => void;
+  i18nLang?: string;
 }): React.ReactNode => {
   return (
     <div className="border-t p-3">
@@ -930,6 +966,17 @@ const WidgetInput = ({
           <Send className="h-4 w-4" />
         </button>
       </form>
+      {onEndChat && (
+        <div className="pt-1 text-center">
+          <button
+            type="button"
+            onClick={onEndChat}
+            className="text-xs text-muted-foreground hover:text-destructive transition-colors"
+          >
+            {i18nLang === "nb" ? "Avslutt samtalen" : "End conversation"}
+          </button>
+        </div>
+      )}
       {!hideWatermark && (
         <div className="px-3 pb-1.5 pt-0.5 text-center">
           <a
