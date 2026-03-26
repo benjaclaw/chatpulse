@@ -560,7 +560,7 @@ export function ChatWidget({
     ? (i18nLang === "nb" ? "Live chat" : "Live chat")
     : agentsOnline
       ? (i18nLang === "nb" ? "Kundeservice er online" : "Support is online")
-      : t('widget.online');
+      : (i18nLang === "nb" ? "AI-assistent" : "AI assistant");
 
   // Inline mode — no floating button
   if (inline) {
