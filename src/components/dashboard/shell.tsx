@@ -27,26 +27,36 @@ export function DashboardShell({
 
   // Presence heartbeat — keep agent online while ANY dashboard page is open
   useEffect(() => {
-    if (!activeWorkspace?.id) return;
+    const wsId = activeWorkspace?.id;
+    if (!wsId) return;
 
     const sendHeartbeat = () => {
       fetch("/api/presence", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceId: activeWorkspace.id, status: "online" }),
+        body: JSON.stringify({ workspaceId: wsId, status: "online" }),
       }).catch(() => {});
     };
 
     sendHeartbeat();
     const interval = setInterval(sendHeartbeat, 30_000);
 
-    return () => {
-      clearInterval(interval);
+    // Use beforeunload for reliable offline signal (only when actually leaving the page)
+    const handleUnload = () => {
       fetch("/api/presence", {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceId: activeWorkspace.id, status: "offline" }),
+        body: JSON.stringify({ workspaceId: wsId, status: "offline" }),
+        keepalive: true, // ensures request completes even after page unload
       }).catch(() => {});
+    };
+    window.addEventListener("beforeunload", handleUnload);
+
+    return () => {
+      clearInterval(interval);
+      window.removeEventListener("beforeunload", handleUnload);
+      // Don't send offline on cleanup — it fires on re-renders and page navigation
+      // The 2-minute presence timeout handles stale agents naturally
     };
   }, [activeWorkspace?.id]);
 
