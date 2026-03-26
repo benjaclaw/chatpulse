@@ -92,6 +92,7 @@ export function ChatWidget({
   const [agentTyping, setAgentTyping] = useState(false);
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
   const [agentsOnline, setAgentsOnline] = useState(false);
+  const [limitReached, setLimitReached] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(() => {
     try {
       const saved = sessionStorage.getItem("chatpulse_messages");
@@ -209,7 +210,7 @@ export function ChatWidget({
 
   async function handleSend(overrideText?: string) {
     const text = overrideText?.trim() || input.trim();
-    if (!text || isTyping) return;
+    if (!text || isTyping || limitReached) return;
     setHasInteracted(true);
     const userMsg: Message = { id: `user-${Date.now()}`, role: "user", content: text };
     setMessages((prev) => [...prev, userMsg]);
@@ -246,6 +247,9 @@ export function ChatWidget({
           conversationIdRef.current = data.conversationId;
           if (data.workspaceId) workspaceIdRef.current = data.workspaceId;
           setMessages((prev) => [...prev, { id: `bot-${Date.now()}`, role: "assistant", content: data.response }]);
+          if (data.limitReached) {
+            setLimitReached(true);
+          }
           if (data.handoff && !handoffTriggered) {
             setHandoffTriggered(true);
             if (data.liveChat && data.conversationId) {
@@ -320,7 +324,7 @@ export function ChatWidget({
     <>
       <WidgetHeader botName={botName} primaryColor={primaryColor} logoUrl={logoUrl} onClose={() => setIsOpen(false)} showClose={!inline} t={t} subtext={headerSubtext} agentsOnline={agentsOnline} />
       <MessageList messages={messages} isTyping={isTyping} agentTyping={agentTyping} primaryColor={primaryColor} ref={messagesEndRef} queuePosition={queuePosition} i18nLang={i18nLang} handoffForm={handoffForm} choiceButtons={choiceButtons} chatEndedButton={restartButton} />
-      <WidgetInput value={input} onChange={(v) => { setInput(v); if (liveChatMode) sendVisitorTyping(); }} onSend={handleSend} primaryColor={primaryColor} ref={inputRef} t={t} hideWatermark={hideWatermark} placeholderText={placeholder} i18nLang={i18nLang} onEndChat={messages.length > 1 ? resetChat : undefined} />
+      <WidgetInput value={input} onChange={(v) => { setInput(v); if (liveChatMode) sendVisitorTyping(); }} onSend={handleSend} primaryColor={primaryColor} ref={inputRef} t={t} hideWatermark={hideWatermark} placeholderText={placeholder} i18nLang={i18nLang} onEndChat={messages.length > 1 ? resetChat : undefined} disabled={limitReached} disabledMessage={limitReached ? "Chatboten har nådd meldingsgrensen for denne perioden." : undefined} />
     </>
   );
 

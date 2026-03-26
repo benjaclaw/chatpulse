@@ -12,6 +12,8 @@ export const WidgetInput = ({
   placeholderText,
   onEndChat,
   i18nLang,
+  disabled,
+  disabledMessage,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -23,6 +25,8 @@ export const WidgetInput = ({
   placeholderText?: string;
   onEndChat?: () => void;
   i18nLang?: string;
+  disabled?: boolean;
+  disabledMessage?: string;
 }): React.ReactNode => {
   return (
     <div className="border-t p-3">
@@ -39,11 +43,12 @@ export const WidgetInput = ({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           placeholder={placeholderText || t('widget.placeholder')}
-          className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20"
+          disabled={disabled}
+          className="flex-1 rounded-lg border bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20 disabled:opacity-50 disabled:cursor-not-allowed"
         />
         <button
           type="submit"
-          disabled={!value.trim()}
+          disabled={!value.trim() || disabled}
           className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white transition-all duration-150 hover:opacity-90 disabled:opacity-40"
           style={{ backgroundColor: primaryColor }}
           aria-label={t('widget.sendLabel')}
@@ -51,6 +56,9 @@ export const WidgetInput = ({
           <Send className="h-4 w-4" />
         </button>
       </form>
+      {disabledMessage && (
+        <p className="px-1 pt-1 text-xs text-muted-foreground">{disabledMessage}</p>
+      )}
       {onEndChat && (
         <div className="pt-1 text-center">
           <button

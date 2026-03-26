@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
-import { useRouter } from "next/navigation";
+import { useRouter, useSearchParams } from "next/navigation";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
 import { useClipboard } from "@/hooks/use-clipboard";
@@ -79,10 +79,23 @@ export function SettingsPageClient(): React.ReactNode {
   const workspace = useWorkspace();
   const supabase = createClient();
   const router = useRouter();
+  const searchParams = useSearchParams();
   const { t, language, setLanguage } = useLanguage();
   const [workspaceName, setWorkspaceName] = useState(workspace.name);
   const { active: saved, trigger: triggerSaved } = useTemporaryFlag();
+  const [showUpgradeSuccess, setShowUpgradeSuccess] = useState(false);
   const [inviteCode, setInviteCode] = useState(() => generateInviteCode());
+  const [inviteExpiry, setInviteExpiry] = useState<string | null>(null);
+  const [inviteSaving, setInviteSaving] = useState(false);
+
+  useEffect(() => {
+    if (searchParams.get("upgrade") === "success") {
+      setShowUpgradeSuccess(true);
+      router.replace("/dashboard/settings");
+      const timeout = setTimeout(() => setShowUpgradeSuccess(false), 5000);
+      return () => clearTimeout(timeout);
+    }
+  }, [searchParams, router]);
   const { copied, copy } = useClipboard();
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState("");
@@ -107,6 +120,12 @@ export function SettingsPageClient(): React.ReactNode {
 
   return (
     <div className="space-y-6">
+      {showUpgradeSuccess && (
+        <div className="flex items-center gap-2 rounded-lg border border-green-200 bg-green-50 px-4 py-3 text-sm text-green-800 dark:border-green-800 dark:bg-green-950/50 dark:text-green-300">
+          <Check className="h-4 w-4 shrink-0" />
+          Plan oppgradert! Endringene trer i kraft umiddelbart.
+        </div>
+      )}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{t('settings.title')}</h1>
         <p className="mt-1 text-muted-foreground">
@@ -162,24 +181,58 @@ export function SettingsPageClient(): React.ReactNode {
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="flex items-center gap-3">
-            <code className="flex h-10 items-center rounded-lg border bg-muted px-4 font-mono text-sm tracking-widest">
-              {inviteCode}
-            </code>
-            <Button variant="outline" size="icon" onClick={() => copy(inviteCode)}>
-              {copied ? (
-                <Check className="h-4 w-4 text-green-600" />
-              ) : (
-                <Copy className="h-4 w-4" />
-              )}
-            </Button>
-            <Button
-              variant="outline"
-              size="icon"
-              onClick={() => setInviteCode(generateInviteCode())}
-            >
-              <RefreshCw className="h-4 w-4" />
-            </Button>
+          <div className="space-y-2">
+            <div className="flex items-center gap-3">
+              <code className="flex h-10 items-center rounded-lg border bg-muted px-4 font-mono text-sm tracking-widest">
+                {inviteCode}
+              </code>
+              <Button variant="outline" size="icon" onClick={() => copy(inviteCode)} disabled={inviteSaving}>
+                {copied ? (
+                  <Check className="h-4 w-4 text-green-600" />
+                ) : (
+                  <Copy className="h-4 w-4" />
+                )}
+              </Button>
+              <Button
+                variant="outline"
+                size="icon"
+                disabled={inviteSaving}
+                onClick={async () => {
+                  setInviteSaving(true);
+                  try {
+                    // Delete old open invites for this workspace
+                    await supabase
+                      .from("invites")
+                      .delete()
+                      .eq("workspace_id", workspace.id)
+                      .eq("email", "");
+                    const newCode = generateInviteCode();
+                    const expiresAt = new Date(Date.now() + 7 * 24 * 60 * 60 * 1000).toISOString();
+                    const { data: { user } } = await supabase.auth.getUser();
+                    if (!user) return;
+                    await supabase.from("invites").insert({
+                      workspace_id: workspace.id,
+                      email: "",
+                      token: newCode,
+                      role: "member",
+                      invited_by: user.id,
+                      expires_at: expiresAt,
+                    });
+                    setInviteCode(newCode);
+                    setInviteExpiry(expiresAt);
+                  } finally {
+                    setInviteSaving(false);
+                  }
+                }}
+              >
+                <RefreshCw className={cn("h-4 w-4", inviteSaving && "animate-spin")} />
+              </Button>
+            </div>
+            {inviteExpiry && (
+              <p className="text-xs text-muted-foreground">
+                Koden er gyldig i 7 dager (utløper {new Date(inviteExpiry).toLocaleDateString("nb-NO")})
+              </p>
+            )}
           </div>
         </CardContent>
       </Card>

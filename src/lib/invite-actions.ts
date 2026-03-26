@@ -89,8 +89,8 @@ export async function acceptInvite(token: string): Promise<ActionResult> {
     return { error: "This invite has expired" };
   }
 
-  // Check email matches
-  if (invite.email !== user.email?.toLowerCase()) {
+  // Check email matches (skip for open invites with blank email)
+  if (invite.email && invite.email !== user.email?.toLowerCase()) {
     return { error: "This invite was sent to a different email address" };
   }
 

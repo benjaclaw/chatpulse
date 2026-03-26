@@ -27,6 +27,8 @@ export function PricingContent(): React.ReactNode {
   const t = createT(language);
   const [loggedIn, setLoggedIn] = useState(false);
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+  const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
+  const [checkoutError, setCheckoutError] = useState<string | null>(null);
 
   useEffect(() => {
     const supabase = createClient();
@@ -49,14 +51,24 @@ export function PricingContent(): React.ReactNode {
 
   async function handleCheckout(planId: string) {
     if (!workspaceId) return;
-    const res = await fetch("/api/stripe/checkout", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ planId, workspaceId }),
-    });
-    const data = await res.json();
-    if (data.url) {
-      window.location.href = data.url;
+    setCheckoutLoading(planId);
+    setCheckoutError(null);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId, workspaceId }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setCheckoutError(data.error || "Noe gikk galt. Prøv igjen.");
+      }
+    } catch {
+      setCheckoutError("Kunne ikke starte checkout. Sjekk tilkoblingen og prøv igjen.");
+    } finally {
+      setCheckoutLoading(null);
     }
   }
 
@@ -74,6 +86,12 @@ export function PricingContent(): React.ReactNode {
             </p>
           </div>
 
+          {checkoutError && (
+            <div className="mx-auto mt-8 max-w-md rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-800 dark:border-red-800 dark:bg-red-950/50 dark:text-red-300">
+              {checkoutError}
+            </div>
+          )}
+
           <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <PlanCard
               name={t("pricing.basicName")}
@@ -88,6 +106,8 @@ export function PricingContent(): React.ReactNode {
               cta={t("pricing.basicCta")}
               ctaHref="/signup"
               onCtaClick={loggedIn && workspaceId ? () => handleCheckout("basic") : undefined}
+              loading={checkoutLoading === "basic"}
+              disabled={!!checkoutLoading}
             />
             <PlanCard
               name={t("pricing.startupName")}
@@ -105,6 +125,8 @@ export function PricingContent(): React.ReactNode {
               cta={t("pricing.startupCta")}
               ctaHref="/signup"
               onCtaClick={loggedIn && workspaceId ? () => handleCheckout("startup") : undefined}
+              loading={checkoutLoading === "startup"}
+              disabled={!!checkoutLoading}
             />
             <PlanCard
               name={t("pricing.proName")}
@@ -121,6 +143,8 @@ export function PricingContent(): React.ReactNode {
               cta={t("pricing.proCta")}
               ctaHref="/signup"
               onCtaClick={loggedIn && workspaceId ? () => handleCheckout("pro") : undefined}
+              loading={checkoutLoading === "pro"}
+              disabled={!!checkoutLoading}
             />
           </div>
         </div>
@@ -245,6 +269,8 @@ function PlanCard({
   popular = false,
   popularLabel,
   onCtaClick,
+  loading,
+  disabled,
 }: {
   name: string;
   price: string;
@@ -255,6 +281,8 @@ function PlanCard({
   popular?: boolean;
   popularLabel?: string;
   onCtaClick?: () => void;
+  loading?: boolean;
+  disabled?: boolean;
 }): React.ReactNode {
   return (
     <div
