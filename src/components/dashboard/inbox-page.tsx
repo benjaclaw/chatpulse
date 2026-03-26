@@ -329,11 +329,34 @@ export function InboxPageClient(): React.ReactNode {
     });
   }
 
+  // Typing channel ref — avoid creating a new channel on every keystroke
+  const typingChannelRef = useRef<ReturnType<typeof supabase.channel> | null>(null);
+  const typingChannelIdRef = useRef<string | null>(null);
+
+  // Keep typing channel in sync with selectedId
+  useEffect(() => {
+    if (typingChannelIdRef.current && typingChannelIdRef.current !== selectedId && typingChannelRef.current) {
+      supabase.removeChannel(typingChannelRef.current);
+      typingChannelRef.current = null;
+      typingChannelIdRef.current = null;
+    }
+  }, [selectedId]);
+
   // Send typing indicator
   function sendAgentTyping() {
     if (!selectedId) return;
-    const channel = supabase.channel(`typing-${selectedId}`);
-    channel.send({
+
+    // Reuse or create channel for current selectedId
+    if (typingChannelIdRef.current !== selectedId || !typingChannelRef.current) {
+      if (typingChannelRef.current) {
+        supabase.removeChannel(typingChannelRef.current);
+      }
+      typingChannelRef.current = supabase.channel(`typing-agent-${selectedId}`);
+      typingChannelRef.current.subscribe();
+      typingChannelIdRef.current = selectedId;
+    }
+
+    typingChannelRef.current.send({
       type: "broadcast",
       event: "typing",
       payload: { from: "agent" },
@@ -453,40 +476,31 @@ export function InboxPageClient(): React.ReactNode {
     }
   }
 
-  // Auto-close check for inactive conversations
+  // Presence heartbeat — keep agent online while dashboard is open
   useEffect(() => {
-    const interval = setInterval(async () => {
-      const thirtyMinAgo = new Date(Date.now() - 30 * 60 * 1000).toISOString();
-      const { data: staleConvs } = await supabase
-        .from("conversations")
-        .select("id")
-        .eq("workspace_id", workspace.id)
-        .eq("status", "human")
-        .lt("started_at", thirtyMinAgo);
+    if (!userId) return;
 
-      if (staleConvs && staleConvs.length > 0) {
-        for (const conv of staleConvs) {
-          // Check last message time
-          const { data: lastMsg } = await supabase
-            .from("messages")
-            .select("created_at")
-            .eq("conversation_id", conv.id)
-            .order("created_at", { ascending: false })
-            .limit(1)
-            .single();
+    const sendHeartbeat = () => {
+      fetch("/api/presence", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId: workspace.id, status: "online" }),
+      }).catch(() => {});
+    };
 
-          if (lastMsg && new Date(lastMsg.created_at).getTime() < Date.now() - 30 * 60 * 1000) {
-            await supabase
-              .from("conversations")
-              .update({ status: "closed" })
-              .eq("id", conv.id);
-          }
-        }
-      }
-    }, 5 * 60 * 1000); // Check every 5 minutes
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 30_000);
 
-    return () => clearInterval(interval);
-  }, [workspace.id]);
+    return () => {
+      clearInterval(interval);
+      // Set offline on unmount
+      fetch("/api/presence", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId: workspace.id, status: "offline" }),
+      }).catch(() => {});
+    };
+  }, [workspace.id, userId]);
 
   const selectedConv = conversations.find((c) => c.id === selectedId);
   const filteredCanned = useMemo(() =>

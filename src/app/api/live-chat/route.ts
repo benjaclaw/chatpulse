@@ -9,6 +9,39 @@ interface LiveChatRequest {
   role: "user" | "agent";
 }
 
+// --- In-memory rate limiting ---
+interface RateBucket {
+  count: number;
+  resetAt: number;
+}
+
+const conversationRateMap = new Map<string, RateBucket>();
+const CONVERSATION_LIMIT = 30; // per minute
+const WINDOW_MS = 60_000;
+const CLEANUP_INTERVAL = 5 * 60_000;
+let lastCleanup = Date.now();
+
+function cleanupRateMap(): void {
+  const now = Date.now();
+  if (now - lastCleanup < CLEANUP_INTERVAL) return;
+  lastCleanup = now;
+  for (const [key, bucket] of conversationRateMap) {
+    if (now > bucket.resetAt) conversationRateMap.delete(key);
+  }
+}
+
+function checkRate(key: string): boolean {
+  cleanupRateMap();
+  const now = Date.now();
+  const bucket = conversationRateMap.get(key);
+  if (!bucket || now > bucket.resetAt) {
+    conversationRateMap.set(key, { count: 1, resetAt: now + WINDOW_MS });
+    return true;
+  }
+  bucket.count++;
+  return bucket.count <= CONVERSATION_LIMIT;
+}
+
 export async function POST(request: Request): Promise<Response> {
   let body: LiveChatRequest;
   try {
@@ -20,6 +53,14 @@ export async function POST(request: Request): Promise<Response> {
   const { conversationId, content, role } = body;
   if (!conversationId || !content?.trim() || !role) {
     return Response.json({ error: "Missing required fields" }, { status: 400 });
+  }
+
+  // Rate limit per conversation
+  if (!checkRate(conversationId)) {
+    return Response.json(
+      { error: "Too many messages. Please wait before sending more." },
+      { status: 429 }
+    );
   }
 
   if (role === "agent") {

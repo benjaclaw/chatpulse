@@ -25,15 +25,21 @@ export async function POST(request: Request): Promise<Response> {
 
   const serviceClient = createServiceClient();
 
-  // Update conversation
-  const { error: convError } = await serviceClient
+  // Update conversation — only if still waiting (race condition guard)
+  const { data: updated, error: convError } = await serviceClient
     .from("conversations")
     .update({ status: "human", assigned_to: user.id })
-    .eq("id", conversationId);
+    .eq("id", conversationId)
+    .eq("status", "waiting")
+    .select("id");
 
   if (convError) {
     console.error("Claim error:", convError);
     return Response.json({ error: "Failed to claim" }, { status: 500 });
+  }
+
+  if (!updated || updated.length === 0) {
+    return Response.json({ error: "Conversation already claimed or not in waiting state" }, { status: 409 });
   }
 
   // Create assignment record

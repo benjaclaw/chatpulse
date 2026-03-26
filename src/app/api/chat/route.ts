@@ -464,8 +464,15 @@ VIKTIGE REGLER:
       }
     };
 
-    // Fire and forget — don't block the response for analytics tracking
-    trackQuestion();
+    // Await with timeout so tracking doesn't block too long
+    try {
+      await Promise.race([
+        trackQuestion(),
+        new Promise((_, reject) => setTimeout(() => reject(new Error("Question tracking timed out")), 5000)),
+      ]);
+    } catch (err) {
+      console.error("Question tracking failed or timed out:", err);
+    }
   }
 
   // 9. Return response
