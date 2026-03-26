@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useCallback, useRef } from "react";
+import { useState, useCallback, useRef, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { createClient } from "@/lib/supabase/client";
 import { createT, type Language } from "@/lib/i18n";
@@ -151,6 +151,21 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
   const [error, setError] = useState("");
   const [submitting, setSubmitting] = useState(false);
 
+  // Name (part of step 1)
+  const [fullName, setFullName] = useState(() => {
+    // Prefill from user metadata (e.g. Google login)
+    return "";
+  });
+
+  // Load existing full_name from user metadata on mount
+  useEffect(() => {
+    supabase.auth.getUser().then(({ data }) => {
+      const name = data.user?.user_metadata?.full_name;
+      if (name && typeof name === "string") setFullName(name);
+    });
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
   // Step 1: Workspace
   const [workspaceName, setWorkspaceName] = useState("");
   const [industry, setIndustry] = useState<Industry | "">("");
@@ -192,7 +207,7 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
 
   // Step validation
   const canProceed = (): boolean => {
-    if (step === 0) return workspaceName.trim().length > 0;
+    if (step === 0) return workspaceName.trim().length > 0 && fullName.trim().length > 0;
     return true;
   };
 
@@ -263,6 +278,11 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
     setSubmitting(true);
 
     try {
+      // 0. Save user name
+      if (fullName.trim()) {
+        await supabase.auth.updateUser({ data: { full_name: fullName.trim() } });
+      }
+
       // 1. Create workspace
       const baseSlug = slugify(workspaceName);
       const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`;
@@ -439,6 +459,19 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
           {step === 0 && (
             <div className="space-y-6">
               <div className="space-y-2">
+                <Label htmlFor="full-name">
+                  {t("onboarding.yourName") || "Ditt navn"} *
+                </Label>
+                <Input
+                  id="full-name"
+                  value={fullName}
+                  onChange={(e) => setFullName(e.target.value)}
+                  placeholder={t("onboarding.yourNamePlaceholder") || "Ola Nordmann"}
+                  autoFocus
+                />
+              </div>
+
+              <div className="space-y-2">
                 <Label htmlFor="workspace-name">
                   {t("onboarding.workspaceName")} *
                 </Label>
@@ -447,7 +480,6 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
                   value={workspaceName}
                   onChange={(e) => setWorkspaceName(e.target.value)}
                   placeholder={t("onboarding.workspaceNamePlaceholder")}
-                  autoFocus
                 />
                 <p className="text-xs text-muted-foreground">
                   {t("onboarding.workspaceNameHelp")}

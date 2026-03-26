@@ -39,8 +39,9 @@ import {
   Zap,
   Clock,
 } from "lucide-react";
-import { getPlanDetail, getPlanLimit } from "@/lib/plans";
-import type { PlanFeature } from "@/lib/plans";
+import { cn } from "@/lib/utils";
+import { getPlanDetail, getPlanLimit, VISIBLE_PLAN_DETAILS } from "@/lib/plans";
+import type { PlanId, PlanFeature } from "@/lib/plans";
 
 type DaySchedule = { start: string; end: string } | null;
 type BusinessHours = {
@@ -292,13 +293,32 @@ function PlanCard({
   workspace,
   t,
 }: {
-  workspace: { plan_id: string; message_count: number };
+  workspace: { id: string; plan_id: string; message_count: number };
   t: (key: string, params?: Record<string, string | number>) => string;
 }): React.ReactNode {
   const plan = getPlanDetail(workspace.plan_id);
   const limit = getPlanLimit(workspace.plan_id);
   const used = workspace.message_count;
   const pct = Math.min((used / limit) * 100, 100);
+  const [upgrading, setUpgrading] = useState<string | null>(null);
+  const [showPlans, setShowPlans] = useState(false);
+
+  async function handleUpgrade(planId: Exclude<PlanId, "free">) {
+    setUpgrading(planId);
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ planId, workspaceId: workspace.id }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      }
+    } finally {
+      setUpgrading(null);
+    }
+  }
 
   return (
     <Card>
@@ -327,10 +347,43 @@ function PlanCard({
 
         {/* Upgrade button */}
         {workspace.plan_id !== "pro" && (
-          <Button variant="outline" className="w-full sm:w-auto">
+          <Button variant="outline" className="w-full sm:w-auto" onClick={() => setShowPlans(!showPlans)}>
             <Zap className="mr-2 h-4 w-4" />
             {t('plans.upgradePlan')}
           </Button>
+        )}
+
+        {/* Plan selector */}
+        {showPlans && (
+          <div className="grid gap-3 sm:grid-cols-3 pt-2">
+            {VISIBLE_PLAN_DETAILS.map((p) => (
+              <div
+                key={p.id}
+                className={cn(
+                  "rounded-lg border p-4 text-center",
+                  workspace.plan_id === p.id && "border-primary bg-primary/5"
+                )}
+              >
+                <p className="font-semibold">{p.name}</p>
+                <p className="text-lg font-bold">{p.priceNok} kr<span className="text-xs font-normal text-muted-foreground">/mnd</span></p>
+                <p className="mt-1 text-xs text-muted-foreground">{p.messageLimit} meldinger</p>
+                {workspace.plan_id === p.id ? (
+                  <Button variant="outline" size="sm" className="mt-3 w-full" disabled>
+                    {t('plans.currentPlan')}
+                  </Button>
+                ) : (
+                  <Button
+                    size="sm"
+                    className="mt-3 w-full"
+                    disabled={!!upgrading}
+                    onClick={() => handleUpgrade(p.id as Exclude<PlanId, "free">)}
+                  >
+                    {upgrading === p.id ? "..." : t('plans.upgradePlan')}
+                  </Button>
+                )}
+              </div>
+            ))}
+          </div>
         )}
       </CardContent>
     </Card>

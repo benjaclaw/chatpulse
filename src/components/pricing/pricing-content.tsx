@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   Check,
@@ -13,8 +14,10 @@ import {
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { createT, type Language } from "@/lib/i18n";
+import { createClient } from "@/lib/supabase/client";
 
 export function PricingContent(): React.ReactNode {
+  const router = useRouter();
   const [language] = useState<Language>(() => {
     if (typeof window !== "undefined") {
       return (localStorage.getItem("chatpulse_lang") as Language) || "nb";
@@ -22,6 +25,40 @@ export function PricingContent(): React.ReactNode {
     return "nb";
   });
   const t = createT(language);
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [workspaceId, setWorkspaceId] = useState<string | null>(null);
+
+  useEffect(() => {
+    const supabase = createClient();
+    supabase.auth.getUser().then(({ data }) => {
+      if (data.user) {
+        setLoggedIn(true);
+        // Fetch the user's workspace
+        supabase
+          .from("members")
+          .select("workspace_id")
+          .eq("user_id", data.user.id)
+          .limit(1)
+          .single()
+          .then(({ data: member }) => {
+            if (member) setWorkspaceId(member.workspace_id);
+          });
+      }
+    });
+  }, []);
+
+  async function handleCheckout(planId: string) {
+    if (!workspaceId) return;
+    const res = await fetch("/api/stripe/checkout", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ planId, workspaceId }),
+    });
+    const data = await res.json();
+    if (data.url) {
+      window.location.href = data.url;
+    }
+  }
 
   return (
     <>
@@ -50,6 +87,7 @@ export function PricingContent(): React.ReactNode {
               ]}
               cta={t("pricing.basicCta")}
               ctaHref="/signup"
+              onCtaClick={loggedIn && workspaceId ? () => handleCheckout("basic") : undefined}
             />
             <PlanCard
               name={t("pricing.startupName")}
@@ -66,6 +104,7 @@ export function PricingContent(): React.ReactNode {
               ]}
               cta={t("pricing.startupCta")}
               ctaHref="/signup"
+              onCtaClick={loggedIn && workspaceId ? () => handleCheckout("startup") : undefined}
             />
             <PlanCard
               name={t("pricing.proName")}
@@ -81,6 +120,7 @@ export function PricingContent(): React.ReactNode {
               ]}
               cta={t("pricing.proCta")}
               ctaHref="/signup"
+              onCtaClick={loggedIn && workspaceId ? () => handleCheckout("pro") : undefined}
             />
           </div>
         </div>
@@ -204,6 +244,7 @@ function PlanCard({
   ctaHref,
   popular = false,
   popularLabel,
+  onCtaClick,
 }: {
   name: string;
   price: string;
@@ -213,6 +254,7 @@ function PlanCard({
   ctaHref: string;
   popular?: boolean;
   popularLabel?: string;
+  onCtaClick?: () => void;
 }): React.ReactNode {
   return (
     <div
@@ -243,18 +285,33 @@ function PlanCard({
           </li>
         ))}
       </ul>
-      <Link
-        href={ctaHref}
-        className={cn(
-          buttonVariants({
-            variant: popular ? "default" : "outline",
-            size: "lg",
-          }),
-          "mt-8 w-full"
-        )}
-      >
-        {cta}
-      </Link>
+      {onCtaClick ? (
+        <button
+          onClick={onCtaClick}
+          className={cn(
+            buttonVariants({
+              variant: popular ? "default" : "outline",
+              size: "lg",
+            }),
+            "mt-8 w-full"
+          )}
+        >
+          {cta}
+        </button>
+      ) : (
+        <Link
+          href={ctaHref}
+          className={cn(
+            buttonVariants({
+              variant: popular ? "default" : "outline",
+              size: "lg",
+            }),
+            "mt-8 w-full"
+          )}
+        >
+          {cta}
+        </Link>
+      )}
     </div>
   );
 }
