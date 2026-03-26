@@ -404,7 +404,7 @@ export function ChatWidget({
                 {
                   id: `connecting-${Date.now()}`,
                   role: "assistant",
-                  content: i18nLang === "nb" ? "Du kobles til en medarbeider..." : "Connecting you to an agent...",
+                  content: i18nLang === "nb" ? "Du settes i kontakt med en medarbeider. Det kan ta noen minutter — vi svarer så raskt vi kan!" : "You're being connected to an agent. It may take a few minutes — we'll respond as soon as we can!",
                 },
               ]);
               subscribeToRealtime(data.conversationId);
