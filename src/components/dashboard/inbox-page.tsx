@@ -496,31 +496,7 @@ export function InboxPageClient(): React.ReactNode {
     }
   }
 
-  // Presence heartbeat — keep agent online while dashboard is open
-  useEffect(() => {
-    if (!userId) return;
-
-    const sendHeartbeat = () => {
-      fetch("/api/presence", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceId: workspace.id, status: "online" }),
-      }).catch(() => {});
-    };
-
-    sendHeartbeat();
-    const interval = setInterval(sendHeartbeat, 30_000);
-
-    return () => {
-      clearInterval(interval);
-      // Set offline on unmount
-      fetch("/api/presence", {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ workspaceId: workspace.id, status: "offline" }),
-      }).catch(() => {});
-    };
-  }, [workspace.id, userId]);
+  // Presence heartbeat moved to DashboardShell (runs on all dashboard pages)
 
   const selectedConv = conversations.find((c) => c.id === selectedId);
   const filteredCanned = useMemo(() =>

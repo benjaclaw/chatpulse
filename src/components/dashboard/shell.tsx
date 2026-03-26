@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Sidebar } from "./sidebar";
 import { MobileNav } from "./mobile-nav";
 import type { UserInfo, Workspace } from "@/lib/types";
@@ -24,6 +24,31 @@ export function DashboardShell({
   const activeWorkspace = workspaces.find((w) => w.id === activeWorkspaceId) ?? workspaces[0];
 
   const language = (activeWorkspace?.language === "en" ? "en" : "nb") as Language;
+
+  // Presence heartbeat — keep agent online while ANY dashboard page is open
+  useEffect(() => {
+    if (!activeWorkspace?.id) return;
+
+    const sendHeartbeat = () => {
+      fetch("/api/presence", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId: activeWorkspace.id, status: "online" }),
+      }).catch(() => {});
+    };
+
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 30_000);
+
+    return () => {
+      clearInterval(interval);
+      fetch("/api/presence", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId: activeWorkspace.id, status: "offline" }),
+      }).catch(() => {});
+    };
+  }, [activeWorkspace?.id]);
 
   return (
     <LanguageProvider initialLanguage={language} key={language}>
