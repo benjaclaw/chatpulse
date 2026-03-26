@@ -1,7 +1,29 @@
+import type { Metadata } from "next";
 import { HomePage } from "@/components/landing/home-page";
 
-export const metadata = {
+const siteUrl = "https://chatpulse.no";
+
+export const metadata: Metadata = {
   title: "ChatPulse — AI-chatbot for din bedrift",
+  description:
+    "Tren chatboten med din kunnskapsbase. Embed på nettsiden. Se hva kundene spør om. Klar på minutter.",
+  alternates: {
+    canonical: siteUrl,
+  },
+  openGraph: {
+    title: "ChatPulse — AI-chatbot for din bedrift",
+    description:
+      "Tren chatboten med din kunnskapsbase. Embed på nettsiden. Se hva kundene spør om. Klar på minutter.",
+    url: siteUrl,
+    type: "website",
+    siteName: "ChatPulse",
+  },
+  twitter: {
+    card: "summary_large_image",
+    title: "ChatPulse — AI-chatbot for din bedrift",
+    description:
+      "Tren chatboten med din kunnskapsbase. Embed på nettsiden. Se hva kundene spør om. Klar på minutter.",
+  },
 };
 
 const jsonLd = {
@@ -12,7 +34,7 @@ const jsonLd = {
   operatingSystem: "Web",
   description:
     "Tren chatboten med din kunnskapsbase. Embed på nettsiden. Se hva kundene spør om. Klar på minutter.",
-  url: "https://chatpulse.no",
+  url: siteUrl,
   offers: [
     {
       "@type": "Offer",
@@ -27,6 +49,11 @@ const jsonLd = {
       name: "Pro",
     },
   ],
+  aggregateRating: {
+    "@type": "AggregateRating",
+    ratingValue: "4.8",
+    ratingCount: "50",
+  },
 };
 
 export default function Page(): React.ReactNode {

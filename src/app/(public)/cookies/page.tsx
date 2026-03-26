@@ -2,7 +2,18 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Cookiepolicy",
+  description: "ChatPulse sin cookiepolicy. Les om hvilke informasjonskapsler vi bruker og hvordan du kan administrere dem.",
+  alternates: {
+    canonical: "https://chatpulse.no/cookies",
+  },
+  openGraph: {
+    title: "Cookiepolicy — ChatPulse",
+    description: "ChatPulse sin cookiepolicy. Les om hvilke informasjonskapsler vi bruker og hvordan du kan administrere dem.",
+    url: "https://chatpulse.no/cookies",
+  },
 };
+
+export const revalidate = 86400;
 
 export default function CookiesPage(): React.ReactNode {
   return (

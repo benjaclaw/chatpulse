@@ -93,9 +93,11 @@ export function InboxPageClient(): React.ReactNode {
 
   // Get current user
   useEffect(() => {
+    let cancelled = false;
     supabase.auth.getUser().then(({ data }) => {
-      if (data.user) setUserId(data.user.id);
+      if (!cancelled && data.user) setUserId(data.user.id);
     });
+    return () => { cancelled = true; };
   }, []);
 
   // Load conversations
@@ -143,13 +145,15 @@ export function InboxPageClient(): React.ReactNode {
 
   // Load canned responses
   useEffect(() => {
+    let cancelled = false;
     supabase
       .from("canned_responses")
       .select("id, shortcut, title, content")
       .eq("workspace_id", workspace.id)
       .then(({ data }) => {
-        if (data) setCannedResponses(data);
+        if (!cancelled && data) setCannedResponses(data);
       });
+    return () => { cancelled = true; };
   }, [workspace.id]);
 
   // Realtime subscription for conversations
@@ -238,6 +242,7 @@ export function InboxPageClient(): React.ReactNode {
     return () => {
       supabase.removeChannel(channel);
       supabase.removeChannel(typingChannel);
+      if (typingTimeoutRef.current) clearTimeout(typingTimeoutRef.current);
     };
   }, [selectedId]);
 

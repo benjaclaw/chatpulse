@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { ChatbotPageClient } from "@/components/dashboard/chatbot-page";
 
 export const dynamic = "force-dynamic";
@@ -7,5 +8,9 @@ export const metadata = {
 };
 
 export default function ChatbotPage(): React.ReactNode {
-  return <ChatbotPageClient />;
+  return (
+    <Suspense>
+      <ChatbotPageClient />
+    </Suspense>
+  );
 }

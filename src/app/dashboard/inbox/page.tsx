@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { InboxPageClient } from "@/components/dashboard/inbox-page";
 
 export const dynamic = "force-dynamic";
@@ -7,5 +8,9 @@ export const metadata = {
 };
 
 export default function InboxPage(): React.ReactNode {
-  return <InboxPageClient />;
+  return (
+    <Suspense>
+      <InboxPageClient />
+    </Suspense>
+  );
 }

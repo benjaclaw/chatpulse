@@ -2,7 +2,19 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Personvernerklæring",
+  description: "Les ChatPulse sin personvernerklæring. Vi forklarer hvilke opplysninger vi samler inn, hvordan de brukes, og dine rettigheter under GDPR.",
+  alternates: {
+    canonical: "https://chatpulse.no/privacy",
+  },
+  openGraph: {
+    title: "Personvernerklæring — ChatPulse",
+    description: "Les ChatPulse sin personvernerklæring. Vi forklarer hvilke opplysninger vi samler inn, hvordan de brukes, og dine rettigheter under GDPR.",
+    url: "https://chatpulse.no/privacy",
+  },
 };
+
+// Static page — revalidate once per day
+export const revalidate = 86400;
 
 export default function PrivacyPage(): React.ReactNode {
   return (

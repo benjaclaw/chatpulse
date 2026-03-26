@@ -2,7 +2,18 @@ import type { Metadata } from "next";
 
 export const metadata: Metadata = {
   title: "Vilkår for bruk",
+  description: "Les vilkårene for bruk av ChatPulse. Gjelder for alle brukere av vår AI-chatbot-plattform.",
+  alternates: {
+    canonical: "https://chatpulse.no/terms",
+  },
+  openGraph: {
+    title: "Vilkår for bruk — ChatPulse",
+    description: "Les vilkårene for bruk av ChatPulse. Gjelder for alle brukere av vår AI-chatbot-plattform.",
+    url: "https://chatpulse.no/terms",
+  },
 };
+
+export const revalidate = 86400;
 
 export default function TermsPage(): React.ReactNode {
   return (

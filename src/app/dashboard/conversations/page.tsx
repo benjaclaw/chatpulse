@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { ConversationsPageClient } from "@/components/dashboard/conversations-page";
 
 export const dynamic = "force-dynamic";
@@ -7,5 +8,9 @@ export const metadata = {
 };
 
 export default function ConversationsPage(): React.ReactNode {
-  return <ConversationsPageClient />;
+  return (
+    <Suspense>
+      <ConversationsPageClient />
+    </Suspense>
+  );
 }

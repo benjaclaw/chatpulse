@@ -1,3 +1,4 @@
+import { Suspense } from "react";
 import { KnowledgePageClient } from "@/components/dashboard/knowledge-page";
 
 export const dynamic = "force-dynamic";
@@ -7,5 +8,9 @@ export const metadata = {
 };
 
 export default function KnowledgePage(): React.ReactNode {
-  return <KnowledgePageClient />;
+  return (
+    <Suspense>
+      <KnowledgePageClient />
+    </Suspense>
+  );
 }
