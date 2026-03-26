@@ -382,7 +382,12 @@ function BusinessHoursCard({
       .single()
       .then(({ data }) => {
         if (data?.business_hours) {
-          setBh(data.business_hours as BusinessHours);
+          const saved = data.business_hours as Partial<BusinessHours>;
+          setBh({
+            enabled: saved.enabled ?? false,
+            timezone: saved.timezone ?? DEFAULT_BH.timezone,
+            schedule: saved.schedule ?? DEFAULT_BH.schedule,
+          });
         }
       });
   }, [workspaceId]);
