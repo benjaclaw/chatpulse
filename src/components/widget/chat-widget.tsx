@@ -103,7 +103,17 @@ export function ChatWidget({
   const [agentTyping, setAgentTyping] = useState(false);
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
   const [agentsOnline, setAgentsOnline] = useState(false);
-  const [hasInteracted, setHasInteracted] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(() => {
+    // If we restored messages from sessionStorage that include user messages, user has already interacted
+    try {
+      const saved = sessionStorage.getItem("chatpulse_messages");
+      if (saved) {
+        const parsed = JSON.parse(saved) as Message[];
+        return parsed.some((m) => m.role === "user");
+      }
+    } catch { /* ignore */ }
+    return false;
+  });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
@@ -256,30 +266,46 @@ export function ChatWidget({
       const savedWsId = sessionStorage.getItem("chatpulse_workspace_id");
 
       if (savedMode === "true" && savedConvId) {
-        conversationIdRef.current = savedConvId;
-        if (savedWsId) workspaceIdRef.current = savedWsId;
-
-        // Load message history from DB
+        // Check if the conversation is still active before restoring
         const supabase = createClient();
         supabase
-          .from("messages")
-          .select("id, role, content")
-          .eq("conversation_id", savedConvId)
-          .order("created_at", { ascending: true })
-          .then(({ data }) => {
-            if (data && data.length > 0) {
-              const restored: Message[] = data.map((m: { id: string; role: string; content: string }) => ({
-                id: m.id,
-                role: m.role as Message["role"],
-                content: m.content,
-              }));
-              setMessages(restored);
+          .from("conversations")
+          .select("id, status")
+          .eq("id", savedConvId)
+          .single()
+          .then(({ data: conv }) => {
+            if (!conv || conv.status === "closed" || conv.status === "ai") {
+              // Conversation ended — clear session state
+              sessionStorage.removeItem("chatpulse_live_chat_mode");
+              sessionStorage.removeItem("chatpulse_conversation_id");
+              sessionStorage.removeItem("chatpulse_workspace_id");
+              return;
             }
-            setLiveChatMode(true);
-            subscribeToRealtime(savedConvId);
-            if (savedWsId) {
-              fetchQueuePosition(savedConvId, savedWsId);
-            }
+
+            // Conversation is still active — restore it
+            conversationIdRef.current = savedConvId;
+            if (savedWsId) workspaceIdRef.current = savedWsId;
+
+            supabase
+              .from("messages")
+              .select("id, role, content")
+              .eq("conversation_id", savedConvId)
+              .order("created_at", { ascending: true })
+              .then(({ data }) => {
+                if (data && data.length > 0) {
+                  const restored: Message[] = data.map((m: { id: string; role: string; content: string }) => ({
+                    id: m.id,
+                    role: m.role as Message["role"],
+                    content: m.content,
+                  }));
+                  setMessages(restored);
+                }
+                setLiveChatMode(true);
+                subscribeToRealtime(savedConvId);
+                if (savedWsId) {
+                  fetchQueuePosition(savedConvId, savedWsId);
+                }
+              });
           });
       }
     } catch {
