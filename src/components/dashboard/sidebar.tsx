@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback, useRef } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { ChevronsUpDown, LogOut, Lock } from "lucide-react";
@@ -22,6 +22,8 @@ import { isNavActive, getInitials } from "@/lib/utils";
 import { useLanguage } from "@/lib/i18n/context";
 import { createClient } from "@/lib/supabase/client";
 
+const LS_KEY = "chatpulse_agent_online";
+
 interface SidebarProps {
   user: UserInfo;
   workspaces: Workspace[];
@@ -37,11 +39,33 @@ export function Sidebar({
 }: SidebarProps): React.ReactNode {
   const pathname = usePathname();
   const { t } = useLanguage();
-  const [isOnline, setIsOnline] = useState(false);
+  const [isOnline, setIsOnline] = useState(() => {
+    if (typeof window !== "undefined") {
+      return localStorage.getItem(LS_KEY) === "true";
+    }
+    return false;
+  });
   const [waitingCount, setWaitingCount] = useState(0);
   const supabase = createClient();
+  const isOnlineRef = useRef(isOnline);
 
-  // Update presence
+  // Keep ref in sync for use in beforeunload
+  useEffect(() => {
+    isOnlineRef.current = isOnline;
+  }, [isOnline]);
+
+  // Fetch initial presence status from DB
+  useEffect(() => {
+    fetch(`/api/presence-status?workspaceId=${activeWorkspace.id}`)
+      .then((res) => res.json())
+      .then((data: { online: boolean }) => {
+        setIsOnline(data.online);
+        localStorage.setItem(LS_KEY, String(data.online));
+      })
+      .catch(() => {});
+  }, [activeWorkspace.id]);
+
+  // Update presence API
   const updatePresence = useCallback(async (status: "online" | "offline") => {
     await fetch("/api/presence", {
       method: "PUT",
@@ -54,22 +78,47 @@ export function Sidebar({
   async function toggleOnline() {
     const newStatus = !isOnline;
     setIsOnline(newStatus);
+    localStorage.setItem(LS_KEY, String(newStatus));
     await updatePresence(newStatus ? "online" : "offline");
   }
 
-  // Set offline on page unload
+  // Heartbeat when online, stop when offline
   useEffect(() => {
-    function handleBeforeUnload() {
-      navigator.sendBeacon(
-        "/api/presence",
-        new Blob(
-          [JSON.stringify({ workspaceId: activeWorkspace.id, status: "offline" })],
-          { type: "application/json" }
-        )
-      );
+    if (!isOnline) {
+      updatePresence("offline").catch(() => {});
+      return;
     }
-    window.addEventListener("beforeunload", handleBeforeUnload);
-    return () => window.removeEventListener("beforeunload", handleBeforeUnload);
+
+    const sendHeartbeat = () => {
+      fetch("/api/presence", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId: activeWorkspace.id, status: "online" }),
+      }).catch(() => {});
+    };
+
+    sendHeartbeat();
+    const interval = setInterval(sendHeartbeat, 30_000);
+
+    return () => {
+      clearInterval(interval);
+      // Don't send offline on cleanup — 2-minute timeout handles stale agents
+    };
+  }, [isOnline, activeWorkspace.id]);
+
+  // Reliable offline signal on page unload (only if online)
+  useEffect(() => {
+    const handleUnload = () => {
+      if (!isOnlineRef.current) return;
+      fetch("/api/presence", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId: activeWorkspace.id, status: "offline" }),
+        keepalive: true,
+      }).catch(() => {});
+    };
+    window.addEventListener("beforeunload", handleUnload);
+    return () => window.removeEventListener("beforeunload", handleUnload);
   }, [activeWorkspace.id]);
 
   // Fetch waiting count + realtime subscription
@@ -176,6 +225,29 @@ export function Sidebar({
         </ul>
       </nav>
 
+      {/* Availability toggle */}
+      <div className="px-3 py-2">
+        <button
+          onClick={toggleOnline}
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-muted"
+        >
+          <span
+            className={`relative flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
+              isOnline ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
+            }`}
+          >
+            <span
+              className={`absolute h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${
+                isOnline ? "translate-x-[18px]" : "translate-x-[3px]"
+              }`}
+            />
+          </span>
+          <span className={isOnline ? "text-foreground" : "text-muted-foreground"}>
+            {isOnline ? t('sidebar.chatAvailable') : t('sidebar.chatUnavailable')}
+          </span>
+        </button>
+      </div>
+
       <Separator />
 
       {/* User menu */}
@@ -188,17 +260,10 @@ export function Sidebar({
                   {getInitials(user.name, user.email)}
                 </AvatarFallback>
               </Avatar>
-              {/* Online/offline indicator dot */}
-              <button
-                onClick={(e) => {
-                  e.preventDefault();
-                  e.stopPropagation();
-                  toggleOnline();
-                }}
-                className={`absolute -bottom-0.5 -right-0.5 h-3.5 w-3.5 rounded-full border-2 border-card transition-colors ${
+              <span
+                className={`absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full border-2 border-card ${
                   isOnline ? "bg-green-500" : "bg-gray-400"
                 }`}
-                title={isOnline ? t('inbox.goOffline') : t('inbox.goOnline')}
               />
             </div>
             <div className="flex flex-col items-start text-left">

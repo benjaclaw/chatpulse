@@ -641,6 +641,8 @@ const nb: Record<string, string> = {
   'inbox.internalNote': 'Internt notat',
   'inbox.goOnline': 'Gå online',
   'inbox.goOffline': 'Gå offline',
+  'sidebar.chatAvailable': 'Tilgjengelig for chat',
+  'sidebar.chatUnavailable': 'Ikke tilgjengelig',
   'inbox.loadMore': 'Last flere samtaler',
 
   // Settings: Business hours

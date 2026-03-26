@@ -641,6 +641,8 @@ const en: Record<string, string> = {
   'inbox.internalNote': 'Internal note',
   'inbox.goOnline': 'Go online',
   'inbox.goOffline': 'Go offline',
+  'sidebar.chatAvailable': 'Available for chat',
+  'sidebar.chatUnavailable': 'Unavailable',
   'inbox.loadMore': 'Load more conversations',
 
   // Settings: Business hours
