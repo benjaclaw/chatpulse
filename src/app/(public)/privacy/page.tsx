@@ -153,6 +153,19 @@ export default function PrivacyPage(): React.ReactNode {
             personopplysninger samles inn med mindre brukeren frivillig oppgir
             dette i samtalen.
           </p>
+          <p>
+            ChatPulse-widgeten lagrer en anonym identifikator (visitorId) i
+            nettleserens localStorage for å koble meldinger til en samtale.
+            Denne inneholder ingen personopplysninger og kan ikke brukes til å
+            identifisere brukeren. Ved bruk av live chat lagres også midlertidig
+            sesjonsinformasjon i sessionStorage, som automatisk slettes når
+            nettleserfanen lukkes.
+          </p>
+          <p>
+            Widgeten bruker ingen informasjonskapsler (cookies). Nettsideeiere
+            som integrerer ChatPulse er selv ansvarlige for å informere sine
+            besøkende om tredjepartsverktøy i sin personvernerklæring.
+          </p>
         </section>
 
         <section>

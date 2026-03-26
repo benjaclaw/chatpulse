@@ -94,6 +94,9 @@ export function ChatWidget({
   const [liveChatMode, setLiveChatMode] = useState(false);
   const [agentTyping, setAgentTyping] = useState(false);
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
+  const [agentsOnline, setAgentsOnline] = useState(false);
+  const [hasInteracted, setHasInteracted] = useState(false);
+  const widgetConfigFetched = useRef(false);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const conversationIdRef = useRef<string | null>(null);
@@ -119,7 +122,17 @@ export function ChatWidget({
     if (isOpen && inputRef.current) {
       inputRef.current.focus({ preventScroll: true });
     }
-  }, [isOpen]);
+    if (isOpen && chatbotId && !widgetConfigFetched.current) {
+      widgetConfigFetched.current = true;
+      fetch(`/api/widget-config?chatbotId=${encodeURIComponent(chatbotId)}`)
+        .then((r) => r.json())
+        .then((data: { workspaceId?: string; agentsOnline?: boolean }) => {
+          if (data.workspaceId) workspaceIdRef.current = data.workspaceId;
+          if (data.agentsOnline) setAgentsOnline(true);
+        })
+        .catch(() => {});
+    }
+  }, [isOpen, chatbotId]);
 
   // Update messages when welcomeMessage changes (for live preview)
   useEffect(() => {
@@ -305,9 +318,10 @@ export function ChatWidget({
     }
   }, []);
 
-  async function handleSend() {
-    const text = input.trim();
+  async function handleSend(overrideText?: string) {
+    const text = overrideText?.trim() || input.trim();
     if (!text || isTyping) return;
+    setHasInteracted(true);
 
     const userMsg: Message = {
       id: `user-${Date.now()}`,
@@ -315,7 +329,7 @@ export function ChatWidget({
       content: text,
     };
     setMessages((prev) => [...prev, userMsg]);
-    setInput("");
+    if (!overrideText) setInput("");
 
     // If in live chat mode, send via live-chat API
     if (liveChatMode && conversationIdRef.current) {
@@ -443,9 +457,36 @@ export function ChatWidget({
     }
   }
 
+  const choiceButtons = agentsOnline && !hasInteracted && !liveChatMode ? (
+    <div className="flex flex-col gap-2 px-1">
+      <button
+        type="button"
+        onClick={() => inputRef.current?.focus()}
+        className="rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:bg-opacity-10"
+        style={{ borderColor: primaryColor, color: primaryColor }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = primaryColor + "1a")}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+      >
+        {i18nLang === "nb" ? "💬 Still et spørsmål" : "💬 Ask a question"}
+      </button>
+      <button
+        type="button"
+        onClick={() => handleSend(i18nLang === "nb" ? "Jeg vil gjerne snakke med en medarbeider" : "I would like to speak with a representative")}
+        className="rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:bg-opacity-10"
+        style={{ borderColor: primaryColor, color: primaryColor }}
+        onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = primaryColor + "1a")}
+        onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}
+      >
+        {i18nLang === "nb" ? "👤 Snakk med menneske" : "👤 Talk to a person"}
+      </button>
+    </div>
+  ) : null;
+
   const headerSubtext = liveChatMode
     ? (i18nLang === "nb" ? "Live chat" : "Live chat")
-    : t('widget.online');
+    : agentsOnline
+      ? (i18nLang === "nb" ? "Kundeservice er online" : "Support is online")
+      : t('widget.online');
 
   // Inline mode — no floating button
   if (inline) {
@@ -465,6 +506,7 @@ export function ChatWidget({
           showClose={false}
           t={t}
           subtext={headerSubtext}
+          agentsOnline={agentsOnline}
         />
         <MessageList
           messages={messages}
@@ -499,6 +541,7 @@ export function ChatWidget({
               />
             ) : null
           }
+          choiceButtons={choiceButtons}
         />
         <WidgetInput
           value={input}
@@ -542,6 +585,7 @@ export function ChatWidget({
           showClose
           t={t}
           subtext={headerSubtext}
+          agentsOnline={agentsOnline}
         />
         <MessageList
           messages={messages}
@@ -576,6 +620,7 @@ export function ChatWidget({
               />
             ) : null
           }
+          choiceButtons={choiceButtons}
         />
         <WidgetInput
           value={input}
@@ -617,6 +662,7 @@ function WidgetHeader({
   showClose,
   t,
   subtext,
+  agentsOnline,
 }: {
   botName: string;
   primaryColor: string;
@@ -625,6 +671,7 @@ function WidgetHeader({
   showClose: boolean;
   t: TranslateFunction;
   subtext?: string;
+  agentsOnline?: boolean;
 }): React.ReactNode {
   return (
     <div
@@ -637,7 +684,12 @@ function WidgetHeader({
         </div>
         <div>
           <p className="text-sm font-semibold text-white">{botName}</p>
-          <p className="text-xs text-white/70">{subtext || t('widget.online')}</p>
+          <p className="flex items-center gap-1.5 text-xs text-white/70">
+            {agentsOnline && (
+              <span className="inline-block h-2 w-2 rounded-full bg-green-400" />
+            )}
+            {subtext || t('widget.online')}
+          </p>
         </div>
       </div>
       <div className="flex items-center gap-2">
@@ -671,6 +723,7 @@ const MessageList = ({
   handoffForm,
   queuePosition,
   i18nLang,
+  choiceButtons,
 }: {
   messages: Message[];
   isTyping: boolean;
@@ -680,6 +733,7 @@ const MessageList = ({
   handoffForm?: React.ReactNode;
   queuePosition?: number | null;
   i18nLang?: string;
+  choiceButtons?: React.ReactNode;
 }): React.ReactNode => {
   return (
     <div className="flex-1 overflow-y-auto p-4 space-y-3">
@@ -713,6 +767,7 @@ const MessageList = ({
           </div>
         </div>
       ))}
+      {choiceButtons}
       {queuePosition != null && queuePosition > 0 && (
         <div className="flex justify-start">
           <div className="rounded-2xl rounded-bl-md bg-muted/60 px-4 py-2 text-xs text-muted-foreground">

@@ -1,5 +1,6 @@
 import { LandingHeader } from "@/components/landing/header";
 import { LandingFooter } from "@/components/landing/footer";
+import { CookieConsent } from "@/components/landing/cookie-consent";
 
 export default function PublicLayout({
   children,
@@ -11,6 +12,7 @@ export default function PublicLayout({
       <LandingHeader />
       <main className="flex flex-1 flex-col">{children}</main>
       <LandingFooter />
+      <CookieConsent />
     </div>
   );
 }
