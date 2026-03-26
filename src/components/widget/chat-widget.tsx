@@ -119,6 +119,7 @@ export function ChatWidget({
   const inputRef = useRef<HTMLInputElement>(null);
   const conversationIdRef = useRef<string | null>(null);
   const workspaceIdRef = useRef<string | null>(null);
+  const pendingLiveChatRef = useRef<{ conversationId: string; workspaceId?: string } | null>(null);
   const realtimeChannelRef = useRef<ReturnType<ReturnType<typeof createClient>["channel"]> | null>(null);
   const typingChannelRef = useRef<ReturnType<ReturnType<typeof createClient>["channel"]> | null>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -439,30 +440,16 @@ export function ChatWidget({
           ]);
 
           if (data.handoff) {
-            if (data.liveChat && data.conversationId) {
-              // Live chat mode - agents are online
-              setLiveChatMode(true);
-              // FIX 3: Persist live chat session
-              try {
-                sessionStorage.setItem("chatpulse_live_chat_mode", "true");
-                sessionStorage.setItem("chatpulse_conversation_id", data.conversationId);
-                if (data.workspaceId) sessionStorage.setItem("chatpulse_workspace_id", data.workspaceId);
-              } catch { /* ignore */ }
-              setMessages((prev) => [
-                ...prev,
-                {
-                  id: `connecting-${Date.now()}`,
-                  role: "assistant",
-                  content: i18nLang === "nb" ? "Du settes i kontakt med en medarbeider. Det kan ta noen minutter — vi svarer så raskt vi kan!" : "You're being connected to an agent. It may take a few minutes — we'll respond as soon as we can!",
-                },
-              ]);
-              subscribeToRealtime(data.conversationId);
-              if (data.workspaceId) {
-                fetchQueuePosition(data.conversationId, data.workspaceId);
-              }
-            } else if (!handoffTriggered) {
-              // No agents online - existing lead capture flow
+            // Always show lead capture form first, then connect to live chat if agents are online
+            if (!handoffTriggered) {
               setHandoffTriggered(true);
+              // Store pending live chat data so we can connect after lead form is submitted
+              if (data.liveChat && data.conversationId) {
+                pendingLiveChatRef.current = {
+                  conversationId: data.conversationId,
+                  workspaceId: data.workspaceId,
+                };
+              }
             }
           }
         } else {
@@ -497,6 +484,42 @@ export function ChatWidget({
         ]);
         setIsTyping(false);
       }, 1000 + Math.random() * 500);
+    }
+  }
+
+  // Shared handoff form submit handler
+  async function handleHandoffSubmit(email: string, name: string) {
+    await fetch("/api/leads", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        email,
+        name: name || null,
+        workspaceId: workspaceIdRef.current,
+        conversationId: conversationIdRef.current,
+      }),
+    });
+    setHandoffSubmitted(true);
+    const pending = pendingLiveChatRef.current;
+    if (pending) {
+      pendingLiveChatRef.current = null;
+      setLiveChatMode(true);
+      try {
+        sessionStorage.setItem("chatpulse_live_chat_mode", "true");
+        sessionStorage.setItem("chatpulse_conversation_id", pending.conversationId);
+        if (pending.workspaceId) sessionStorage.setItem("chatpulse_workspace_id", pending.workspaceId);
+      } catch { /* ignore */ }
+      setMessages((prev) => [
+        ...prev,
+        { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? `Takk, ${name || email}! Du settes nå i kontakt med en medarbeider. Det kan ta noen minutter.` : `Thanks, ${name || email}! You're being connected to an agent. It may take a few minutes.` },
+      ]);
+      subscribeToRealtime(pending.conversationId);
+      if (pending.workspaceId) fetchQueuePosition(pending.conversationId, pending.workspaceId);
+    } else {
+      setMessages((prev) => [
+        ...prev,
+        { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: t('widget.handoffConfirm') },
+      ]);
     }
   }
 
@@ -564,23 +587,24 @@ export function ChatWidget({
               <HandoffForm
                 primaryColor={primaryColor}
                 t={t}
-                onSubmit={async (email, name) => {
-                  await fetch("/api/leads", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      email,
-                      name: name || null,
-                      workspaceId: workspaceIdRef.current,
-                      conversationId: conversationIdRef.current,
-                    }),
-                  });
-                  setHandoffSubmitted(true);
-                  setMessages((prev) => [
-                    ...prev,
-                    { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: t('widget.handoffConfirm') },
-                  ]);
-                }}
+                onSubmit={handleHandoffSubmit}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
               />
             ) : null
           }
@@ -643,23 +667,24 @@ export function ChatWidget({
               <HandoffForm
                 primaryColor={primaryColor}
                 t={t}
-                onSubmit={async (email, name) => {
-                  await fetch("/api/leads", {
-                    method: "POST",
-                    headers: { "Content-Type": "application/json" },
-                    body: JSON.stringify({
-                      email,
-                      name: name || null,
-                      workspaceId: workspaceIdRef.current,
-                      conversationId: conversationIdRef.current,
-                    }),
-                  });
-                  setHandoffSubmitted(true);
-                  setMessages((prev) => [
-                    ...prev,
-                    { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: t('widget.handoffConfirm') },
-                  ]);
-                }}
+                onSubmit={handleHandoffSubmit}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
               />
             ) : null
           }
