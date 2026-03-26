@@ -51,9 +51,14 @@ export async function POST(request: Request): Promise<Response> {
       agent_id: user.id,
     });
 
-  // Broadcast status change to widget
+  // Get agent name for widget notification
+  const { data: { user: fullUser } } = await supabase.auth.getUser();
+  const agentName = fullUser?.user_metadata?.full_name || fullUser?.user_metadata?.name || null;
+
+  // Broadcast status change to widget with agent name
   await sendBroadcast(`conv-status-${conversationId}`, "status-change", {
     status: "human",
+    agentName,
   });
 
   return Response.json({ ok: true });

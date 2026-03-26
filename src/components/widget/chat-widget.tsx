@@ -216,10 +216,16 @@ export function ChatWidget({
       .on(
         "broadcast" as "system",
         { event: "status-change" } as Record<string, string>,
-        (payload: { payload?: { status: string } }) => {
+        (payload: { payload?: { status: string; agentName?: string } }) => {
           const status = payload.payload?.status;
+          const agentName = payload.payload?.agentName;
           if (status === "human") {
             setQueuePosition(null);
+            const name = agentName || (i18nLang === "nb" ? "Kundeservice" : "Support");
+            setMessages((prev) => [
+              ...prev,
+              { id: `agent-joined-${Date.now()}`, role: "assistant" as const, content: i18nLang === "nb" ? `${name} har koblet til samtalen.` : `${name} has joined the conversation.` },
+            ]);
           } else if (status === "closed") {
             setLiveChatMode(false);
             conversationIdRef.current = null;
