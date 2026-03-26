@@ -190,10 +190,24 @@ export function ChatWidget({
             setQueuePosition(null);
           } else if (payload.new.status === "closed") {
             setLiveChatMode(false);
+            // FIX 3: Clear session on close
+            try {
+              sessionStorage.removeItem("chatpulse_live_chat_mode");
+              sessionStorage.removeItem("chatpulse_conversation_id");
+              sessionStorage.removeItem("chatpulse_workspace_id");
+            } catch { /* ignore */ }
             setMessages((prev) => [
               ...prev,
               { id: `closed-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? "Samtalen er avsluttet. Takk for at du tok kontakt!" : "The conversation has ended. Thanks for reaching out!" },
             ]);
+          } else if (payload.new.status === "ai") {
+            // FIX 4: Sent back to AI mode by server
+            setLiveChatMode(false);
+            try {
+              sessionStorage.removeItem("chatpulse_live_chat_mode");
+              sessionStorage.removeItem("chatpulse_conversation_id");
+              sessionStorage.removeItem("chatpulse_workspace_id");
+            } catch { /* ignore */ }
           }
         }
       )
@@ -205,6 +219,46 @@ export function ChatWidget({
       supabase.removeChannel(statusChannel);
     };
   }, [i18nLang]);
+
+  // FIX 3: Restore live chat session from sessionStorage on mount
+  useEffect(() => {
+    try {
+      const savedMode = sessionStorage.getItem("chatpulse_live_chat_mode");
+      const savedConvId = sessionStorage.getItem("chatpulse_conversation_id");
+      const savedWsId = sessionStorage.getItem("chatpulse_workspace_id");
+
+      if (savedMode === "true" && savedConvId) {
+        conversationIdRef.current = savedConvId;
+        if (savedWsId) workspaceIdRef.current = savedWsId;
+
+        // Load message history from DB
+        const supabase = createClient();
+        supabase
+          .from("messages")
+          .select("id, role, content")
+          .eq("conversation_id", savedConvId)
+          .order("created_at", { ascending: true })
+          .then(({ data }) => {
+            if (data && data.length > 0) {
+              const restored: Message[] = data.map((m: { id: string; role: string; content: string }) => ({
+                id: m.id,
+                role: m.role as Message["role"],
+                content: m.content,
+              }));
+              setMessages(restored);
+            }
+            setLiveChatMode(true);
+            subscribeToRealtime(savedConvId);
+            if (savedWsId) {
+              fetchQueuePosition(savedConvId, savedWsId);
+            }
+          });
+      }
+    } catch {
+      // sessionStorage not available
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
 
   // Cleanup on unmount
   useEffect(() => {
@@ -266,15 +320,30 @@ export function ChatWidget({
     // If in live chat mode, send via live-chat API
     if (liveChatMode && conversationIdRef.current) {
       try {
-        await fetch("/api/live-chat", {
+        const res = await fetch("/api/live-chat", {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify({
             conversationId: conversationIdRef.current,
             content: text,
             role: "user",
+            visitorId: getVisitorId(),
           }),
         });
+        // FIX 5: Handle 410 Gone (closed conversation)
+        if (res.status === 410) {
+          setLiveChatMode(false);
+          try {
+            sessionStorage.removeItem("chatpulse_live_chat_mode");
+            sessionStorage.removeItem("chatpulse_conversation_id");
+            sessionStorage.removeItem("chatpulse_workspace_id");
+          } catch { /* ignore */ }
+          setMessages((prev) => [
+            ...prev,
+            { id: `closed-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? "Samtalen er avsluttet." : "The conversation has ended." },
+          ]);
+          return;
+        }
       } catch {
         setMessages((prev) => [
           ...prev,
@@ -316,6 +385,12 @@ export function ChatWidget({
             if (data.liveChat && data.conversationId) {
               // Live chat mode - agents are online
               setLiveChatMode(true);
+              // FIX 3: Persist live chat session
+              try {
+                sessionStorage.setItem("chatpulse_live_chat_mode", "true");
+                sessionStorage.setItem("chatpulse_conversation_id", data.conversationId);
+                if (data.workspaceId) sessionStorage.setItem("chatpulse_workspace_id", data.workspaceId);
+              } catch { /* ignore */ }
               setMessages((prev) => [
                 ...prev,
                 {

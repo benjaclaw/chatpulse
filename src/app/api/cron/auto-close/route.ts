@@ -52,5 +52,57 @@ export async function GET(request: Request): Promise<Response> {
     }
   }
 
-  return Response.json({ closed: closedCount });
+  // FIX 4: Handle waiting conversations stuck without online agents
+  const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+  const { data: staleWaiting } = await supabase
+    .from("conversations")
+    .select("id, workspace_id")
+    .eq("status", "waiting")
+    .lt("started_at", fifteenMinAgo);
+
+  let revertedToAi = 0;
+
+  if (staleWaiting && staleWaiting.length > 0) {
+    // Group by workspace to avoid redundant presence checks
+    const byWorkspace = new Map<string, string[]>();
+    for (const conv of staleWaiting) {
+      const list = byWorkspace.get(conv.workspace_id) || [];
+      list.push(conv.id);
+      byWorkspace.set(conv.workspace_id, list);
+    }
+
+    const twoMinAgo = new Date(Date.now() - 2 * 60_000).toISOString();
+
+    for (const [wsId, convIds] of byWorkspace) {
+      const { data: onlineAgents } = await supabase
+        .from("agent_presence")
+        .select("user_id")
+        .eq("workspace_id", wsId)
+        .in("status", ["online", "busy"])
+        .gte("last_seen_at", twoMinAgo)
+        .limit(1);
+
+      if (!onlineAgents || onlineAgents.length === 0) {
+        // No agents online — revert to AI mode
+        for (const convId of convIds) {
+          await supabase
+            .from("conversations")
+            .update({ status: "ai" })
+            .eq("id", convId);
+
+          await supabase
+            .from("messages")
+            .insert({
+              conversation_id: convId,
+              role: "assistant",
+              content: "Ingen ledige medarbeidere. Du snakker nå med vår AI-assistent.",
+            });
+
+          revertedToAi++;
+        }
+      }
+    }
+  }
+
+  return Response.json({ closed: closedCount, revertedToAi });
 }

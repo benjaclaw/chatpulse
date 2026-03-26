@@ -7,6 +7,7 @@ interface LiveChatRequest {
   conversationId: string;
   content: string;
   role: "user" | "agent";
+  visitorId?: string;
 }
 
 // --- In-memory rate limiting ---
@@ -50,10 +51,13 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const { conversationId, content, role } = body;
+  const { conversationId, content, role, visitorId } = body;
   if (!conversationId || !content?.trim() || !role) {
     return Response.json({ error: "Missing required fields" }, { status: 400 });
   }
+
+  // FIX 2: Limit content length
+  const sanitizedContent = content.trim().slice(0, 5000);
 
   // Rate limit per conversation
   if (!checkRate(conversationId)) {
@@ -94,7 +98,7 @@ export async function POST(request: Request): Promise<Response> {
       .insert({
         conversation_id: conversationId,
         role: "agent",
-        content: content.trim(),
+        content: sanitizedContent,
       });
 
     if (error) {
@@ -109,9 +113,14 @@ export async function POST(request: Request): Promise<Response> {
     // Visitor messages use service client (unauthenticated)
     const serviceClient = createServiceClient();
 
+    // FIX 1: Require visitorId for user messages
+    if (!visitorId) {
+      return Response.json({ error: "Missing visitorId" }, { status: 400 });
+    }
+
     const { data: conversation } = await serviceClient
       .from("conversations")
-      .select("id, status")
+      .select("id, status, visitor_id")
       .eq("id", conversationId)
       .single();
 
@@ -119,12 +128,22 @@ export async function POST(request: Request): Promise<Response> {
       return Response.json({ error: "Conversation not found" }, { status: 404 });
     }
 
+    // FIX 1: Validate visitor owns this conversation
+    if (conversation.visitor_id !== visitorId) {
+      return Response.json({ error: "Conversation not found" }, { status: 404 });
+    }
+
+    // FIX 5: Prevent messages to closed conversations
+    if (conversation.status === "closed") {
+      return Response.json({ error: "Conversation is closed" }, { status: 410 });
+    }
+
     const { error } = await serviceClient
       .from("messages")
       .insert({
         conversation_id: conversationId,
         role: "user",
-        content: content.trim(),
+        content: sanitizedContent,
       });
 
     if (error) {

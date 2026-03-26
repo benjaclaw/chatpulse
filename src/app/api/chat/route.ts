@@ -68,8 +68,10 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Ugyldig forespørsel" }, { status: 400 });
   }
 
-  const { chatbotId, conversationId, message, visitorId, language: detectedLanguage } = body;
-  if (!chatbotId || !message?.trim() || !visitorId) {
+  const { chatbotId, conversationId, message: rawMessage, visitorId, language: detectedLanguage } = body;
+  // FIX 2: Limit content length
+  const message = rawMessage?.trim().slice(0, 5000) ?? "";
+  if (!chatbotId || !message || !visitorId) {
     return Response.json(
       { error: "Mangler chatbotId, message eller visitorId" },
       { status: 400 }
