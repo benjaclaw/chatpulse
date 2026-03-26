@@ -1,5 +1,6 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { sendBroadcast } from "@/lib/supabase/broadcast";
 
 export const runtime = "nodejs";
 
@@ -109,16 +110,11 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     // Broadcast agent message so the anon widget can receive it
-    const agentChannel = serviceClient.channel(`live-chat-${conversationId}`);
-    await new Promise<void>((resolve) => {
-      agentChannel.subscribe((status: string) => { if (status === "SUBSCRIBED") resolve(); });
+    await sendBroadcast(`live-chat-${conversationId}`, "new-message", {
+      id: agentMsg.id,
+      role: "agent",
+      content: sanitizedContent,
     });
-    await agentChannel.send({
-      type: "broadcast",
-      event: "new-message",
-      payload: { id: agentMsg.id, role: "agent", content: sanitizedContent },
-    });
-    serviceClient.removeChannel(agentChannel);
 
     return Response.json({ ok: true });
   }
@@ -168,16 +164,11 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     // Broadcast user message so inbox can receive it as fallback
-    const userChannel = serviceClient.channel(`live-chat-${conversationId}`);
-    await new Promise<void>((resolve) => {
-      userChannel.subscribe((status: string) => { if (status === "SUBSCRIBED") resolve(); });
+    await sendBroadcast(`live-chat-${conversationId}`, "new-message", {
+      id: userMsg.id,
+      role: "user",
+      content: sanitizedContent,
     });
-    await userChannel.send({
-      type: "broadcast",
-      event: "new-message",
-      payload: { id: userMsg.id, role: "user", content: sanitizedContent },
-    });
-    serviceClient.removeChannel(userChannel);
 
     return Response.json({ ok: true });
   }

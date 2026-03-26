@@ -24,36 +24,22 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Missing conversationId" }, { status: 400 });
   }
 
-  const serviceClient = createServiceClient();
+  const service = createServiceClient();
 
-  // Update conversation — only if still waiting (race condition guard)
-  const { data: updated, error: convError } = await serviceClient
+  await service
     .from("conversations")
-    .update({ status: "human", assigned_to: user.id })
-    .eq("id", conversationId)
-    .eq("status", "waiting")
-    .select("id");
+    .update({ status: "closed" })
+    .eq("id", conversationId);
 
-  if (convError) {
-    console.error("Claim error:", convError);
-    return Response.json({ error: "Failed to claim" }, { status: 500 });
-  }
-
-  if (!updated || updated.length === 0) {
-    return Response.json({ error: "Conversation already claimed or not in waiting state" }, { status: 409 });
-  }
-
-  // Create assignment record
-  await serviceClient
+  await service
     .from("agent_assignments")
-    .insert({
-      conversation_id: conversationId,
-      agent_id: user.id,
-    });
+    .update({ resolved_at: new Date().toISOString() })
+    .eq("conversation_id", conversationId)
+    .is("resolved_at", null);
 
   // Broadcast status change to widget
   await sendBroadcast(`conv-status-${conversationId}`, "status-change", {
-    status: "human",
+    status: "closed",
   });
 
   return Response.json({ ok: true });

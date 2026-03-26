@@ -87,6 +87,7 @@ export function InboxPageClient(): React.ReactNode {
   const [cannedResponses, setCannedResponses] = useState<CannedResponse[]>([]);
   const [showCannedMenu, setShowCannedMenu] = useState(false);
   const [visitorTyping, setVisitorTyping] = useState(false);
+  const [selectedLeadInfo, setSelectedLeadInfo] = useState<{ name?: string; email?: string } | null>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const typingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
   const agentTypingTimeoutRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -205,6 +206,14 @@ export function InboxPageClient(): React.ReactNode {
         .order("created_at", { ascending: true });
 
       if (data) setMessages(data as InboxMessage[]);
+
+      // Load lead info for this conversation
+      const { data: leadData } = await supabase
+        .from("leads")
+        .select("name, email")
+        .eq("conversation_id", selectedId!)
+        .maybeSingle();
+      setSelectedLeadInfo(leadData ? { name: leadData.name ?? undefined, email: leadData.email ?? undefined } : null);
     }
 
     loadMessages();
@@ -230,6 +239,10 @@ export function InboxPageClient(): React.ReactNode {
             if (withoutTemp.some((m) => m.id === msg.id)) return withoutTemp;
             return [...withoutTemp, msg];
           });
+          // Play sound for incoming visitor messages when tab is hidden
+          if (msg.role === "user" && document.hidden) {
+            playNotificationSound();
+          }
         }
       )
       .subscribe();
@@ -297,17 +310,11 @@ export function InboxPageClient(): React.ReactNode {
       )
     );
 
-    await supabase
-      .from("conversations")
-      .update({ status: "closed" })
-      .eq("id", conversationId);
-
-    // Auto-close: resolve assignment
-    await supabase
-      .from("agent_assignments")
-      .update({ resolved_at: new Date().toISOString() })
-      .eq("conversation_id", conversationId)
-      .is("resolved_at", null);
+    await fetch("/api/live-chat/close", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ conversationId }),
+    });
 
     if (selectedId === conversationId) {
       setSelectedId(null);
@@ -689,7 +696,7 @@ export function InboxPageClient(): React.ReactNode {
                     <ArrowLeft className="h-4 w-4" />
                   </button>
                   <span className="text-sm font-medium">
-                    {selectedConv?.visitor_id?.slice(0, 8)}
+                    {selectedLeadInfo?.name || selectedLeadInfo?.email || selectedConv?.visitor_id?.slice(0, 8)}
                   </span>
                 </div>
                 <div className="flex items-center gap-1">

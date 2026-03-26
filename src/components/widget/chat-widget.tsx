@@ -210,26 +210,21 @@ export function ChatWidget({
 
     typingChannelRef.current = typingChannel;
 
-    // Subscribe to conversation status changes for queue position
+    // Subscribe to conversation status changes via broadcast
     const statusChannel = supabase
       .channel(`conv-status-${conversationId}`)
       .on(
-        "postgres_changes" as "system",
-        {
-          event: "UPDATE",
-          schema: "public",
-          table: "conversations",
-          filter: `id=eq.${conversationId}`,
-        } as Record<string, string>,
-        (payload: { new: { status: string } }) => {
-          if (payload.new.status === "human") {
+        "broadcast" as "system",
+        { event: "status-change" } as Record<string, string>,
+        (payload: { payload?: { status: string } }) => {
+          const status = payload.payload?.status;
+          if (status === "human") {
             setQueuePosition(null);
-          } else if (payload.new.status === "closed") {
+          } else if (status === "closed") {
             setLiveChatMode(false);
             conversationIdRef.current = null;
             setHasInteracted(false);
             setChatEnded(true);
-            // FIX 3: Clear session on close
             try {
               sessionStorage.removeItem("chatpulse_live_chat_mode");
               sessionStorage.removeItem("chatpulse_conversation_id");
@@ -239,8 +234,7 @@ export function ChatWidget({
               ...prev,
               { id: `closed-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? "Samtalen er avsluttet. Takk for at du tok kontakt!" : "The conversation has ended. Thanks for reaching out!" },
             ]);
-          } else if (payload.new.status === "ai") {
-            // FIX 4: Sent back to AI mode by server
+          } else if (status === "ai") {
             setLiveChatMode(false);
             conversationIdRef.current = null;
             setHasInteracted(false);
@@ -269,46 +263,41 @@ export function ChatWidget({
       const savedWsId = sessionStorage.getItem("chatpulse_workspace_id");
 
       if (savedMode === "true" && savedConvId) {
-        // Check if the conversation is still active before restoring
-        const supabase = createClient();
-        supabase
-          .from("conversations")
-          .select("id, status")
-          .eq("id", savedConvId)
-          .single()
-          .then(({ data: conv }) => {
-            if (!conv || conv.status === "closed" || conv.status === "ai") {
-              // Conversation ended — clear session state
+        const visitorId = getVisitorId();
+        fetch(`/api/widget-session?conversationId=${encodeURIComponent(savedConvId)}&visitorId=${encodeURIComponent(visitorId)}`)
+          .then((r) => {
+            if (!r.ok) throw new Error("not found");
+            return r.json();
+          })
+          .then((data: { status: string; messages: { id: string; role: string; content: string }[] }) => {
+            if (data.status === "closed" || data.status === "ai") {
               sessionStorage.removeItem("chatpulse_live_chat_mode");
               sessionStorage.removeItem("chatpulse_conversation_id");
               sessionStorage.removeItem("chatpulse_workspace_id");
               return;
             }
 
-            // Conversation is still active — restore it
             conversationIdRef.current = savedConvId;
             if (savedWsId) workspaceIdRef.current = savedWsId;
 
-            supabase
-              .from("messages")
-              .select("id, role, content")
-              .eq("conversation_id", savedConvId)
-              .order("created_at", { ascending: true })
-              .then(({ data }) => {
-                if (data && data.length > 0) {
-                  const restored: Message[] = data.map((m: { id: string; role: string; content: string }) => ({
-                    id: m.id,
-                    role: m.role as Message["role"],
-                    content: m.content,
-                  }));
-                  setMessages(restored);
-                }
-                setLiveChatMode(true);
-                subscribeToRealtime(savedConvId);
-                if (savedWsId) {
-                  fetchQueuePosition(savedConvId, savedWsId);
-                }
-              });
+            if (data.messages.length > 0) {
+              const restored: Message[] = data.messages.map((m) => ({
+                id: m.id,
+                role: m.role as Message["role"],
+                content: m.content,
+              }));
+              setMessages(restored);
+            }
+            setLiveChatMode(true);
+            subscribeToRealtime(savedConvId);
+            if (savedWsId) {
+              fetchQueuePosition(savedConvId, savedWsId);
+            }
+          })
+          .catch(() => {
+            sessionStorage.removeItem("chatpulse_live_chat_mode");
+            sessionStorage.removeItem("chatpulse_conversation_id");
+            sessionStorage.removeItem("chatpulse_workspace_id");
           });
       }
     } catch {
@@ -334,17 +323,10 @@ export function ChatWidget({
   // Fetch queue position
   const fetchQueuePosition = useCallback(async (conversationId: string, wsId: string) => {
     try {
-      const supabase = createClient();
-      const { data } = await supabase
-        .from("conversations")
-        .select("id, started_at")
-        .eq("workspace_id", wsId)
-        .eq("status", "waiting")
-        .order("started_at", { ascending: true });
-
-      if (data) {
-        const pos = data.findIndex((c: { id: string }) => c.id === conversationId) + 1;
-        setQueuePosition(pos > 0 ? pos : null);
+      const res = await fetch(`/api/widget-queue?conversationId=${encodeURIComponent(conversationId)}&workspaceId=${encodeURIComponent(wsId)}`);
+      if (res.ok) {
+        const data = await res.json() as { position: number };
+        setQueuePosition(data.position > 0 ? data.position : null);
       }
     } catch {
       // ignore
