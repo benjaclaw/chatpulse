@@ -201,7 +201,7 @@ export function InboxPageClient(): React.ReactNode {
     async function loadMessages() {
       const { data, error } = await supabase
         .from("messages")
-        .select("id, role, content, created_at, metadata")
+        .select("id, role, content, created_at")
         .eq("conversation_id", selectedId)
         .order("created_at", { ascending: true });
 
