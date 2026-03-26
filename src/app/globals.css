@@ -162,6 +162,10 @@
     @apply transition-colors duration-200;
   }
 
+  a, button, [role="button"], input[type="submit"], input[type="button"] {
+    cursor: pointer;
+  }
+
   /* Selection color */
   ::selection {
     background-color: var(--primary);
