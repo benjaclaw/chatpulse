@@ -96,7 +96,7 @@ export function ChatWidget({
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
   const [agentsOnline, setAgentsOnline] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(false);
-  const widgetConfigFetched = useRef(false);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
   const conversationIdRef = useRef<string | null>(null);
@@ -122,13 +122,13 @@ export function ChatWidget({
     if (isOpen && inputRef.current) {
       inputRef.current.focus({ preventScroll: true });
     }
-    if (isOpen && chatbotId && !widgetConfigFetched.current) {
-      widgetConfigFetched.current = true;
+    if (isOpen && chatbotId) {
+      // Re-check agent presence every time widget opens (not just first time)
       fetch(`/api/widget-config?chatbotId=${encodeURIComponent(chatbotId)}`)
         .then((r) => r.json())
         .then((data: { workspaceId?: string; agentsOnline?: boolean }) => {
           if (data.workspaceId) workspaceIdRef.current = data.workspaceId;
-          if (data.agentsOnline) setAgentsOnline(true);
+          setAgentsOnline(!!data.agentsOnline);
         })
         .catch(() => {});
     }
@@ -197,6 +197,8 @@ export function ChatWidget({
             setQueuePosition(null);
           } else if (payload.new.status === "closed") {
             setLiveChatMode(false);
+            conversationIdRef.current = null;
+            setHasInteracted(false);
             // FIX 3: Clear session on close
             try {
               sessionStorage.removeItem("chatpulse_live_chat_mode");
@@ -205,11 +207,13 @@ export function ChatWidget({
             } catch { /* ignore */ }
             setMessages((prev) => [
               ...prev,
-              { id: `closed-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? "Samtalen er avsluttet. Takk for at du tok kontakt!" : "The conversation has ended. Thanks for reaching out!" },
+              { id: `closed-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? "Samtalen er avsluttet. Takk for at du tok kontakt! Du kan starte en ny samtale når som helst." : "The conversation has ended. Thanks for reaching out! You can start a new conversation anytime." },
             ]);
           } else if (payload.new.status === "ai") {
             // FIX 4: Sent back to AI mode by server
             setLiveChatMode(false);
+            conversationIdRef.current = null;
+            setHasInteracted(false);
             try {
               sessionStorage.removeItem("chatpulse_live_chat_mode");
               sessionStorage.removeItem("chatpulse_conversation_id");
@@ -341,6 +345,8 @@ export function ChatWidget({
         // FIX 5: Handle 410 Gone (closed conversation)
         if (res.status === 410) {
           setLiveChatMode(false);
+          conversationIdRef.current = null;
+          setHasInteracted(false);
           try {
             sessionStorage.removeItem("chatpulse_live_chat_mode");
             sessionStorage.removeItem("chatpulse_conversation_id");
@@ -348,7 +354,7 @@ export function ChatWidget({
           } catch { /* ignore */ }
           setMessages((prev) => [
             ...prev,
-            { id: `closed-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? "Samtalen er avsluttet." : "The conversation has ended." },
+            { id: `closed-${Date.now()}`, role: "assistant", content: i18nLang === "nb" ? "Samtalen er avsluttet. Du kan starte en ny samtale når som helst." : "The conversation has ended. You can start a new conversation anytime." },
           ]);
           return;
         }
