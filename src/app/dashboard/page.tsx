@@ -1,13 +1,3 @@
-import {
-  BookOpen,
-  MessageSquare,
-  HelpCircle,
-  Users,
-  ArrowRight,
-  Rocket,
-  MessageCircle,
-} from "lucide-react";
-import Link from "next/link";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardContent } from "./dashboard-content";
 

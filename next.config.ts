@@ -9,6 +9,7 @@ const nextConfig: NextConfig = {
       },
     ],
   },
+  serverExternalPackages: ["xlsx", "mammoth", "pdf-parse"],
 };
 
 export default nextConfig;

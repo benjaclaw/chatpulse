@@ -1,6 +1,4 @@
 import { createClient } from "@/lib/supabase/server";
-import mammoth from "mammoth";
-import * as XLSX from "xlsx";
 
 const ALLOWED_TYPES = new Set([
   "application/pdf",
@@ -27,10 +25,12 @@ async function extractText(
       return result.text;
     }
     case "docx": {
+      const mammoth = (await import("mammoth")).default;
       const result = await mammoth.extractRawText({ buffer });
       return result.value;
     }
     case "xlsx": {
+      const XLSX = await import("xlsx");
       const workbook = XLSX.read(buffer, { type: "buffer" });
       const parts: string[] = [];
       for (const sheetName of workbook.SheetNames) {

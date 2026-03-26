@@ -105,12 +105,23 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Chatbot ikke funnet" }, { status: 404 });
   }
 
-  // Check message limit for workspace plan
-  const { data: workspace } = await supabase
-    .from("workspaces")
-    .select("plan_id, message_count, billing_cycle_start")
-    .eq("id", config.workspace_id)
-    .single();
+  // 2. Fetch workspace (with business_hours) and company_info in parallel
+  // This eliminates duplicate queries later
+  const [workspaceResult, companyInfoResult] = await Promise.all([
+    supabase
+      .from("workspaces")
+      .select("plan_id, message_count, billing_cycle_start, business_hours")
+      .eq("id", config.workspace_id)
+      .single(),
+    supabase
+      .from("company_info")
+      .select("data")
+      .eq("workspace_id", config.workspace_id)
+      .maybeSingle(),
+  ]);
+
+  const workspace = workspaceResult.data;
+  const companyInfo = companyInfoResult.data;
 
   if (workspace) {
     // Reset monthly counter if billing cycle has elapsed
@@ -129,14 +140,9 @@ export async function POST(request: Request): Promise<Response> {
 
     const limit = getPlanLimit(workspace.plan_id ?? "basic");
     if (workspace.message_count >= limit) {
-      // Build a friendly message with company contact info
+      // Build a friendly message with company contact info (reuse already-fetched companyInfo)
       let limitMsg = "Chatboten er midlertidig utilgjengelig.";
-      const { data: compInfo } = await supabase
-        .from("company_info")
-        .select("data")
-        .eq("workspace_id", config.workspace_id)
-        .maybeSingle();
-      const cd = compInfo?.data as Record<string, string> | null;
+      const cd = companyInfo?.data as Record<string, string> | null;
       if (cd?.email || cd?.phone) {
         const contact = [cd.email, cd.phone].filter(Boolean).join(" / ");
         limitMsg += ` Kontakt ${cd.name || "oss"} direkte: ${contact}`;
@@ -151,7 +157,7 @@ export async function POST(request: Request): Promise<Response> {
   const fallback =
     config.fallback_response || "Beklager, noe gikk galt. Prøv igjen senere.";
 
-  // 2. Fetch history, company info, and knowledge in parallel
+  // 3. Fetch history and knowledge in parallel (company_info already fetched above)
   const words = message
     .trim()
     .split(/\s+/)
@@ -166,12 +172,6 @@ export async function POST(request: Request): Promise<Response> {
         .order("created_at", { ascending: true })
         .limit(10)
     : Promise.resolve({ data: null });
-
-  const companyInfoPromise = supabase
-    .from("company_info")
-    .select("data")
-    .eq("workspace_id", config.workspace_id)
-    .maybeSingle();
 
   const knowledgePromise = words.length > 0
     ? (() => {
@@ -190,14 +190,12 @@ export async function POST(request: Request): Promise<Response> {
       })()
     : Promise.resolve({ data: null, error: null });
 
-  const [historyResult, companyInfoResult, knowledgeResult] = await Promise.all([
+  const [historyResult, knowledgeResult] = await Promise.all([
     historyPromise,
-    companyInfoPromise,
     knowledgePromise,
   ]);
 
   const history: { role: string; content: string }[] = historyResult.data ?? [];
-  const companyInfo = companyInfoResult.data;
 
   let knowledgeContext = "";
   if ('error' in knowledgeResult && knowledgeResult.error) {
@@ -210,7 +208,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // 4. Build prompt
-  // Build company context
+  // Build company context (reuse already-fetched companyInfo)
   let companyContext = "";
   if (companyInfo?.data && typeof companyInfo.data === "object") {
     const d = companyInfo.data as Record<string, string>;
@@ -285,7 +283,7 @@ VIKTIGE REGLER:
     aiResponse = fallback;
   }
 
-  // 6. Create conversation if needed, then save messages
+  // 6. Create conversation if needed, then save messages + increment count in parallel
   let activeConversationId = conversationId;
 
   if (!activeConversationId) {
@@ -305,27 +303,32 @@ VIKTIGE REGLER:
     activeConversationId = newConvo?.id ?? null;
   }
 
-  if (activeConversationId) {
-    await supabase.from("messages").insert([
-      {
-        conversation_id: activeConversationId,
-        role: "user",
-        content: message,
-      },
-      {
-        conversation_id: activeConversationId,
-        role: "assistant",
-        content: aiResponse,
-      },
-    ]);
-  }
+  // Run message insert and workspace count update in parallel
+  {
+    const msgInsert = activeConversationId
+      ? supabase.from("messages").insert([
+          {
+            conversation_id: activeConversationId,
+            role: "user",
+            content: message,
+          },
+          {
+            conversation_id: activeConversationId,
+            role: "assistant",
+            content: aiResponse,
+          },
+        ]).then()
+      : null;
 
-  // 6b. Increment workspace message count
-  if (workspace) {
-    await supabase
-      .from("workspaces")
-      .update({ message_count: (workspace.message_count ?? 0) + 1 })
-      .eq("id", config.workspace_id);
+    const countUpdate = workspace
+      ? supabase
+          .from("workspaces")
+          .update({ message_count: (workspace.message_count ?? 0) + 1 })
+          .eq("id", config.workspace_id)
+          .then()
+      : null;
+
+    await Promise.all([msgInsert, countUpdate].filter(Boolean));
   }
 
   // 7. Detect handoff tag
@@ -334,20 +337,14 @@ VIKTIGE REGLER:
     aiResponse = aiResponse.replace("[HANDOFF]", "").trim();
   }
 
-  // 7b. If handoff, check if live agents are online
+  // 7b. If handoff, check if live agents are online (direct DB query, no self-fetch)
   let liveChat = false;
   if (isHandoff && activeConversationId) {
     try {
-      // Check business hours first
       let withinBusinessHours = true;
       if (workspace) {
-        const { data: wsData } = await supabase
-          .from("workspaces")
-          .select("business_hours")
-          .eq("id", config.workspace_id)
-          .single();
-
-        const bh = wsData?.business_hours as { enabled?: boolean; timezone?: string; schedule?: Record<string, { start: string; end: string } | null> } | null;
+        // Reuse business_hours from the already-fetched workspace data
+        const bh = workspace.business_hours as { enabled?: boolean; timezone?: string; schedule?: Record<string, { start: string; end: string } | null> } | null;
         if (bh?.enabled && bh.schedule) {
           const tz = bh.timezone || "Europe/Oslo";
           const now = new Date();
@@ -367,14 +364,18 @@ VIKTIGE REGLER:
       }
 
       if (withinBusinessHours) {
-        const presenceUrl = new URL("/api/presence", request.url);
-        presenceUrl.searchParams.set("workspaceId", config.workspace_id);
-        const presenceRes = await fetch(presenceUrl.toString());
-        const presenceData = await presenceRes.json();
+        // Direct DB query instead of self-fetch to /api/presence
+        const twoMinutesAgo = new Date(Date.now() - 2 * 60_000).toISOString();
+        const { data: onlineAgents } = await supabase
+          .from("agent_presence")
+          .select("user_id")
+          .eq("workspace_id", config.workspace_id)
+          .in("status", ["online", "busy"])
+          .gte("last_seen_at", twoMinutesAgo)
+          .limit(1);
 
-        if (presenceData.online) {
+        if (onlineAgents && onlineAgents.length > 0) {
           liveChat = true;
-          // Set conversation status to waiting
           await supabase
             .from("conversations")
             .update({ status: "waiting" })
@@ -393,72 +394,78 @@ VIKTIGE REGLER:
   }
 
   // Log every user question — find similar using multi-strategy matching
+  // Run this without awaiting to avoid blocking the response
   const questionText = message.trim();
   if (questionText.length > 2) {
-    const normalized = questionText.toLowerCase().replace(/[?!.,;:'"()]/g, "").trim();
-    const words = normalized.split(/\s+/).filter((w) => w.length > 2);
+    const trackQuestion = async () => {
+      try {
+        const normalized = questionText.toLowerCase().replace(/[?!.,;:'"()]/g, "").trim();
+        const qWords = normalized.split(/\s+/).filter((w) => w.length > 2);
 
-    let matched = false;
-    const { data: candidates } = await supabase
-      .from("questions")
-      .select("id, question, count, answered")
-      .eq("workspace_id", config.workspace_id)
-      .limit(200);
+        let matched = false;
+        const { data: candidates } = await supabase
+          .from("questions")
+          .select("id, question, count, answered")
+          .eq("workspace_id", config.workspace_id)
+          .limit(200);
 
-    if (candidates && candidates.length > 0) {
-      for (const candidate of candidates) {
-        const candNorm = candidate.question.toLowerCase().replace(/[?!.,;:'"()]/g, "").trim();
+        if (candidates && candidates.length > 0) {
+          for (const candidate of candidates) {
+            const candNorm = candidate.question.toLowerCase().replace(/[?!.,;:'"()]/g, "").trim();
 
-        // Strategy 1: One contains the other (substring match)
-        if (candNorm.includes(normalized) || normalized.includes(candNorm)) {
-          matched = true;
-        }
-
-        // Strategy 2: Any significant word appears in the other (catches "menneske" vs "menneske plis")
-        if (!matched && words.length > 0) {
-          const candWords = candNorm.split(/\s+/).filter((w: string) => w.length > 2);
-          // Check if ANY word from one appears in the other (bi-directional)
-          const anyNewInCand = words.some((w) => candWords.some((cw: string) => cw.includes(w) || w.includes(cw)));
-          const anyCandInNew = candWords.some((cw: string) => words.some((w) => w.includes(cw) || cw.includes(w)));
-          
-          if (anyNewInCand || anyCandInNew) {
-            // At least one shared root word — check overlap ratio too
-            const newInCand = words.filter((w) => candWords.some((cw: string) => cw.includes(w) || w.includes(cw))).length;
-            const shorter = Math.min(words.length, candWords.length);
-            // If the shorter question has >50% of its words matched, it's similar
-            if (shorter > 0 && newInCand / shorter >= 0.5) {
+            // Strategy 1: One contains the other (substring match)
+            if (candNorm.includes(normalized) || normalized.includes(candNorm)) {
               matched = true;
+            }
+
+            // Strategy 2: Any significant word appears in the other
+            if (!matched && qWords.length > 0) {
+              const candWords = candNorm.split(/\s+/).filter((w: string) => w.length > 2);
+              const anyNewInCand = qWords.some((w) => candWords.some((cw: string) => cw.includes(w) || w.includes(cw)));
+              const anyCandInNew = candWords.some((cw: string) => qWords.some((w) => w.includes(cw) || cw.includes(w)));
+
+              if (anyNewInCand || anyCandInNew) {
+                const newInCand = qWords.filter((w) => candWords.some((cw: string) => cw.includes(w) || w.includes(cw))).length;
+                const shorter = Math.min(qWords.length, candWords.length);
+                if (shorter > 0 && newInCand / shorter >= 0.5) {
+                  matched = true;
+                }
+              }
+            }
+
+            if (matched) {
+              const updateData: Record<string, unknown> = {
+                count: candidate.count + 1,
+                last_asked_at: new Date().toISOString(),
+                answered: candidate.answered || !isUnanswered,
+              };
+              if (questionText.length > candidate.question.length) {
+                updateData.question = questionText;
+              }
+              await supabase
+                .from("questions")
+                .update(updateData)
+                .eq("id", candidate.id);
+              break;
             }
           }
         }
 
-        if (matched) {
-          // Keep the longer/more descriptive question as the canonical text
-          const updateData: Record<string, unknown> = {
-            count: candidate.count + 1,
-            last_asked_at: new Date().toISOString(),
-            answered: candidate.answered || !isUnanswered,
-          };
-          if (questionText.length > candidate.question.length) {
-            updateData.question = questionText;
-          }
-          await supabase
-            .from("questions")
-            .update(updateData)
-            .eq("id", candidate.id);
-          break;
+        if (!matched) {
+          await supabase.from("questions").insert({
+            workspace_id: config.workspace_id,
+            question: questionText,
+            count: 1,
+            answered: !isUnanswered,
+          });
         }
+      } catch (err) {
+        console.error("Question tracking error:", err);
       }
-    }
+    };
 
-    if (!matched) {
-      await supabase.from("questions").insert({
-        workspace_id: config.workspace_id,
-        question: questionText,
-        count: 1,
-        answered: !isUnanswered,
-      });
-    }
+    // Fire and forget — don't block the response for analytics tracking
+    trackQuestion();
   }
 
   // 9. Return response
