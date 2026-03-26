@@ -93,18 +93,32 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     // Insert agent message
-    const { error } = await serviceClient
+    const { data: agentMsg, error } = await serviceClient
       .from("messages")
       .insert({
         conversation_id: conversationId,
         role: "agent",
         content: sanitizedContent,
-      });
+      })
+      .select("id")
+      .single();
 
     if (error) {
       console.error("Agent message insert error:", error);
       return Response.json({ error: "Failed to send message" }, { status: 500 });
     }
+
+    // Broadcast agent message so the anon widget can receive it
+    const agentChannel = serviceClient.channel(`live-chat-${conversationId}`);
+    await new Promise<void>((resolve) => {
+      agentChannel.subscribe((status: string) => { if (status === "SUBSCRIBED") resolve(); });
+    });
+    await agentChannel.send({
+      type: "broadcast",
+      event: "new-message",
+      payload: { id: agentMsg.id, role: "agent", content: sanitizedContent },
+    });
+    serviceClient.removeChannel(agentChannel);
 
     return Response.json({ ok: true });
   }
@@ -138,18 +152,32 @@ export async function POST(request: Request): Promise<Response> {
       return Response.json({ error: "Conversation is closed" }, { status: 410 });
     }
 
-    const { error } = await serviceClient
+    const { data: userMsg, error } = await serviceClient
       .from("messages")
       .insert({
         conversation_id: conversationId,
         role: "user",
         content: sanitizedContent,
-      });
+      })
+      .select("id")
+      .single();
 
     if (error) {
       console.error("Visitor message insert error:", error);
       return Response.json({ error: "Failed to send message" }, { status: 500 });
     }
+
+    // Broadcast user message so inbox can receive it as fallback
+    const userChannel = serviceClient.channel(`live-chat-${conversationId}`);
+    await new Promise<void>((resolve) => {
+      userChannel.subscribe((status: string) => { if (status === "SUBSCRIBED") resolve(); });
+    });
+    await userChannel.send({
+      type: "broadcast",
+      event: "new-message",
+      payload: { id: userMsg.id, role: "user", content: sanitizedContent },
+    });
+    serviceClient.removeChannel(userChannel);
 
     return Response.json({ ok: true });
   }

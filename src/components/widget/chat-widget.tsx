@@ -147,26 +147,20 @@ export function ChatWidget({
   const subscribeToRealtime = useCallback((conversationId: string) => {
     const supabase = createClient();
 
-    // Message subscription
+    // Message subscription via broadcast (anon clients can't receive postgres_changes due to RLS)
     const channel = supabase
       .channel(`live-chat-${conversationId}`)
       .on(
-        "postgres_changes" as "system",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "messages",
-          filter: `conversation_id=eq.${conversationId}`,
-        } as Record<string, string>,
-        (payload: { new: { id: string; role: string; content: string } }) => {
-          const msg = payload.new;
-          if (msg.role === "agent") {
-            setMessages((prev) => {
-              if (prev.some((m) => m.id === msg.id)) return prev;
-              return [...prev, { id: msg.id, role: "agent", content: msg.content }];
-            });
-            setAgentTyping(false);
-          }
+        "broadcast" as "system",
+        { event: "new-message" } as Record<string, string>,
+        (payload: { payload?: { id: string; role: string; content: string } }) => {
+          const msg = payload.payload;
+          if (!msg || msg.role !== "agent") return;
+          setMessages((prev) => {
+            if (prev.some((m) => m.id === msg.id)) return prev;
+            return [...prev, { id: msg.id, role: "agent", content: msg.content }];
+          });
+          setAgentTyping(false);
         }
       )
       .subscribe();

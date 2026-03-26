@@ -223,8 +223,12 @@ export function InboxPageClient(): React.ReactNode {
         (payload) => {
           const msg = payload.new as InboxMessage;
           setMessages((prev) => {
-            if (prev.some((m) => m.id === msg.id)) return prev;
-            return [...prev, msg];
+            // Remove optimistic temp message if it matches the real one
+            const withoutTemp = prev.filter(
+              (m) => !(m.id.startsWith("temp-") && m.role === msg.role && m.content === msg.content)
+            );
+            if (withoutTemp.some((m) => m.id === msg.id)) return withoutTemp;
+            return [...withoutTemp, msg];
           });
         }
       )
