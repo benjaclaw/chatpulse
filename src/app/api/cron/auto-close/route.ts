@@ -1,4 +1,5 @@
 import { createServiceClient } from "@/lib/supabase/service";
+import { sendBroadcast } from "@/lib/supabase/broadcast";
 
 export const runtime = "nodejs";
 
@@ -84,6 +85,13 @@ export async function GET(request: Request): Promise<Response> {
 
     if (revertConvs && revertConvs.length > 0) {
       revertedToAi = revertConvs.length;
+      
+      // Broadcast status change to widget and innboks
+      for (const conv of revertConvs) {
+        await sendBroadcast(`conv-status-${conv.id}`, "status-change", {
+          status: "ai",
+        });
+      }
     }
   }
 
