@@ -69,10 +69,18 @@
     w.style.pointerEvents = open ? "auto" : "none";
     btn.innerHTML = open ? closeIcon : openIcon;
     btn.setAttribute("aria-label", open ? "Lukk chat" : "Åpne chat");
-    /* On mobile: hide FAB when open, show close btn inside widget */
+    /* On mobile: go fullscreen when open, FAB position when closed */
     if (isMobile()) {
       btn.style.display = open ? "none" : "flex";
       if (closeBtn) closeBtn.style.display = open ? "flex" : "none";
+      var p = btn.parentElement;
+      if (open) {
+        p.style.bottom = "0"; p.style.left = "0"; p.style.right = "0"; p.style.top = "0";
+      } else {
+        p.style.top = ""; p.style.left = ""; p.style.right = "";
+        p.style.bottom = "16px";
+        if (pos === "left") { p.style.left = "16px"; } else { p.style.right = "16px"; }
+      }
     }
     if (open) { unreadCount = 0; updateBadge(); }
   }
