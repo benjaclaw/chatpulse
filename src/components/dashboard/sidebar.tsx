@@ -82,10 +82,9 @@ export function Sidebar({
   const manualOverride = useRef(false);
 
   // Toggle online status — wait for API before updating UI
+  // Note: Business hours will override this after 1 hour (or on next page load)
   async function toggleOnline() {
-    manualOverride.current = true;
     const newStatus = !isOnline;
-    const previousStatus = isOnline;
 
     try {
       const res = await fetch("/api/presence", {
@@ -97,20 +96,22 @@ export function Sidebar({
       if (res.ok) {
         setIsOnline(newStatus);
         localStorage.setItem(LS_KEY, String(newStatus));
+        
+        // Set manual override for 1 hour, then business hours can take over
+        manualOverride.current = true;
+        setTimeout(() => {
+          manualOverride.current = false;
+        }, 60 * 60 * 1000);
       } else {
         console.error('Presence toggle failed:', res.status);
-        // Don't update UI/localStorage if API fails
       }
     } catch (err) {
       console.error('Presence toggle failed:', err);
-      // Don't update UI/localStorage if API fails
     }
   }
 
   // Business hours auto-toggle
   const checkBusinessHours = useCallback(async () => {
-    if (manualOverride.current) return;
-
     const { data } = await supabase
       .from("workspaces")
       .select("business_hours")
@@ -123,7 +124,11 @@ export function Sidebar({
       schedule?: Record<string, { start: string; end: string } | null>;
     } | null;
 
+    // If business hours disabled, don't auto-toggle (manual override controls status)
     if (!bh?.enabled || !bh.schedule) return;
+
+    // If manual override is active, skip auto-toggling
+    if (manualOverride.current) return;
 
     const tz = bh.timezone || "Europe/Oslo";
     const now = new Date();
