@@ -70,6 +70,10 @@ export function HomePage(): React.ReactNode {
               {t("landing.hero.description")}
             </p>
 
+            <p className="mx-auto mt-3 text-sm font-medium tracking-wide text-primary/80">
+              {t("landing.hero.stats")}
+            </p>
+
             <div className="mt-10 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row sm:justify-center sm:gap-4">
               <Link
                 href="/signup"

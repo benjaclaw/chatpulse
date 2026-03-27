@@ -1,6 +1,6 @@
 import { ImageResponse } from "next/og";
 
-export const alt = "ChatPulse — AI-chatbot for din bedrift";
+export const alt = "ChatPulse — AI-chatbot som svarer kundene dine 24/7";
 export const size = {
   width: 1200,
   height: 630,
@@ -59,7 +59,19 @@ export default function OGImage() {
             fontWeight: 400,
           }}
         >
-          AI-chatbot for din bedrift
+          AI-chatbot som svarer kundene dine 24/7
+        </div>
+
+        <div
+          style={{
+            fontSize: 18,
+            color: "rgba(255,255,255,0.6)",
+            marginTop: 16,
+            fontWeight: 400,
+            letterSpacing: 2,
+          }}
+        >
+          Svar på sekunder • Norsk support • GDPR-kompatibel
         </div>
       </div>
     ),
