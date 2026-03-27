@@ -328,24 +328,41 @@ export function ChatWidget({
     if (!email.trim() || !name.trim()) return; // Safety check
     setHandoffSubmitted(true);
     
-    const pending = pendingLiveChatRef.current;
-    const convId = pending?.conversationId || conversationIdRef.current;
-    const wsId = pending?.workspaceId || workspaceIdRef.current;
+    // 1. Create conversation first (status: "waiting")
+    let convId = conversationIdRef.current;
+    let wsId = workspaceIdRef.current;
+    
+    if (!convId && chatbotId && workspaceIdRef.current) {
+      try {
+        const res = await fetch("/api/chat", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({
+            message: "",
+            botId: chatbotId,
+            visitorId: getVisitorId(),
+            conversationId: null,
+          }),
+        });
+        if (res.ok) {
+          const data = await res.json();
+          if (data.conversationId && data.workspaceId) {
+            convId = data.conversationId;
+            wsId = data.workspaceId;
+            conversationIdRef.current = convId;
+            workspaceIdRef.current = wsId;
+          }
+        }
+      } catch (err) {
+        console.error("Failed to create conversation:", err);
+        setMessages((prev) => [...prev, { id: `error-${Date.now()}`, role: "assistant", content: t('widget.error') }]);
+        return;
+      }
+    }
 
     if (!convId || !wsId) {
       setMessages((prev) => [...prev, { id: `error-${Date.now()}`, role: "assistant", content: t('widget.error') }]);
       return;
-    }
-
-    // 1. Update conversation status to "waiting" (this creates inbox entry)
-    try {
-      await fetch("/api/live-chat", {
-        method: "POST", 
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ conversationId: convId, content: `Customer ${email} requesting live chat`, role: "system" }),
-      });
-    } catch (err) {
-      console.error("Failed to update conversation:", err);
     }
 
     // 2. Create lead
@@ -368,6 +385,7 @@ export function ChatWidget({
     subscribeToRealtime(convId);
     fetchQueuePosition(convId, wsId);
 
+    const pending = pendingLiveChatRef.current;
     if (pending) {
       pendingLiveChatRef.current = null;
     }
@@ -381,33 +399,7 @@ export function ChatWidget({
       <button type="button" onClick={() => { inputRef.current?.focus(); inputRef.current?.scrollIntoView({ behavior: "smooth" }); if (inputRef.current) { inputRef.current.style.borderColor = primaryColor; inputRef.current.style.boxShadow = `0 0 0 2px ${primaryColor}33`; setTimeout(() => { if (inputRef.current) { inputRef.current.style.borderColor = ""; inputRef.current.style.boxShadow = ""; } }, 2000); } }} className="rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:bg-opacity-10" style={{ borderColor: primaryColor, color: primaryColor }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = primaryColor + "1a")} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}>
         {t('widget.askQuestion')}
       </button>
-      <button type="button" onClick={async () => {
-        // Create conversation first, then show form
-        if (!conversationIdRef.current && chatbotId && workspaceIdRef.current) {
-          try {
-            const res = await fetch("/api/chat", {
-              method: "POST",
-              headers: { "Content-Type": "application/json" },
-              body: JSON.stringify({
-                message: "",
-                botId: chatbotId,
-                visitorId: getVisitorId(),
-                conversationId: null,
-              }),
-            });
-            if (res.ok) {
-              const data = await res.json();
-              if (data.conversationId) {
-                conversationIdRef.current = data.conversationId;
-                if (data.workspaceId) workspaceIdRef.current = data.workspaceId;
-              }
-            }
-          } catch (err) {
-            console.error("Failed to create conversation:", err);
-          }
-        }
-        setHandoffTriggered(true);
-      }} className="rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:bg-opacity-10" style={{ borderColor: primaryColor, color: primaryColor }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = primaryColor + "1a")} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}>
+      <button type="button" onClick={() => setHandoffTriggered(true)} className="rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:bg-opacity-10" style={{ borderColor: primaryColor, color: primaryColor }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = primaryColor + "1a")} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}>
         {t('widget.talkToPerson')}
       </button>
     </div>
