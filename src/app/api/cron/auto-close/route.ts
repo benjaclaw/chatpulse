@@ -63,7 +63,8 @@ export async function GET(request: Request): Promise<Response> {
   }
 
   // FIX 4: Handle waiting conversations stuck without online agents
-  const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
+  // Auto-revert to AI after 4 hours if still waiting (user likely closed widget)
+  const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
   const { data: staleWaiting } = await supabase
     .from("conversations")
     .select("id, workspace_id")
@@ -73,44 +74,26 @@ export async function GET(request: Request): Promise<Response> {
   let revertedToAi = 0;
 
   if (staleWaiting && staleWaiting.length > 0) {
-    // Group by workspace to avoid redundant presence checks
-    const byWorkspace = new Map<string, string[]>();
-    for (const conv of staleWaiting) {
-      const list = byWorkspace.get(conv.workspace_id) || [];
-      list.push(conv.id);
-      byWorkspace.set(conv.workspace_id, list);
-    }
+    // Revert to AI immediately after 4 hours (widget likely closed)
+    const { data: revertConvs } = await supabase
+      .from("conversations")
+      .update({ status: "ai" })
+      .lt("started_at", fourHoursAgo)
+      .eq("status", "waiting")
+      .select("id");
 
-    const twoMinAgo = new Date(Date.now() - 2 * 60_000).toISOString();
-
-    for (const [wsId, convIds] of byWorkspace) {
-      const { data: onlineAgents } = await supabase
-        .from("agent_presence")
-        .select("user_id")
-        .eq("workspace_id", wsId)
-        .in("status", ["online", "busy"])
-        .gte("last_seen_at", twoMinAgo)
-        .limit(1);
-
-      if (!onlineAgents || onlineAgents.length === 0) {
-        // No agents online — revert to AI mode
-        for (const convId of convIds) {
-          await supabase
-            .from("conversations")
-            .update({ status: "ai" })
-            .eq("id", convId);
-
-          await supabase
-            .from("messages")
-            .insert({
-              conversation_id: convId,
-              role: "assistant",
-              content: "Ingen ledige medarbeidere. Du snakker nå med vår AI-assistent.",
-            });
-
-          revertedToAi++;
-        }
+    if (revertConvs && revertConvs.length > 0) {
+      // Add system message to each
+      for (const conv of revertConvs) {
+        await supabase
+          .from("messages")
+          .insert({
+            conversation_id: conv.id,
+            role: "assistant",
+            content: "Ingen har kunnet hjelpe deg innen rimelig tid. Vår AI-assistent er klar hvis du har flere spørsmål.",
+          });
       }
+      revertedToAi = revertConvs.length;
     }
   }
 
