@@ -13,24 +13,41 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { conversationId: string };
+  let body: { conversationId: string; workspaceId?: string };
   try {
     body = await request.json();
   } catch {
     return Response.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const { conversationId } = body;
+  const { conversationId, workspaceId } = body;
   if (!conversationId) {
     return Response.json({ error: "Missing conversationId" }, { status: 400 });
   }
 
   const serviceClient = createServiceClient();
 
+  // Validate conversation exists and belongs to workspace if provided
+  if (workspaceId) {
+    const { data: conv, error: checkError } = await serviceClient
+      .from("conversations")
+      .select("id")
+      .eq("id", conversationId)
+      .eq("workspace_id", workspaceId)
+      .single();
+
+    if (checkError || !conv) {
+      return Response.json({ error: "Conversation not found" }, { status: 404 });
+    }
+  }
+
+  // Use user.id if available, otherwise use workspace default
+  const assignTo = user?.id || "system";
+
   // Update conversation — only if still waiting (race condition guard)
   const { data: updated, error: convError } = await serviceClient
     .from("conversations")
-    .update({ status: "human", assigned_to: user.id })
+    .update({ status: "human", assigned_to: assignTo })
     .eq("id", conversationId)
     .eq("status", "waiting")
     .select("id");
@@ -44,17 +61,22 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Conversation already claimed or not in waiting state" }, { status: 409 });
   }
 
-  // Create assignment record
-  await serviceClient
-    .from("agent_assignments")
-    .insert({
-      conversation_id: conversationId,
-      agent_id: user.id,
-    });
+  // Create assignment record (if user is authenticated)
+  if (user) {
+    await serviceClient
+      .from("agent_assignments")
+      .insert({
+        conversation_id: conversationId,
+        agent_id: user.id,
+      });
+  }
 
   // Get agent name for widget notification
-  const { data: { user: fullUser } } = await supabase.auth.getUser();
-  const agentName = fullUser?.user_metadata?.full_name || fullUser?.user_metadata?.name || null;
+  let agentName: string | null = null;
+  if (user) {
+    const { data: { user: fullUser } } = await supabase.auth.getUser();
+    agentName = fullUser?.user_metadata?.full_name || fullUser?.user_metadata?.name || null;
+  }
 
   // Broadcast status change to widget with agent name
   await sendBroadcast(`conv-status-${conversationId}`, "status-change", {

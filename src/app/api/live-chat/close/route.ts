@@ -8,23 +8,33 @@ export async function POST(request: Request): Promise<Response> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
-  if (!user) {
-    return Response.json({ error: "Unauthorized" }, { status: 401 });
-  }
-
-  let body: { conversationId: string };
+  let body: { conversationId: string; workspaceId?: string };
   try {
     body = await request.json();
   } catch {
     return Response.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const { conversationId } = body;
+  const { conversationId, workspaceId } = body;
   if (!conversationId) {
     return Response.json({ error: "Missing conversationId" }, { status: 400 });
   }
 
   const service = createServiceClient();
+
+  // Validate conversation exists and belongs to workspace if provided
+  if (workspaceId) {
+    const { data: conv, error: checkError } = await service
+      .from("conversations")
+      .select("id")
+      .eq("id", conversationId)
+      .eq("workspace_id", workspaceId)
+      .single();
+
+    if (checkError || !conv) {
+      return Response.json({ error: "Conversation not found" }, { status: 404 });
+    }
+  }
 
   await service
     .from("conversations")
