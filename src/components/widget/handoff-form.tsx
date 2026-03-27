@@ -18,9 +18,15 @@ export function HandoffForm({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-    if (!email.trim() || submitting) return;
+    // Require both email AND name before submit
+    if (!email.trim() || !name.trim() || submitting) return;
     setSubmitting(true);
-    await onSubmit(email.trim(), name.trim());
+    try {
+      await onSubmit(email.trim(), name.trim());
+    } catch (err) {
+      console.error('Handoff error:', err);
+      setSubmitting(false);
+    }
   }
 
   return (
@@ -47,7 +53,7 @@ export function HandoffForm({
           />
           <button
             type="submit"
-            disabled={!email.trim() || submitting}
+            disabled={!email.trim() || !name.trim() || submitting}
             className="w-full rounded-lg px-3 py-1.5 text-sm font-medium text-white transition-opacity hover:opacity-90 disabled:opacity-40"
             style={{ backgroundColor: primaryColor }}
           >
