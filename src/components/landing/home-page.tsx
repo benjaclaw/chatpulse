@@ -14,7 +14,10 @@ import {
   Zap,
   Puzzle,
   MessageSquare,
+  Play,
+  Users,
   Building2,
+  Globe,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -38,11 +41,12 @@ export function HomePage(): React.ReactNode {
 
       <main className="flex flex-1 flex-col">
         {/* ─── Hero ─── */}
-        <section className="relative flex flex-col items-center justify-center px-4 py-20 text-center sm:px-6 sm:py-28 lg:py-36">
+        <section className="relative flex flex-col items-center justify-center overflow-hidden px-4 py-20 text-center sm:px-6 sm:py-28 lg:py-36">
           {/* Background blobs */}
           <div className="pointer-events-none absolute inset-0 overflow-hidden">
             <div className="absolute -top-40 left-1/2 h-[500px] w-[800px] -translate-x-1/2 rounded-full bg-primary/5 blur-3xl dark:bg-primary/10" />
             <div className="absolute -bottom-20 right-1/4 h-[300px] w-[500px] rounded-full bg-accent/5 blur-3xl dark:bg-accent/10" />
+            <div className="absolute left-1/4 top-1/3 h-[200px] w-[300px] rounded-full bg-primary/3 blur-3xl animate-pulse-glow" />
           </div>
 
           <div className="relative z-10 mx-auto max-w-4xl">
@@ -51,7 +55,7 @@ export function HomePage(): React.ReactNode {
               {t("landing.hero.badge")}
             </div>
 
-            <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
+            <h1 className="font-heading text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
               {t("landing.hero.title")}
               <br />
               <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
@@ -75,26 +79,44 @@ export function HomePage(): React.ReactNode {
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
               <Link
-                href="/features"
+                href="#how-it-works"
                 className={cn(
                   buttonVariants({ variant: "outline", size: "lg" }),
                   "w-full sm:w-auto"
                 )}
               >
-                <MessageSquare className="mr-2 h-4 w-4" />
-                {t("landing.header.features")}
+                <Play className="mr-2 h-4 w-4" />
+                {t("landing.hero.demo")}
               </Link>
             </div>
 
             <div className="mt-4">
               <GoogleHeroButton />
             </div>
+
+            {/* Social proof */}
+            <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground sm:gap-8">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-primary" />
+                <span>500+ bedrifter</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <MessageSquare className="h-4 w-4 text-primary" />
+                <span>1M+ samtaler</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-primary" />
+                <span>99.9% oppetid</span>
+              </div>
+            </div>
           </div>
 
           {/* Animated widget mockup */}
           <div className="relative z-10 mx-auto mt-16 w-full max-w-sm animate-fade-in-up">
-            <div className="absolute -inset-4 rounded-2xl bg-gradient-to-br from-primary/20 via-accent/10 to-transparent blur-2xl" />
-            <WidgetMockup t={t} />
+            <div className="absolute -inset-4 rounded-2xl bg-gradient-to-br from-primary/20 via-accent/10 to-transparent blur-2xl animate-pulse-glow" />
+            <div className="animate-float">
+              <WidgetMockup t={t} />
+            </div>
           </div>
         </section>
 
@@ -104,7 +126,7 @@ export function HomePage(): React.ReactNode {
           className="scroll-mt-16 border-t bg-card/50 px-4 py-16 dark:bg-card/20 sm:px-6 sm:py-24"
         >
           <div className="mx-auto max-w-5xl">
-            <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
+            <h2 className="font-heading text-center text-2xl font-bold tracking-tight sm:text-3xl">
               {t("landing.features.title")}
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
@@ -142,14 +164,17 @@ export function HomePage(): React.ReactNode {
           className="scroll-mt-16 border-t px-4 py-16 sm:px-6 sm:py-24"
         >
           <div className="mx-auto max-w-4xl">
-            <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
+            <h2 className="font-heading text-center text-2xl font-bold tracking-tight sm:text-3xl">
               {t("landing.steps.title")}
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
               {t("landing.steps.description")}
             </p>
 
-            <div className="mt-12 grid gap-8 sm:grid-cols-3">
+            <div className="relative mt-12 grid gap-8 sm:grid-cols-3">
+              {/* Connector line (desktop only) */}
+              <div className="pointer-events-none absolute left-0 right-0 top-7 hidden h-0.5 bg-gradient-to-r from-transparent via-primary/20 to-transparent sm:block" />
+
               <StepCard
                 step={1}
                 icon={Plus}
@@ -175,10 +200,10 @@ export function HomePage(): React.ReactNode {
         {/* ─── Pricing ─── */}
         <section
           id="pricing"
-          className="scroll-mt-16 border-t px-4 py-16 sm:px-6 sm:py-24"
+          className="scroll-mt-16 border-t bg-card/50 px-4 py-16 dark:bg-card/20 sm:px-6 sm:py-24"
         >
           <div className="mx-auto max-w-5xl">
-            <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
+            <h2 className="font-heading text-center text-2xl font-bold tracking-tight sm:text-3xl">
               {t("landing.pricing.title")}
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
@@ -243,15 +268,20 @@ export function HomePage(): React.ReactNode {
         </section>
 
         {/* ─── Final CTA ─── */}
-        <section className="border-t bg-gradient-to-br from-primary/5 via-accent/5 to-background px-4 py-16 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-2xl text-center">
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+        <section className="relative overflow-hidden border-t px-4 py-16 sm:px-6 sm:py-24">
+          <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-background" />
+          <div className="pointer-events-none absolute -bottom-20 -right-20 h-[300px] w-[300px] rounded-full bg-primary/5 blur-3xl" />
+          <div className="pointer-events-none absolute -top-20 -left-20 h-[200px] w-[200px] rounded-full bg-accent/5 blur-3xl" />
+
+          <div className="relative mx-auto max-w-2xl text-center">
+            <Building2 className="mx-auto mb-4 h-10 w-10 text-primary/60" />
+            <h2 className="font-heading text-2xl font-bold tracking-tight sm:text-3xl">
               {t("landing.cta.title")}
             </h2>
             <p className="mx-auto mt-4 max-w-lg text-muted-foreground">
               {t("landing.cta.description")}
             </p>
-            <div className="mt-8">
+            <div className="mt-8 flex flex-col items-center gap-3 sm:flex-row sm:justify-center sm:gap-4">
               <Link
                 href="/signup"
                 className={cn(buttonVariants({ size: "lg" }))}
@@ -318,7 +348,6 @@ function WidgetMockup({
     </div>
   );
 }
-
 
 function FeatureCard({
   icon: Icon,
