@@ -130,6 +130,8 @@ const nb: Record<string, string> = {
   'conversations.next': 'Neste',
   'conversations.minutes': 'min',
   'conversations.hours': 'timer',
+  'conversations.exportCsv': 'Eksporter CSV',
+  'conversations.exporting': 'Eksporterer...',
 
   // Insights
   'insights.title': 'Innsikt',

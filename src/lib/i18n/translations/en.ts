@@ -130,6 +130,8 @@ const en: Record<string, string> = {
   'conversations.next': 'Next',
   'conversations.minutes': 'min',
   'conversations.hours': 'hrs',
+  'conversations.exportCsv': 'Export CSV',
+  'conversations.exporting': 'Exporting...',
 
   // Insights
   'insights.title': 'Insights',

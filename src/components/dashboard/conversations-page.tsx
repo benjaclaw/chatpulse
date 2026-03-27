@@ -18,6 +18,7 @@ import {
   ChevronDown,
   ChevronUp,
   Search,
+  Download,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/lib/types";
@@ -82,6 +83,7 @@ export function ConversationsPageClient(): React.ReactNode {
   const [expandedId, setExpandedId] = useState<string | null>(null);
   const [expandedMessages, setExpandedMessages] = useState<ChatMessage[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
+  const [exporting, setExporting] = useState(false);
 
   // Debounce search
   useEffect(() => {
@@ -191,6 +193,64 @@ export function ConversationsPageClient(): React.ReactNode {
     setMessagesLoading(false);
   }, [expandedId, supabase]);
 
+  const handleExportCsv = useCallback(async () => {
+    setExporting(true);
+    try {
+      const dateFrom = getDateFrom(dateRange);
+      let query = supabase
+        .from("conversations")
+        .select("id, visitor_id, status, started_at, messages(id, content, role, created_at)")
+        .eq("workspace_id", workspaceId)
+        .order("started_at", { ascending: false });
+
+      if (dateFrom) query = query.gte("started_at", dateFrom);
+
+      const { data } = await query;
+      const rows = (data ?? []).map(
+        (c: { id: string; visitor_id: string; status: string; started_at: string; messages: { id: string; content: string; role: string; created_at: string }[] }) => {
+          const firstUserMsg = c.messages?.find((m) => m.role === "user");
+          return {
+            date: new Date(c.started_at).toLocaleString(dateLocale),
+            visitor_id: c.visitor_id,
+            status: c.status,
+            message_count: c.messages?.length ?? 0,
+            first_message: firstUserMsg?.content?.slice(0, 200) ?? "",
+          };
+        }
+      );
+
+      const headers = [
+        language === "nb" ? "Dato" : "Date",
+        language === "nb" ? "Besøkende" : "Visitor",
+        "Status",
+        language === "nb" ? "Antall meldinger" : "Message count",
+        language === "nb" ? "Første melding" : "First message",
+      ];
+      const csvContent = [
+        headers.join(","),
+        ...rows.map((r) =>
+          [
+            `"${r.date}"`,
+            `"${r.visitor_id}"`,
+            `"${r.status}"`,
+            r.message_count,
+            `"${r.first_message.replace(/"/g, '""').replace(/\n/g, " ")}"`,
+          ].join(",")
+        ),
+      ].join("\n");
+
+      const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `conversations-${new Date().toISOString().slice(0, 10)}.csv`;
+      link.click();
+      URL.revokeObjectURL(url);
+    } finally {
+      setExporting(false);
+    }
+  }, [workspaceId, supabase, dateRange, dateLocale, language]);
+
   const totalPages = useMemo(() => Math.ceil(totalCount / PAGE_SIZE), [totalCount]);
 
   return (
@@ -203,15 +263,26 @@ export function ConversationsPageClient(): React.ReactNode {
         </p>
       </div>
 
-      {/* Search */}
-      <div className="relative">
-        <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
-        <Input
-          placeholder={t('conversations.search')}
-          value={search}
-          onChange={(e) => setSearch(e.target.value)}
-          className="pl-9"
-        />
+      {/* Search + Export */}
+      <div className="flex gap-2">
+        <div className="relative flex-1">
+          <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
+          <Input
+            placeholder={t('conversations.search')}
+            value={search}
+            onChange={(e) => setSearch(e.target.value)}
+            className="pl-9"
+          />
+        </div>
+        <Button
+          variant="outline"
+          size="default"
+          onClick={handleExportCsv}
+          disabled={exporting}
+        >
+          <Download className="mr-2 h-4 w-4" />
+          {exporting ? t('conversations.exporting') : t('conversations.exportCsv')}
+        </Button>
       </div>
 
       {/* Date filter */}
