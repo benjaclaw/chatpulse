@@ -44,7 +44,8 @@
     c.style.cssText = "position:fixed;bottom:20px;z-index:2147483647;" + (pos === "left" ? "left:20px;" : "right:20px;");
 
     w = document.createElement("div");
-    w.style.cssText = "width:370px;height:500px;margin-bottom:16px;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15);transition:transform .25s ease,opacity .25s ease;transform-origin:bottom " + pos + ";transform:scale(0);opacity:0;pointer-events:none;background:#fff;";
+    var isMobile = window.innerWidth < 480;
+    w.style.cssText = (isMobile ? "width:calc(100vw - 32px);height:calc(100vh - 100px);max-height:600px;" : "width:370px;height:500px;") + "margin-bottom:16px;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15);transition:transform .25s ease,opacity .25s ease;transform-origin:bottom " + pos + ";transform:scale(0);opacity:0;pointer-events:none;background:#fff;";
 
     var b = document.createElement("button");
     b.setAttribute("aria-label", "Åpne chat");
