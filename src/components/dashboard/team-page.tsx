@@ -172,6 +172,12 @@ export function TeamPageClient(): React.ReactNode {
         <UpgradeBanner feature="team_members" />
       )}
 
+      {members.length === 1 && (
+        <p className="text-sm text-muted-foreground">
+          {t('team.onlyMember')}
+        </p>
+      )}
+
       {/* Members card */}
       <Card>
         <CardHeader>

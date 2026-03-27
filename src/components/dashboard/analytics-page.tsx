@@ -6,6 +6,7 @@ import { createClient } from "@/lib/supabase/client";
 import { useLanguage } from "@/lib/i18n/context";
 import type { Question } from "@/lib/types";
 import { Badge } from "@/components/ui/badge";
+import { EmptyState } from "./empty-state";
 import {
   MessageSquare,
   MessagesSquare,
@@ -140,6 +141,8 @@ export function AnalyticsPageClient(): React.ReactNode {
 
   const hoursSaved = Math.round((totalMessages * 2) / 60);
 
+  const hasNoData = totalConversations === 0 && totalMessages === 0;
+
   if (loading) {
     return (
       <div className="space-y-6">
@@ -163,6 +166,22 @@ export function AnalyticsPageClient(): React.ReactNode {
             <div key={i} className="h-72 animate-pulse rounded-xl border bg-muted/30" />
           ))}
         </div>
+      </div>
+    );
+  }
+
+  if (hasNoData) {
+    return (
+      <div className="space-y-6">
+        <div>
+          <h1 className="text-3xl font-bold tracking-tight">{t("analytics.title")}</h1>
+          <p className="mt-1 text-muted-foreground">{t("analytics.description")}</p>
+        </div>
+        <EmptyState
+          icon={BarChart3}
+          title={t("analytics.title")}
+          description={t("analytics.emptyState")}
+        />
       </div>
     );
   }

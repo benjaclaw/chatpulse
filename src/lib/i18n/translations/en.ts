@@ -158,6 +158,7 @@ const en: Record<string, string> = {
   'analytics.messagesAnswered': 'messages answered by ChatPulse',
   'analytics.hoursSaved': 'hours of customer service saved',
   'analytics.leadsAutomatic': 'leads captured automatically',
+  'analytics.emptyState': 'No data yet. Conversations will appear here once the chatbot is in use.',
 
   // Team
   'team.title': 'Team',
@@ -175,6 +176,7 @@ const en: Record<string, string> = {
   'team.membersTitle': 'Members',
   'team.membersDescription': 'People with access to this workspace.',
   'team.noMembers': 'No members found.',
+  'team.onlyMember': 'You are the only team member. Invite colleagues from Settings.',
 
   // Leads
   'leads.title': 'Leads',
@@ -663,6 +665,9 @@ const en: Record<string, string> = {
   'inbox.active': 'Active',
   'inbox.closed': 'Closed',
   'inbox.empty': 'No conversations',
+  'inbox.emptyWaiting': 'No waiting conversations',
+  'inbox.emptyActive': 'No active conversations',
+  'inbox.emptyClosed': 'No closed conversations',
   'inbox.noPreview': 'No message',
   'inbox.selectConversation': 'Select a conversation',
   'inbox.claim': 'Claim',

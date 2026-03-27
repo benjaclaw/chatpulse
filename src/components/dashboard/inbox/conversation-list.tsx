@@ -58,7 +58,13 @@ export function ConversationList({
         {loading ? (
           <div className="p-4 text-center text-sm text-muted-foreground">{t('common.loading')}</div>
         ) : conversations.length === 0 ? (
-          <div className="p-4 text-center text-sm text-muted-foreground">{t('inbox.empty')}</div>
+          <div className="p-4 text-center text-sm text-muted-foreground">
+            {filter === "waiting"
+              ? t('inbox.emptyWaiting')
+              : filter === "human"
+                ? t('inbox.emptyActive')
+                : t('inbox.emptyClosed')}
+          </div>
         ) : (
           <>
             {conversations.map((conv) => (

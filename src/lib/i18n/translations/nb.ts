@@ -158,6 +158,7 @@ const nb: Record<string, string> = {
   'analytics.messagesAnswered': 'meldinger besvart av ChatPulse',
   'analytics.hoursSaved': 'timer spart kundeservice',
   'analytics.leadsAutomatic': 'leads fanget automatisk',
+  'analytics.emptyState': 'Ingen data ennå. Samtaler vil vises her etter at chatboten er i bruk.',
 
   // Team
   'team.title': 'Team',
@@ -175,6 +176,7 @@ const nb: Record<string, string> = {
   'team.membersTitle': 'Medlemmer',
   'team.membersDescription': 'Personer med tilgang til denne workspacen.',
   'team.noMembers': 'Ingen medlemmer funnet.',
+  'team.onlyMember': 'Du er den eneste i teamet. Inviter kollegaer fra Innstillinger.',
 
   // Leads
   'leads.title': 'Leads',
@@ -663,6 +665,9 @@ const nb: Record<string, string> = {
   'inbox.active': 'Aktiv',
   'inbox.closed': 'Lukket',
   'inbox.empty': 'Ingen samtaler',
+  'inbox.emptyWaiting': 'Ingen ventende samtaler',
+  'inbox.emptyActive': 'Ingen aktive samtaler',
+  'inbox.emptyClosed': 'Ingen lukkede samtaler',
   'inbox.noPreview': 'Ingen melding',
   'inbox.selectConversation': 'Velg en samtale',
   'inbox.claim': 'Ta samtale',
