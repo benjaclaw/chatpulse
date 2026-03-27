@@ -327,74 +327,58 @@ export function ChatWidget({
   async function handleHandoffSubmit(email: string, name: string) {
     if (!email.trim() || !name.trim()) return;
     setHandoffSubmitted(true);
-    
-    let convId = conversationIdRef.current;
-    let wsId = workspaceIdRef.current;
 
     try {
-      // If no conversation exists, create one for handoff
-      if (!convId || !wsId) {
-        // Send a system message to create conversation if needed
-        // OR use existing conversation from AI chat
-        // For now: assume conversation was created during AI chat
-        // If button-only: need fallback — create via simple API call
-        const res = await fetch("/api/live-chat", {
-          method: "POST",
-          headers: { "Content-Type": "application/json" },
-          body: JSON.stringify({
-            conversationId: convId || `temp-${Date.now()}`,
-            content: `User requesting live chat: ${email}`,
-            role: "system",
-          }),
-        });
-        // This creates/updates conversation to "waiting" status
-        if (!res.ok && !convId) {
-          throw new Error("Failed to initialize conversation");
-        }
-      }
-
-      // Ensure we have IDs before proceeding
-      if (!convId) {
-        // For button-flow without prior AI chat: create minimal conversation record
-        convId = `handoff-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
-        conversationIdRef.current = convId;
-      }
-      if (!wsId && workspaceIdRef.current) {
-        wsId = workspaceIdRef.current;
-      }
-
-      // Create lead
-      await fetch("/api/leads", {
+      // Single atomic API call — server handles everything
+      const res = await fetch("/api/handoff", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ email, name: name || null, workspaceId: wsId, conversationId: convId }),
+        body: JSON.stringify({
+          email: email.trim(),
+          name: name.trim(),
+          botId: chatbotId,
+          workspaceId: workspaceIdRef.current,
+          visitorId: getVisitorId(),
+        }),
       });
+
+      if (!res.ok) {
+        const error = await res.json().catch(() => ({}));
+        throw new Error(error.error || `HTTP ${res.status}`);
+      }
+
+      const { conversationId, workspaceId } = await res.json();
+
+      // Update refs and session
+      conversationIdRef.current = conversationId;
+      workspaceIdRef.current = workspaceId;
 
       // Activate live chat
       setLiveChatMode(true);
       try {
         sessionStorage.setItem("chatpulse_live_chat_mode", "true");
-        sessionStorage.setItem("chatpulse_conversation_id", convId);
-        if (wsId) sessionStorage.setItem("chatpulse_workspace_id", wsId);
+        sessionStorage.setItem("chatpulse_conversation_id", conversationId);
+        sessionStorage.setItem("chatpulse_workspace_id", workspaceId);
       } catch {}
 
-      // Confirm to user
+      // Show success and setup realtime
       setMessages((prev) => [...prev, 
         { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: t('widget.handoffConnecting').replace('{name}', name || email) }
       ]);
 
-      if (convId && wsId) {
-        subscribeToRealtime(convId);
-        fetchQueuePosition(convId, wsId);
-      }
+      subscribeToRealtime(conversationId);
+      fetchQueuePosition(conversationId, workspaceId);
 
+      // Cleanup
       const pending = pendingLiveChatRef.current;
       if (pending) {
         pendingLiveChatRef.current = null;
       }
     } catch (err) {
       console.error("Handoff error:", err);
-      setMessages((prev) => [...prev, { id: `error-${Date.now()}`, role: "assistant", content: t('widget.error') }]);
+      setMessages((prev) => [...prev, 
+        { id: `error-${Date.now()}`, role: "assistant", content: t('widget.error') }
+      ]);
       setHandoffSubmitted(false);
     }
   }
