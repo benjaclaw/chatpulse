@@ -19,6 +19,17 @@ export default function NotFound(): React.ReactNode {
         <ArrowLeft className="h-4 w-4" />
         Tilbake til forsiden
       </Link>
+      <nav className="mt-6 flex flex-wrap justify-center gap-4 text-sm">
+        <Link href="/pricing" className="text-muted-foreground hover:text-foreground">
+          Priser
+        </Link>
+        <Link href="/features" className="text-muted-foreground hover:text-foreground">
+          Funksjoner
+        </Link>
+        <Link href="/login" className="text-muted-foreground hover:text-foreground">
+          Logg inn
+        </Link>
+      </nav>
     </div>
   );
 }
