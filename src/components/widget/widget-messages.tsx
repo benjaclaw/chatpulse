@@ -35,7 +35,7 @@ export const MessageList = ({
   const t = createT((i18nLang === "nb" || i18nLang === "en" ? i18nLang : "nb") as Language);
 
   return (
-    <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3">
+    <div ref={scrollContainerRef} role="log" aria-live="polite" aria-label="Chatmeldinger" className="flex-1 overflow-y-auto p-4 space-y-3">
       {messages.map((msg) => (
         <div
           key={msg.id}

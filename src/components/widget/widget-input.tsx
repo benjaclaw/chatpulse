@@ -51,6 +51,9 @@ export const WidgetInput = ({
       e.preventDefault();
       onSend();
     }
+    if (e.key === "Escape") {
+      window.parent.postMessage({ type: "chatpulse:close" }, "*");
+    }
   };
 
   return (
