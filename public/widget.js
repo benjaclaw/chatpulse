@@ -83,7 +83,7 @@
 
     var c = document.createElement("div");
     c.id = "chatpulse-widget";
-    c.style.cssText = "position:fixed;bottom:0;z-index:2147483647;" + (pos === "left" ? "left:0;" : "right:0;") + (isMobile() ? "bottom:0;left:0;right:0;" : "bottom:20px;" + (pos === "left" ? "left:20px;" : "right:20px;"));
+    c.style.cssText = "position:fixed;bottom:0;z-index:2147483647;" + (pos === "left" ? "left:0;" : "right:0;") + (isMobile() ? "bottom:20px;left:12px;right:12px;display:flex;justify-content:" + (pos === "left" ? "flex-start" : "flex-end") + ";" : "bottom:20px;" + (pos === "left" ? "left:20px;" : "right:20px;"));
 
     w = document.createElement("div");
     w.style.cssText = "position:relative;" + (isMobile() ? "width:100vw;height:100vh;max-height:none;margin-bottom:0;border-radius:0;" : "width:370px;height:500px;margin-bottom:16px;border-radius:16px;") + "overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s cubic-bezier(.4,0,.2,1);transform:translateY(20px);opacity:0;pointer-events:none;background:#fff;";

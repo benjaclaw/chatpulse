@@ -45,19 +45,39 @@ export default async function WidgetPage({
       {/* Inline loading state — visible until React hydrates and mounts ChatWidget */}
       <div
         id="widget-loader"
-        className="flex h-full w-full flex-col items-center justify-center gap-3"
-        style={{ color: primaryColor }}
+        className="flex h-full w-full flex-col bg-card border"
       >
-        {logoUrl ? (
-          // eslint-disable-next-line @next/next/no-img-element
-          <img src={logoUrl} alt="" width={40} height={40} className="animate-pulse rounded-full" />
-        ) : (
-          <svg className="animate-pulse" width="40" height="40" viewBox="0 0 40 40" fill="none">
-            <rect width="40" height="40" rx="10" fill="currentColor" opacity="0.15" />
-            <path d="M12 20h4m4 0h8M12 26h16M12 14h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
-          </svg>
-        )}
-        <span className="text-sm animate-pulse opacity-70">Laster…</span>
+        {/* Header */}
+        <div
+          className="flex items-center justify-between px-4 py-3"
+          style={{ backgroundColor: primaryColor }}
+        >
+          <div className="flex items-center gap-2">
+            <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 animate-pulse" />
+            <div>
+              <p className="text-sm font-semibold text-white">ChatPulse</p>
+              <p className="flex items-center gap-1.5 text-xs text-white/70">AI-assistent</p>
+            </div>
+          </div>
+        </div>
+        {/* Message area (empty, skeleton) */}
+        <div className="relative flex flex-col flex-1 overflow-hidden">
+          <div className="flex-1 overflow-y-auto p-4 space-y-3">
+            <div className="flex justify-start">
+              <div className="max-w-[80%] rounded-2xl px-4 py-2 bg-muted h-10 animate-pulse rounded-bl-md" />
+            </div>
+            <div className="flex justify-start">
+              <div className="max-w-[60%] rounded-2xl px-4 py-2 bg-muted h-10 animate-pulse rounded-bl-md" />
+            </div>
+          </div>
+        </div>
+        {/* Input area (disabled) */}
+        <div className="border-t p-3">
+          <div className="flex items-end gap-2">
+            <div className="flex-1 h-10 rounded-lg bg-muted animate-pulse" />
+            <div className="h-9 w-9 rounded-lg bg-muted animate-pulse" />
+          </div>
+        </div>
       </div>
       <ChatWidget
         inline
