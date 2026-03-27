@@ -136,6 +136,52 @@ export function SimpleMarkdown({ text }: { text: string }): React.ReactNode {
   return <>{elements}</>;
 }
 
+const LINK_RE =
+  /(https?:\/\/[^\s]+)|([a-zA-Z0-9._%+\-]+@[a-zA-Z0-9.\-]+\.[a-zA-Z]{2,})|(\+?\d[\d\s\-]{6,14}\d)/g;
+
+/** Split text into plain segments and auto-linked segments (URLs, emails, phone numbers) */
+function autoLink(text: string, startKey: number): { nodes: React.ReactNode[]; nextKey: number } {
+  const nodes: React.ReactNode[] = [];
+  let k = startKey;
+  let lastIndex = 0;
+  let m: RegExpExecArray | null;
+  LINK_RE.lastIndex = 0;
+  while ((m = LINK_RE.exec(text)) !== null) {
+    if (m.index > lastIndex) {
+      nodes.push(<span key={k++}>{text.slice(lastIndex, m.index)}</span>);
+    }
+    const matched = m[0];
+    if (m[1]) {
+      // URL
+      nodes.push(
+        <a key={k++} href={matched} target="_blank" rel="noopener noreferrer" className="text-primary underline">
+          {matched}
+        </a>,
+      );
+    } else if (m[2]) {
+      // Email
+      nodes.push(
+        <a key={k++} href={`mailto:${matched}`} className="text-primary underline">
+          {matched}
+        </a>,
+      );
+    } else if (m[3]) {
+      // Phone
+      const digits = matched.replace(/[\s\-]/g, "");
+      nodes.push(
+        <a key={k++} href={`tel:${digits}`} className="text-primary underline">
+          {matched}
+        </a>,
+      );
+    }
+    lastIndex = m.index + matched.length;
+  }
+  if (lastIndex < text.length) {
+    nodes.push(<span key={k++}>{text.slice(lastIndex)}</span>);
+  }
+  return { nodes, nextKey: k };
+}
+
 export function inlineFormat(text: string): React.ReactNode {
   // Bold **text** or __text__
   // Italic *text* or _text_
@@ -147,7 +193,11 @@ export function inlineFormat(text: string): React.ReactNode {
     // Bold: **...**
     const boldMatch = remaining.match(/^([\s\S]*?)\*\*([\s\S]+?)\*\*([\s\S]*)/);
     if (boldMatch) {
-      if (boldMatch[1]) parts.push(<span key={key++}>{boldMatch[1]}</span>);
+      if (boldMatch[1]) {
+        const { nodes, nextKey } = autoLink(boldMatch[1], key);
+        parts.push(...nodes);
+        key = nextKey;
+      }
       parts.push(<strong key={key++}>{boldMatch[2]}</strong>);
       remaining = boldMatch[3];
       continue;
@@ -155,12 +205,18 @@ export function inlineFormat(text: string): React.ReactNode {
     // Italic: *...*
     const italicMatch = remaining.match(/^([\s\S]*?)\*([\s\S]+?)\*([\s\S]*)/);
     if (italicMatch) {
-      if (italicMatch[1]) parts.push(<span key={key++}>{italicMatch[1]}</span>);
+      if (italicMatch[1]) {
+        const { nodes, nextKey } = autoLink(italicMatch[1], key);
+        parts.push(...nodes);
+        key = nextKey;
+      }
       parts.push(<em key={key++}>{italicMatch[2]}</em>);
       remaining = italicMatch[3];
       continue;
     }
-    parts.push(<span key={key++}>{remaining}</span>);
+    const { nodes, nextKey } = autoLink(remaining, key);
+    parts.push(...nodes);
+    key = nextKey;
     break;
   }
 
