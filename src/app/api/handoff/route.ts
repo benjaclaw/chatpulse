@@ -78,6 +78,7 @@ export async function POST(request: Request): Promise<Response> {
         .from("conversations")
         .insert({
           workspace_id: workspaceId,
+          visitor_id: body.visitorId,
           status: "waiting",
           started_at: new Date().toISOString(),
         })
