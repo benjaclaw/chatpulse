@@ -303,12 +303,8 @@ export function ChatWidget({
           if (data.limitReached) {
             setLimitReached(true);
           }
-          if (data.handoff && !handoffTriggered) {
-            setHandoffTriggered(true);
-            if (data.liveChat && data.conversationId) {
-              pendingLiveChatRef.current = { conversationId: data.conversationId, workspaceId: data.workspaceId };
-            }
-          }
+          // Note: handoff is triggered by "Talk to person" button only, not by AI detection
+          // This prevents form from auto-showing when user mentions "human" in chat
         } else {
           setMessages((prev) => [...prev, { id: `bot-${Date.now()}`, role: "assistant", content: t('widget.error') }]);
         }
