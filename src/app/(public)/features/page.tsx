@@ -2,7 +2,7 @@ import type { Metadata } from "next";
 import { FeaturesPage } from "@/components/landing/features-page";
 
 export const metadata: Metadata = {
-  title: "Funksjoner — ChatPulse",
+  title: "Funksjoner",
   description:
     "Alt du trenger for smartere kundeservice. AI-chatbot, live chat, innsikt, rapportering og mer — klar på 5 minutter.",
 };
