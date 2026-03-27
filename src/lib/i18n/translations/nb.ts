@@ -103,6 +103,11 @@ const nb: Record<string, string> = {
   'knowledge.articleCount': '{count} artikler',
   'knowledge.articleCountOne': '1 artikkel',
   'knowledge.lastUpdated': 'Sist oppdatert',
+  'knowledge.allCategories': 'Alle',
+  'knowledge.uploadSuccess': 'Lastet opp {name} ({size})',
+  'knowledge.extractedSections': '{count} seksjoner ekstrahert',
+  'knowledge.emptyTitle': 'Bygg opp kunnskapsbasen din',
+  'knowledge.emptyExamples': 'Ofte stilte spørsmål, Produktinformasjon, Returpolicy',
 
   // Conversations
   'conversations.title': 'Samtaler',

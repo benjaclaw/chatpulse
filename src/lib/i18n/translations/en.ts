@@ -103,6 +103,11 @@ const en: Record<string, string> = {
   'knowledge.articleCount': '{count} articles',
   'knowledge.articleCountOne': '1 article',
   'knowledge.lastUpdated': 'Last updated',
+  'knowledge.allCategories': 'All',
+  'knowledge.uploadSuccess': 'Uploaded {name} ({size})',
+  'knowledge.extractedSections': '{count} sections extracted',
+  'knowledge.emptyTitle': 'Build your knowledge base',
+  'knowledge.emptyExamples': 'FAQs, Product information, Return policy',
 
   // Conversations
   'conversations.title': 'Conversations',
