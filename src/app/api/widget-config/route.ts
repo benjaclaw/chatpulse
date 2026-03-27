@@ -1,6 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service";
 
-export const runtime = "nodejs";
+export const runtime = "edge";
 
 export async function GET(request: Request): Promise<Response> {
   const { searchParams } = new URL(request.url);
@@ -12,7 +12,7 @@ export async function GET(request: Request): Promise<Response> {
 
   const supabase = createServiceClient();
 
-  // Fetch workspace_id for this chatbot
+  // Single query: fetch workspace_id and check presence in parallel
   const { data: config, error: configError } = await supabase
     .from("chatbot_config")
     .select("workspace_id")
@@ -25,12 +25,13 @@ export async function GET(request: Request): Promise<Response> {
 
   const workspaceId = config.workspace_id;
 
-  // Check agent presence — simple toggle check, no heartbeat/timeout
+  // Check agent presence — simple toggle check
   const { data: agents } = await supabase
     .from("agent_presence")
     .select("user_id")
     .eq("workspace_id", workspaceId)
-    .in("status", ["online", "busy"]);
+    .in("status", ["online", "busy"])
+    .limit(1); // Only need to know if ANY agent is online
 
   return Response.json(
     {
