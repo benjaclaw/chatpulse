@@ -14,9 +14,20 @@
   var url = base + "/widget/" + encodeURIComponent(id) + "?color=" + encodeURIComponent(color) + "&position=" + encodeURIComponent(pos) + (lang ? "&lang=" + encodeURIComponent(lang) : "");
   var isOpen = false;
   var iframeLoaded = false;
+  var unreadCount = 0;
   var openIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
   var closeIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
-  var w, f;
+  var w, f, badge;
+
+  function updateBadge() {
+    if (!badge) return;
+    if (unreadCount > 0 && !isOpen) {
+      badge.textContent = unreadCount > 9 ? "9+" : String(unreadCount);
+      badge.style.display = "flex";
+    } else {
+      badge.style.display = "none";
+    }
+  }
 
   function toggle(btn, open) {
     isOpen = open;
@@ -31,11 +42,12 @@
       w.appendChild(f);
       iframeLoaded = true;
     }
-    w.style.transform = open ? "scale(1)" : "scale(0)";
+    w.style.transform = open ? "translateY(0)" : "translateY(20px)";
     w.style.opacity = open ? "1" : "0";
     w.style.pointerEvents = open ? "auto" : "none";
     btn.innerHTML = open ? closeIcon : openIcon;
     btn.setAttribute("aria-label", open ? "Lukk chat" : "Åpne chat");
+    if (open) { unreadCount = 0; updateBadge(); }
   }
 
   function init() {
@@ -45,7 +57,7 @@
 
     w = document.createElement("div");
     var isMobile = window.innerWidth < 480;
-    w.style.cssText = (isMobile ? "width:calc(100vw - 32px);height:calc(100vh - 100px);max-height:600px;" : "width:370px;height:500px;") + "margin-bottom:16px;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15);transition:transform .25s ease,opacity .25s ease;transform-origin:bottom " + pos + ";transform:scale(0);opacity:0;pointer-events:none;background:#fff;";
+    w.style.cssText = (isMobile ? "width:calc(100vw - 32px);height:calc(100vh - 100px);max-height:600px;" : "width:370px;height:500px;") + "margin-bottom:16px;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s cubic-bezier(.4,0,.2,1);transform:translateY(20px);opacity:0;pointer-events:none;background:#fff;";
 
     var b = document.createElement("button");
     b.setAttribute("aria-label", "Åpne chat");
@@ -54,9 +66,18 @@
     b.onmouseenter = function () { b.style.transform = "scale(1.08)"; b.style.boxShadow = "0 6px 20px rgba(0,0,0,.25)"; };
     b.onmouseleave = function () { b.style.transform = "scale(1)"; b.style.boxShadow = "0 4px 12px rgba(0,0,0,.2)"; };
     b.onclick = function () { toggle(b, !isOpen); };
+    b.style.position = "relative";
+
+    badge = document.createElement("span");
+    badge.style.cssText = "display:none;position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:#ef4444;color:#fff;font-size:12px;font-weight:600;align-items:center;justify-content:center;padding:0 5px;box-shadow:0 2px 4px rgba(0,0,0,.2);pointer-events:none;font-family:system-ui,sans-serif;";
+    b.appendChild(badge);
 
     window.addEventListener("message", function (e) {
       if (e.data && e.data.type === "chatpulse:close") toggle(b, false);
+      if (e.data && e.data.type === "chatpulse:unread" && typeof e.data.count === "number") {
+        unreadCount = e.data.count;
+        updateBadge();
+      }
     });
 
     c.appendChild(w);

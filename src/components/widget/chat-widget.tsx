@@ -106,6 +106,8 @@ export function ChatWidget({
     return false;
   });
 
+  const unreadRef = useRef(0);
+
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLTextAreaElement>(null);
   const conversationIdRef = useRef<string | null>(null);
@@ -131,14 +133,29 @@ export function ChatWidget({
   }, [messages]);
 
   const hasMounted = useRef(false);
+  const prevMsgCountRef = useRef(messages.length);
   useEffect(() => {
-    if (!hasMounted.current) { hasMounted.current = true; return; }
+    if (!hasMounted.current) { hasMounted.current = true; prevMsgCountRef.current = messages.length; return; }
+    // Track unread messages from bot/agent when widget is minimized
+    if (!isOpen && !inline && messages.length > prevMsgCountRef.current) {
+      const newMsgs = messages.slice(prevMsgCountRef.current);
+      const botMsgs = newMsgs.filter((m) => m.role === "assistant" || m.role === "agent");
+      if (botMsgs.length > 0) {
+        unreadRef.current += botMsgs.length;
+        try { window.parent.postMessage({ type: "chatpulse:unread", count: unreadRef.current }, "*"); } catch { /* cross-origin */ }
+      }
+    }
+    prevMsgCountRef.current = messages.length;
     const el = messagesEndRef.current;
     if (el?.parentElement) el.parentElement.scrollTop = el.parentElement.scrollHeight;
-  }, [messages, isTyping, agentTyping]);
+  }, [messages, isTyping, agentTyping, isOpen, inline]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) inputRef.current.focus({ preventScroll: true });
+    if (isOpen && unreadRef.current > 0) {
+      unreadRef.current = 0;
+      try { window.parent.postMessage({ type: "chatpulse:unread", count: 0 }, "*"); } catch { /* cross-origin */ }
+    }
     if (isOpen && chatbotId && !configLoaded) {
       setConfigLoading(true);
       fetch(`/api/widget-config?chatbotId=${encodeURIComponent(chatbotId)}`)
