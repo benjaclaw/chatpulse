@@ -166,6 +166,18 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
+  // Autofocus first input when step changes
+  const cardRef = useRef<HTMLDivElement>(null);
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      const input = cardRef.current?.querySelector<HTMLElement>(
+        "input:not([type=file]):not([type=hidden]), textarea, select"
+      );
+      input?.focus();
+    }, 100);
+    return () => clearTimeout(timer);
+  }, [step]);
+
   // Step 1: Workspace
   const [workspaceName, setWorkspaceName] = useState("");
   const [industry, setIndustry] = useState<Industry | "">("");
@@ -402,58 +414,69 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
         </h1>
       </div>
 
-      {/* Progress indicator */}
-      <div className="flex items-center justify-center gap-2">
-        {stepLabels.map((label, i) => {
-          const Icon = STEP_ICONS[i];
-          const isActive = i === step;
-          const isDone = i < step;
-          return (
-            <div key={i} className="flex items-center gap-2">
-              {i > 0 && (
-                <div
-                  className={`hidden h-0.5 w-8 sm:block ${
-                    isDone ? "bg-primary" : "bg-border"
-                  }`}
-                />
-              )}
-              <div className="flex flex-col items-center gap-1">
-                <div
-                  className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-colors ${
-                    isActive
-                      ? "border-primary bg-primary text-primary-foreground"
-                      : isDone
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border bg-background text-muted-foreground"
-                  }`}
-                >
-                  {isDone ? (
-                    <Check className="h-5 w-5" />
-                  ) : (
-                    <Icon className="h-5 w-5" />
-                  )}
-                </div>
-                <span
-                  className={`text-xs font-medium ${
-                    isActive
-                      ? "text-primary"
-                      : isDone
+      {/* Progress bar */}
+      <div className="space-y-4">
+        <div className="flex items-center justify-center gap-2">
+          {stepLabels.map((label, i) => {
+            const Icon = STEP_ICONS[i];
+            const isActive = i === step;
+            const isDone = i < step;
+            return (
+              <div key={i} className="flex items-center gap-2">
+                {i > 0 && (
+                  <div
+                    className={`hidden h-0.5 w-8 sm:block ${
+                      isDone ? "bg-primary" : "bg-border"
+                    }`}
+                  />
+                )}
+                <div className="flex flex-col items-center gap-1">
+                  <div
+                    className={`flex h-10 w-10 items-center justify-center rounded-full border-2 transition-colors ${
+                      isActive
+                        ? "border-primary bg-primary text-primary-foreground"
+                        : isDone
+                          ? "border-primary bg-primary/10 text-primary"
+                          : "border-border bg-background text-muted-foreground"
+                    }`}
+                  >
+                    {isDone ? (
+                      <Check className="h-5 w-5" />
+                    ) : (
+                      <Icon className="h-5 w-5" />
+                    )}
+                  </div>
+                  <span
+                    className={`text-xs font-medium ${
+                      isActive
                         ? "text-primary"
-                        : "text-muted-foreground"
-                  }`}
-                >
-                  {label}
-                </span>
+                        : isDone
+                          ? "text-primary"
+                          : "text-muted-foreground"
+                    }`}
+                  >
+                    {label}
+                  </span>
+                </div>
               </div>
-            </div>
-          );
-        })}
+            );
+          })}
+        </div>
+        <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
+          <div
+            className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-500 ease-in-out"
+            style={{ width: `${((step + 1) / 4) * 100}%` }}
+          />
+        </div>
+        <p className="text-center text-xs text-muted-foreground">
+          {step + 1} / 4 — {stepLabels[step]}
+        </p>
       </div>
 
       <FormError message={error} />
 
       {/* Step content */}
-      <Card>
+      <Card ref={cardRef}>
         <CardContent className="p-6">
           {/* Step 1: Workspace */}
           {step === 0 && (
@@ -467,7 +490,6 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
                   value={fullName}
                   onChange={(e) => setFullName(e.target.value)}
                   placeholder={t("onboarding.yourNamePlaceholder") || "Ola Nordmann"}
-                  autoFocus
                 />
               </div>
 
