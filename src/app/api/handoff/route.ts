@@ -7,9 +7,10 @@ export async function POST(request: Request): Promise<Response> {
   let body: {
     email: string;
     name: string;
-    botId: string;
+    botId?: string;
     workspaceId?: string;
     visitorId: string;
+    conversationId?: string;
   };
 
   try {
@@ -33,7 +34,7 @@ export async function POST(request: Request): Promise<Response> {
   const supabase = createServiceClient();
 
   try {
-    let workspaceId: string;
+    let workspaceId: string = "";
     let conversation: any;
 
     // If conversation already exists (from AI chat), use it
