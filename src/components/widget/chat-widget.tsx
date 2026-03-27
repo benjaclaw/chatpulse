@@ -381,7 +381,7 @@ export function ChatWidget({
               </button>
             )}
           </div>
-          <WidgetInput value={input} onChange={(v) => { setInput(v); if (liveChatMode) sendVisitorTyping(); }} onSend={handleSend} primaryColor={primaryColor} ref={inputRef} t={t} hideWatermark={hideWatermark} placeholderText={placeholder} i18nLang={i18nLang} onEndChat={messages.length > 1 ? resetChat : undefined} disabled={limitReached} disabledMessage={limitReached ? "Chatboten har nådd meldingsgrensen for denne perioden." : undefined} />
+          <WidgetInput value={input} onChange={(v) => { setInput(v); if (liveChatMode) sendVisitorTyping(); }} onSend={handleSend} primaryColor={primaryColor} ref={inputRef} t={t} hideWatermark={hideWatermark} placeholderText={placeholder} i18nLang={i18nLang} onEndChat={messages.length > 1 ? resetChat : undefined} disabled={limitReached} disabledMessage={limitReached ? "Chatboten har nådd meldingsgrensen for denne perioden." : undefined} agentsOnline={agentsOnline} liveChatMode={liveChatMode} />
         </>
       )}
     </>

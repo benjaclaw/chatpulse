@@ -15,6 +15,8 @@ export const WidgetInput = ({
   i18nLang,
   disabled,
   disabledMessage,
+  agentsOnline,
+  liveChatMode,
 }: {
   value: string;
   onChange: (v: string) => void;
@@ -28,6 +30,8 @@ export const WidgetInput = ({
   i18nLang?: string;
   disabled?: boolean;
   disabledMessage?: string;
+  agentsOnline?: boolean;
+  liveChatMode?: boolean;
 }): React.ReactNode => {
   const autoResize = useCallback(() => {
     const el = ref.current;
@@ -57,7 +61,7 @@ export const WidgetInput = ({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholderText || t('widget.placeholder')}
+          placeholder={placeholderText || (liveChatMode ? 'Skriv til medarbeideren…' : agentsOnline ? 'Skriv en melding til kundeservice…' : 'Spør meg om noe…')}
           disabled={disabled}
           rows={1}
           className="flex-1 resize-none rounded-lg border bg-background px-3 py-2 text-sm outline-none transition-colors placeholder:text-muted-foreground focus:border-ring focus:ring-2 focus:ring-ring/20 disabled:opacity-50 disabled:cursor-not-allowed"
