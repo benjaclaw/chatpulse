@@ -62,9 +62,9 @@ export async function GET(request: Request): Promise<Response> {
     closedCount = toClose.length;
   }
 
-  // FIX 4: Handle waiting conversations stuck without online agents
-  // Auto-revert to AI after 4 hours if still waiting (user likely closed widget)
-  const fourHoursAgo = new Date(Date.now() - 4 * 60 * 60 * 1000).toISOString();
+  // FIX 4: Handle waiting conversations with no recent activity
+  // Auto-revert to AI after 15 min if still waiting (user likely abandoned)
+  const fifteenMinAgo = new Date(Date.now() - 15 * 60 * 1000).toISOString();
   const { data: staleWaiting } = await supabase
     .from("conversations")
     .select("id, workspace_id")
@@ -74,25 +74,15 @@ export async function GET(request: Request): Promise<Response> {
   let revertedToAi = 0;
 
   if (staleWaiting && staleWaiting.length > 0) {
-    // Revert to AI immediately after 4 hours (widget likely closed)
+    // Revert to AI after 15 min with no activity
     const { data: revertConvs } = await supabase
       .from("conversations")
       .update({ status: "ai" })
-      .lt("started_at", fourHoursAgo)
+      .lt("started_at", fifteenMinAgo)
       .eq("status", "waiting")
       .select("id");
 
     if (revertConvs && revertConvs.length > 0) {
-      // Add system message to each
-      for (const conv of revertConvs) {
-        await supabase
-          .from("messages")
-          .insert({
-            conversation_id: conv.id,
-            role: "assistant",
-            content: "Ingen har kunnet hjelpe deg innen rimelig tid. Vår AI-assistent er klar hvis du har flere spørsmål.",
-          });
-      }
       revertedToAi = revertConvs.length;
     }
   }
