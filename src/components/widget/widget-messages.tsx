@@ -18,6 +18,7 @@ export const MessageList = ({
   i18nLang,
   choiceButtons,
   chatEndedButton,
+  scrollContainerRef,
 }: {
   messages: Message[];
   isTyping: boolean;
@@ -29,16 +30,17 @@ export const MessageList = ({
   i18nLang?: string;
   choiceButtons?: React.ReactNode;
   chatEndedButton?: React.ReactNode;
+  scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
 }): React.ReactNode => {
   const t = createT((i18nLang === "nb" || i18nLang === "en" ? i18nLang : "nb") as Language);
 
   return (
-    <div className="flex-1 overflow-y-auto p-4 space-y-3">
+    <div ref={scrollContainerRef} className="flex-1 overflow-y-auto p-4 space-y-3">
       {messages.map((msg) => (
         <div
           key={msg.id}
           className={cn(
-            "flex",
+            "flex animate-[fadeInUp_0.3s_ease-out]",
             msg.role === "user" ? "justify-end" : "justify-start"
           )}
         >
@@ -82,9 +84,9 @@ export const MessageList = ({
                 {t('widget.agentTyping')}
               </span>
             )}
-            <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40 [animation-delay:0ms]" />
-            <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40 [animation-delay:150ms]" />
-            <span className="h-2 w-2 animate-bounce rounded-full bg-muted-foreground/40 [animation-delay:300ms]" />
+            <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-[typingPulse_1.4s_ease-in-out_infinite_0ms]" />
+            <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-[typingPulse_1.4s_ease-in-out_infinite_200ms]" />
+            <span className="h-2 w-2 rounded-full bg-muted-foreground/40 animate-[typingPulse_1.4s_ease-in-out_infinite_400ms]" />
           </div>
         </div>
       )}

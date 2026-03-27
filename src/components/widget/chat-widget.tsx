@@ -1,7 +1,7 @@
 "use client";
 
 import { useState, useRef, useEffect, useCallback } from "react";
-import { MessageSquare, X } from "lucide-react";
+import { MessageSquare, X, ArrowDown } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { createT, type Language } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
@@ -96,6 +96,8 @@ export function ChatWidget({
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
   const [agentsOnline, setAgentsOnline] = useState(false);
   const [limitReached, setLimitReached] = useState(false);
+  const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [configLoading, setConfigLoading] = useState(false);
   const [configLoaded, setConfigLoaded] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(() => {
@@ -147,8 +149,20 @@ export function ChatWidget({
     }
     prevMsgCountRef.current = messages.length;
     const el = messagesEndRef.current;
-    if (el?.parentElement) el.parentElement.scrollTop = el.parentElement.scrollHeight;
+    if (el?.parentElement) el.parentElement.scrollTo({ top: el.parentElement.scrollHeight, behavior: "smooth" });
   }, [messages, isTyping, agentTyping, isOpen, inline]);
+
+  // Track scroll position to show/hide scroll-to-bottom button
+  useEffect(() => {
+    const container = scrollContainerRef.current;
+    if (!container) return;
+    const handleScroll = () => {
+      const { scrollTop, scrollHeight, clientHeight } = container;
+      setShowScrollBtn(scrollHeight - scrollTop - clientHeight > 100);
+    };
+    container.addEventListener("scroll", handleScroll, { passive: true });
+    return () => container.removeEventListener("scroll", handleScroll);
+  }, [isOpen]);
 
   useEffect(() => {
     if (isOpen && inputRef.current) inputRef.current.focus({ preventScroll: true });
@@ -354,7 +368,19 @@ export function ChatWidget({
         </div>
       ) : (
         <>
-          <MessageList messages={messages} isTyping={isTyping} agentTyping={agentTyping} primaryColor={primaryColor} ref={messagesEndRef} queuePosition={queuePosition} i18nLang={i18nLang} handoffForm={handoffForm} choiceButtons={choiceButtons} chatEndedButton={restartButton} />
+          <div className="relative flex-1 overflow-hidden">
+            <MessageList messages={messages} isTyping={isTyping} agentTyping={agentTyping} primaryColor={primaryColor} ref={messagesEndRef} queuePosition={queuePosition} i18nLang={i18nLang} handoffForm={handoffForm} choiceButtons={choiceButtons} chatEndedButton={restartButton} scrollContainerRef={scrollContainerRef} />
+            {showScrollBtn && (
+              <button
+                type="button"
+                onClick={() => messagesEndRef.current?.parentElement?.scrollTo({ top: messagesEndRef.current.parentElement.scrollHeight, behavior: "smooth" })}
+                className="absolute bottom-2 left-1/2 -translate-x-1/2 flex h-8 w-8 items-center justify-center rounded-full bg-card border shadow-md transition-opacity hover:bg-muted"
+                aria-label="Scroll to bottom"
+              >
+                <ArrowDown className="h-4 w-4 text-muted-foreground" />
+              </button>
+            )}
+          </div>
           <WidgetInput value={input} onChange={(v) => { setInput(v); if (liveChatMode) sendVisitorTyping(); }} onSend={handleSend} primaryColor={primaryColor} ref={inputRef} t={t} hideWatermark={hideWatermark} placeholderText={placeholder} i18nLang={i18nLang} onEndChat={messages.length > 1 ? resetChat : undefined} disabled={limitReached} disabledMessage={limitReached ? "Chatboten har nådd meldingsgrensen for denne perioden." : undefined} />
         </>
       )}
