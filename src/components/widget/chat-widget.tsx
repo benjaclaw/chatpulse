@@ -209,7 +209,13 @@ export function ChatWidget({
         fetch(`/api/widget-session?conversationId=${encodeURIComponent(savedConvId)}&visitorId=${encodeURIComponent(visitorId)}`)
           .then((r) => { if (!r.ok) throw new Error("not found"); return r.json(); })
           .then((data: { status: string; messages: { id: string; role: string; content: string }[] }) => {
-            if (data.status === "closed" || data.status === "ai") {
+            if (data.status === "closed") {
+              sessionStorage.removeItem("chatpulse_live_chat_mode");
+              sessionStorage.removeItem("chatpulse_conversation_id");
+              sessionStorage.removeItem("chatpulse_workspace_id");
+              return;
+            }
+            if (data.status === "ai") {
               sessionStorage.removeItem("chatpulse_live_chat_mode");
               sessionStorage.removeItem("chatpulse_conversation_id");
               sessionStorage.removeItem("chatpulse_workspace_id");
@@ -366,25 +372,25 @@ export function ChatWidget({
   }
 
   const csatWidget = chatEnded && closedConversationId && !ratingSubmitted ? (
-    <div className="flex flex-col items-center gap-2 py-3">
-      <p className="text-sm text-muted-foreground">{t('widget.csatPrompt')}</p>
-      <div className="flex gap-3">
-        <button type="button" onClick={() => handleRating("good")} className="flex flex-col items-center gap-1 rounded-lg border px-4 py-2 text-sm transition-colors hover:bg-muted" title={t('widget.csatGood')}>
-          <span className="text-xl">😊</span>
-          <span className="text-xs text-muted-foreground">{t('widget.csatGood')}</span>
+    <div className="flex flex-col items-center gap-2 py-3 px-2">
+      <p className="text-sm text-muted-foreground text-center">{t('widget.csatPrompt')}</p>
+      <div className="flex gap-2 justify-center flex-wrap">
+        <button type="button" onClick={() => handleRating("bad")} className="flex flex-col items-center gap-1 rounded-lg border px-3 py-2 text-sm transition-colors hover:bg-muted flex-1 min-w-20" title={t('widget.csatBad')}>
+          <span className="text-xl">😞</span>
+          <span className="text-xs text-muted-foreground">{t('widget.csatBad')}</span>
         </button>
-        <button type="button" onClick={() => handleRating("ok")} className="flex flex-col items-center gap-1 rounded-lg border px-4 py-2 text-sm transition-colors hover:bg-muted" title={t('widget.csatOk')}>
+        <button type="button" onClick={() => handleRating("ok")} className="flex flex-col items-center gap-1 rounded-lg border px-3 py-2 text-sm transition-colors hover:bg-muted flex-1 min-w-20" title={t('widget.csatOk')}>
           <span className="text-xl">😐</span>
           <span className="text-xs text-muted-foreground">{t('widget.csatOk')}</span>
         </button>
-        <button type="button" onClick={() => handleRating("bad")} className="flex flex-col items-center gap-1 rounded-lg border px-4 py-2 text-sm transition-colors hover:bg-muted" title={t('widget.csatBad')}>
-          <span className="text-xl">😞</span>
-          <span className="text-xs text-muted-foreground">{t('widget.csatBad')}</span>
+        <button type="button" onClick={() => handleRating("good")} className="flex flex-col items-center gap-1 rounded-lg border px-3 py-2 text-sm transition-colors hover:bg-muted flex-1 min-w-20" title={t('widget.csatGood')}>
+          <span className="text-xl">😊</span>
+          <span className="text-xs text-muted-foreground">{t('widget.csatGood')}</span>
         </button>
       </div>
     </div>
   ) : chatEnded && ratingSubmitted ? (
-    <p className="py-2 text-center text-sm text-muted-foreground">{t('widget.csatThanks')}</p>
+    <p className="py-2 text-center text-sm text-muted-foreground px-2">{t('widget.csatThanks')}</p>
   ) : null;
 
   const resetChat = () => {
