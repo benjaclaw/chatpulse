@@ -44,6 +44,7 @@ export function KnowledgePageClient(): React.ReactNode {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const [page, setPage] = useState(0);
   const [totalCount, setTotalCount] = useState(0);
+  const [lastUpdated, setLastUpdated] = useState<string | null>(null);
 
   // Debounce search
   useEffect(() => {
@@ -86,10 +87,20 @@ export function KnowledgePageClient(): React.ReactNode {
       );
     }
 
-    const [countResult, dataResult] = await Promise.all([countQuery, dataQuery]);
+    // Latest updated item (for "last updated" badge)
+    const latestQuery = supabase
+      .from("knowledge")
+      .select("created_at")
+      .eq("workspace_id", workspaceId)
+      .order("created_at", { ascending: false })
+      .limit(1)
+      .maybeSingle();
+
+    const [countResult, dataResult, latestResult] = await Promise.all([countQuery, dataQuery, latestQuery]);
 
     setTotalCount(countResult.count ?? 0);
     setItems(dataResult.data ?? []);
+    setLastUpdated(latestResult.data?.created_at ?? null);
     setLoading(false);
   }, [workspaceId, supabase, page, searchDebounced]);
 
@@ -212,9 +223,23 @@ export function KnowledgePageClient(): React.ReactNode {
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold tracking-tight">{t('knowledge.title')}</h1>
+          <div className="flex items-center gap-3 flex-wrap">
+            <h1 className="text-3xl font-bold tracking-tight">{t('knowledge.title')}</h1>
+            {totalCount > 0 && (
+              <Badge variant="secondary">
+                {totalCount === 1
+                  ? t('knowledge.articleCountOne')
+                  : t('knowledge.articleCount').replace('{count}', String(totalCount))}
+              </Badge>
+            )}
+          </div>
           <p className="mt-1 text-muted-foreground">
             {t('knowledge.description')}
+            {lastUpdated && (
+              <span className="ml-2 text-xs">
+                · {t('knowledge.lastUpdated')} {new Date(lastUpdated).toLocaleDateString("nb-NO")}
+              </span>
+            )}
           </p>
         </div>
         <div className="flex items-center gap-2">

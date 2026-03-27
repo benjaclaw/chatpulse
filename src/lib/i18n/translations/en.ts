@@ -100,6 +100,9 @@ const en: Record<string, string> = {
   'knowledge.emptyDescription': 'Add articles the chatbot can use to answer your customers.',
   'knowledge.addFirst': 'Add your first article',
   'knowledge.defaultCategory': 'General',
+  'knowledge.articleCount': '{count} articles',
+  'knowledge.articleCountOne': '1 article',
+  'knowledge.lastUpdated': 'Last updated',
 
   // Conversations
   'conversations.title': 'Conversations',
@@ -149,6 +152,7 @@ const en: Record<string, string> = {
   'analytics.popularHours': 'Popular hours (time of day)',
   'analytics.topTopics': 'Top topics',
   'analytics.noQuestions': 'No questions recorded yet.',
+  'analytics.noData': 'No data yet — messages will appear here.',
   'analytics.answered': 'Answered',
   'analytics.unanswered': 'Unanswered',
   'analytics.messagesAnswered': 'messages answered by ChatPulse',

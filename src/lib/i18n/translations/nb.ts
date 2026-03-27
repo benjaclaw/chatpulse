@@ -100,6 +100,9 @@ const nb: Record<string, string> = {
   'knowledge.emptyDescription': 'Legg til artikler som chatboten kan bruke til å svare kundene dine.',
   'knowledge.addFirst': 'Legg til din første artikkel',
   'knowledge.defaultCategory': 'Generelt',
+  'knowledge.articleCount': '{count} artikler',
+  'knowledge.articleCountOne': '1 artikkel',
+  'knowledge.lastUpdated': 'Sist oppdatert',
 
   // Conversations
   'conversations.title': 'Samtaler',
@@ -149,6 +152,7 @@ const nb: Record<string, string> = {
   'analytics.popularHours': 'Populære tidspunkt (time på døgnet)',
   'analytics.topTopics': 'Topp-temaer',
   'analytics.noQuestions': 'Ingen spørsmål registrert ennå.',
+  'analytics.noData': 'Ingen data ennå — meldinger vil vises her.',
   'analytics.answered': 'Besvart',
   'analytics.unanswered': 'Ubesvart',
   'analytics.messagesAnswered': 'meldinger besvart av ChatPulse',
