@@ -69,5 +69,8 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Kunne ikke opprette lead" }, { status: 500 });
   }
 
+  // TODO: Send e-post-notifikasjon til workspace admin om ny lead
+  // Hent workspace admin e-post fra company_info og send via Resend eller lignende
+
   return Response.json(data, { status: 201 });
 }

@@ -261,6 +261,11 @@ const en: Record<string, string> = {
   'company.openingHoursPlaceholder': 'Mon-Fri 09:00-17:00',
   'company.saving': 'Saving...',
   'company.saveButton': 'Save company info',
+  'company.savedSuccess': 'Company info saved successfully.',
+  'company.invalidEmail': 'Please enter a valid email address.',
+  'company.invalidPhone': 'Please enter a valid phone number.',
+  'notifications.newLead': 'New lead: {email}',
+  'notifications.newLeadBody': 'A new lead has been captured in your workspace.',
 
   // Common
   'common.saved': 'Saved!',

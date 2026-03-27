@@ -261,6 +261,11 @@ const nb: Record<string, string> = {
   'company.openingHoursPlaceholder': 'Man-Fre 08:00-16:00',
   'company.saving': 'Lagrer...',
   'company.saveButton': 'Lagre bedriftsinfo',
+  'company.savedSuccess': 'Bedriftsinfo lagret.',
+  'company.invalidEmail': 'Vennligst skriv inn en gyldig e-postadresse.',
+  'company.invalidPhone': 'Vennligst skriv inn et gyldig telefonnummer.',
+  'notifications.newLead': 'Ny lead: {email}',
+  'notifications.newLeadBody': 'En ny lead har blitt registrert i din workspace.',
 
   // Common
   'common.saved': 'Lagret!',

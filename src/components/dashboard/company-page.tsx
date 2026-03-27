@@ -8,7 +8,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { Building2, Check, Loader2 } from "lucide-react";
+import { Building2, Check, Loader2, AlertCircle } from "lucide-react";
 import { useTemporaryFlag } from "@/hooks/use-temporary-flag";
 
 interface CompanyData {
@@ -40,6 +40,7 @@ export function CompanyPageClient(): React.ReactNode {
   const [saving, setSaving] = useState(false);
   const { active: saved, trigger: triggerSaved } = useTemporaryFlag();
   const [existingId, setExistingId] = useState<string | null>(null);
+  const [errors, setErrors] = useState<Partial<Record<keyof CompanyData, string>>>({});
 
   useEffect(() => {
     let cancelled = false;
@@ -65,7 +66,20 @@ export function CompanyPageClient(): React.ReactNode {
     setData((prev) => ({ ...prev, [key]: value }));
   }
 
+  function validate(): boolean {
+    const newErrors: Partial<Record<keyof CompanyData, string>> = {};
+    if (data.email && !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(data.email)) {
+      newErrors.email = t('company.invalidEmail');
+    }
+    if (data.phone && !/^\+?[\d\s\-().]{7,20}$/.test(data.phone)) {
+      newErrors.phone = t('company.invalidPhone');
+    }
+    setErrors(newErrors);
+    return Object.keys(newErrors).length === 0;
+  }
+
   async function handleSave() {
+    if (!validate()) return;
     setSaving(true);
     if (existingId) {
       await supabase
@@ -146,9 +160,15 @@ export function CompanyPageClient(): React.ReactNode {
                   id="company-email"
                   type="email"
                   value={data.email}
-                  onChange={(e) => update("email", e.target.value)}
+                  onChange={(e) => { update("email", e.target.value); setErrors((prev) => ({ ...prev, email: undefined })); }}
                   placeholder={t('company.emailPlaceholder')}
+                  className={errors.email ? "border-destructive" : ""}
                 />
+                {errors.email && (
+                  <p className="flex items-center gap-1 text-xs text-destructive">
+                    <AlertCircle className="h-3 w-3" />{errors.email}
+                  </p>
+                )}
               </div>
               <div className="space-y-2">
                 <Label htmlFor="company-phone">{t('company.phone')}</Label>
@@ -156,9 +176,15 @@ export function CompanyPageClient(): React.ReactNode {
                   id="company-phone"
                   type="tel"
                   value={data.phone}
-                  onChange={(e) => update("phone", e.target.value)}
+                  onChange={(e) => { update("phone", e.target.value); setErrors((prev) => ({ ...prev, phone: undefined })); }}
                   placeholder={t('company.phonePlaceholder')}
+                  className={errors.phone ? "border-destructive" : ""}
                 />
+                {errors.phone && (
+                  <p className="flex items-center gap-1 text-xs text-destructive">
+                    <AlertCircle className="h-3 w-3" />{errors.phone}
+                  </p>
+                )}
               </div>
             </div>
             <div className="space-y-2">
@@ -192,15 +218,22 @@ export function CompanyPageClient(): React.ReactNode {
           </div>
         </div>
 
-        <Button onClick={handleSave} disabled={saving}>
-          {saving ? (
-            <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('company.saving')}</>
-          ) : saved ? (
-            <><Check className="mr-2 h-4 w-4" />{t('common.saved')}</>
-          ) : (
-            t('company.saveButton')
+        <div className="flex items-center gap-3">
+          <Button onClick={handleSave} disabled={saving}>
+            {saving ? (
+              <><Loader2 className="mr-2 h-4 w-4 animate-spin" />{t('company.saving')}</>
+            ) : saved ? (
+              <><Check className="mr-2 h-4 w-4" />{t('common.saved')}</>
+            ) : (
+              t('company.saveButton')
+            )}
+          </Button>
+          {saved && (
+            <span className="text-sm text-green-600 dark:text-green-400 animate-in fade-in">
+              {t('company.savedSuccess')}
+            </span>
           )}
-        </Button>
+        </div>
       </div>
     </div>
   );

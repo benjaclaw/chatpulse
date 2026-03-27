@@ -68,10 +68,10 @@ const COLUMN_BADGE_COLORS: Record<LeadStatus, string> = {
 };
 
 const DROP_INDICATOR_COLORS: Record<LeadStatus, string> = {
-  new: "border-blue-400 dark:border-blue-500",
-  contacted: "border-yellow-400 dark:border-yellow-500",
-  resolved: "border-green-400 dark:border-green-500",
-  archived: "border-gray-400 dark:border-gray-500",
+  new: "border-blue-400 dark:border-blue-500 ring-blue-400/50",
+  contacted: "border-yellow-400 dark:border-yellow-500 ring-yellow-400/50",
+  resolved: "border-green-400 dark:border-green-500 ring-green-400/50",
+  archived: "border-gray-400 dark:border-gray-500 ring-gray-400/50",
 };
 
 function timeAgo(dateStr: string, t: TranslateFunction): string {
@@ -561,8 +561,9 @@ function KanbanColumn({
       className={cn(
         "flex flex-col rounded-xl border-2 transition-colors min-h-[200px]",
         COLUMN_COLORS[status],
-        parentDragging && isOver && DROP_INDICATOR_COLORS[status],
-        !isOver && "border-transparent"
+        parentDragging && isOver && `${DROP_INDICATOR_COLORS[status]} ring-2 ring-offset-2 ring-offset-background`,
+        parentDragging && !isOver && "border-dashed border-muted-foreground/30",
+        !parentDragging && "border-transparent"
       )}
     >
       {/* Sticky header */}
