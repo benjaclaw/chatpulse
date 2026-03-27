@@ -168,6 +168,11 @@ const en: Record<string, string> = {
   'analytics.hoursSaved': 'hours of customer service saved',
   'analytics.leadsAutomatic': 'leads captured automatically',
   'analytics.emptyState': 'No data yet. Conversations will appear here once the chatbot is in use.',
+  'analytics.customerSatisfaction': 'Customer satisfaction',
+  'analytics.csatGood': 'Good',
+  'analytics.csatOk': 'OK',
+  'analytics.csatBad': 'Bad',
+  'analytics.csatRatings': 'ratings',
 
   // Team
   'team.title': 'Team',

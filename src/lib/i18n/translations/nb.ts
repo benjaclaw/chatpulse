@@ -168,6 +168,11 @@ const nb: Record<string, string> = {
   'analytics.hoursSaved': 'timer spart kundeservice',
   'analytics.leadsAutomatic': 'leads fanget automatisk',
   'analytics.emptyState': 'Ingen data ennå. Samtaler vil vises her etter at chatboten er i bruk.',
+  'analytics.customerSatisfaction': 'Kundetilfredshet',
+  'analytics.csatGood': 'Bra',
+  'analytics.csatOk': 'OK',
+  'analytics.csatBad': 'Dårlig',
+  'analytics.csatRatings': 'vurderinger',
 
   // Team
   'team.title': 'Team',

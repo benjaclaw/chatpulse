@@ -17,6 +17,7 @@ import {
   XCircle,
   Zap,
   Target,
+  SmilePlus,
 } from "lucide-react";
 
 interface DailyCount {
@@ -42,6 +43,7 @@ export function AnalyticsPageClient(): React.ReactNode {
   const [totalLeads, setTotalLeads] = useState(0);
   const [messageDates, setMessageDates] = useState<string[]>([]);
   const [questions, setQuestions] = useState<Question[]>([]);
+  const [csatCounts, setCsatCounts] = useState<{ good: number; ok: number; bad: number } | null>(null);
 
   useEffect(() => {
     let cancelled = false;
@@ -90,7 +92,25 @@ export function AnalyticsPageClient(): React.ReactNode {
             .limit(10),
         ]);
 
+      // Fetch CSAT ratings — column may not exist yet, so handle errors gracefully
+      const ratingResult = await supabase
+        .from("conversations")
+        .select("rating")
+        .eq("workspace_id", workspaceId)
+        .not("rating", "is", null);
+
       if (cancelled) return;
+
+      if (!ratingResult.error && ratingResult.data && ratingResult.data.length > 0) {
+        const counts = { good: 0, ok: 0, bad: 0 };
+        for (const row of ratingResult.data) {
+          const r = (row as { rating: string }).rating;
+          if (r === "good" || r === "ok" || r === "bad") counts[r]++;
+        }
+        if (counts.good + counts.ok + counts.bad > 0) {
+          setCsatCounts(counts);
+        }
+      }
 
       setTotalMessages(msgResult.count ?? 0);
       setConversationsThisMonth(convMonthResult.count ?? 0);
@@ -218,6 +238,9 @@ export function AnalyticsPageClient(): React.ReactNode {
         />
       </div>
 
+      {/* CSAT card */}
+      {csatCounts && <CsatCard counts={csatCounts} t={t} />}
+
       {/* Charts */}
       <div className="grid gap-4 lg:grid-cols-2">
         {/* Daily messages chart */}
@@ -316,6 +339,46 @@ export function AnalyticsPageClient(): React.ReactNode {
     </div>
   );
 }
+
+const CsatCard = memo(function CsatCard({
+  counts,
+  t,
+}: {
+  counts: { good: number; ok: number; bad: number };
+  t: (key: string) => string;
+}) {
+  const total = counts.good + counts.ok + counts.bad;
+  const score = (counts.good * 3 + counts.ok * 2 + counts.bad * 1) / total;
+  let emoji: string;
+  let label: string;
+  if (score >= 2.5) {
+    emoji = "\u{1F60A}";
+    label = t("analytics.csatGood");
+  } else if (score >= 1.5) {
+    emoji = "\u{1F610}";
+    label = t("analytics.csatOk");
+  } else {
+    emoji = "\u{1F61E}";
+    label = t("analytics.csatBad");
+  }
+
+  return (
+    <div className="rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md max-w-xs">
+      <div className="flex items-center gap-3">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+          <SmilePlus className="h-4 w-4" />
+        </div>
+        <span className="text-sm text-muted-foreground">{t("analytics.customerSatisfaction")}</span>
+      </div>
+      <p className="mt-3 text-3xl font-bold">
+        {emoji} {label}
+      </p>
+      <p className="mt-1 text-sm text-muted-foreground">
+        {total} {t("analytics.csatRatings")}
+      </p>
+    </div>
+  );
+});
 
 const StatCard = memo(function StatCard({
   icon: Icon,
