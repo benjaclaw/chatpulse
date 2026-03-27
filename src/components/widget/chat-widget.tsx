@@ -128,10 +128,12 @@ export function ChatWidget({
     setClosedConversationId
   );
 
-  // Remove iframe loading placeholder once hydrated
+  // Remove iframe loading placeholder once config is loaded (not just on mount)
   useEffect(() => {
-    document.getElementById("widget-loader")?.remove();
-  }, []);
+    if (configLoaded) {
+      document.getElementById("widget-loader")?.remove();
+    }
+  }, [configLoaded]);
 
   // Persist messages to sessionStorage
   useEffect(() => {
