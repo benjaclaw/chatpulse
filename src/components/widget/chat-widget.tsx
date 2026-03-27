@@ -343,7 +343,7 @@ export function ChatWidget({
     }
   }
 
-  const showChoices = agentsOnline && !liveChatMode && !handoffTriggered && !configLoading;
+  const showChoices = agentsOnline && !liveChatMode && !handoffTriggered && !configLoading && !hasInteracted;
   const choiceButtons = showChoices ? (
     <div className="flex flex-col gap-2 px-1">
       <button type="button" onClick={() => { inputRef.current?.focus(); inputRef.current?.scrollIntoView({ behavior: "smooth" }); if (inputRef.current) { inputRef.current.style.borderColor = primaryColor; inputRef.current.style.boxShadow = `0 0 0 2px ${primaryColor}33`; setTimeout(() => { if (inputRef.current) { inputRef.current.style.borderColor = ""; inputRef.current.style.boxShadow = ""; } }, 2000); } }} className="rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:bg-opacity-10" style={{ borderColor: primaryColor, color: primaryColor }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = primaryColor + "1a")} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}>
