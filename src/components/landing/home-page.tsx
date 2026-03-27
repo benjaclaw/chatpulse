@@ -1,7 +1,6 @@
 "use client";
 
 import { useState } from "react";
-import dynamic from "next/dynamic";
 import Link from "next/link";
 import {
   BookOpen,
@@ -15,7 +14,7 @@ import {
   Zap,
   Puzzle,
   MessageSquare,
-  MessageCircle,
+  Building2,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -24,22 +23,12 @@ import { LandingHeader } from "./header";
 import { LandingFooter } from "./footer";
 import { GoogleHeroButton } from "@/components/auth/google-sign-in-button";
 
-const ChatWidget = dynamic(
-  () => import("@/components/widget/chat-widget").then((m) => m.ChatWidget),
-  {
-    loading: () => (
-      <div className="flex flex-col overflow-hidden rounded-xl border bg-card shadow-lg h-[420px] animate-pulse" />
-    ),
-    ssr: false,
-  }
-);
-
 export function HomePage(): React.ReactNode {
   const [language] = useState<Language>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('chatpulse_lang') as Language) || 'nb';
+    if (typeof window !== "undefined") {
+      return (localStorage.getItem("chatpulse_lang") as Language) || "nb";
     }
-    return 'nb';
+    return "nb";
   });
   const t = createT(language);
 
@@ -59,101 +48,89 @@ export function HomePage(): React.ReactNode {
           <div className="relative z-10 mx-auto max-w-4xl">
             <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-sm text-muted-foreground shadow-sm">
               <Sparkles className="h-4 w-4 text-accent" />
-              {t('landing.hero.badge')}
+              {t("landing.hero.badge")}
             </div>
 
             <h1 className="text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
-              {t('landing.hero.title')}
+              {t("landing.hero.title")}
               <br />
               <span className="bg-gradient-to-r from-primary to-accent bg-clip-text text-transparent">
-                {t('landing.hero.titleGradient')}
+                {t("landing.hero.titleGradient")}
               </span>
             </h1>
 
             <p className="mx-auto mt-6 max-w-2xl text-base text-muted-foreground sm:text-lg">
-              {t('landing.hero.description')}
+              {t("landing.hero.description")}
             </p>
 
             <div className="mt-10 flex w-full flex-col items-center gap-3 sm:w-auto sm:flex-row sm:justify-center sm:gap-4">
               <Link
                 href="/signup"
-                className={cn(buttonVariants({ size: "lg" }), "w-full sm:w-auto")}
+                className={cn(
+                  buttonVariants({ size: "lg" }),
+                  "w-full sm:w-auto"
+                )}
               >
-                {t('landing.hero.cta')}
+                {t("landing.hero.cta")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
+              <a
+                href="#demo"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "lg" }),
+                  "w-full sm:w-auto"
+                )}
+              >
+                <MessageSquare className="mr-2 h-4 w-4" />
+                {t("landing.hero.demo")}
+              </a>
+            </div>
+
+            <div className="mt-4">
               <GoogleHeroButton />
             </div>
           </div>
 
-          {/* Widget mockup illustration */}
-          <div className="relative z-10 mx-auto mt-16 w-full max-w-sm">
+          {/* Animated widget mockup */}
+          <div className="relative z-10 mx-auto mt-16 w-full max-w-sm animate-fade-in-up">
+            <div className="absolute -inset-4 rounded-2xl bg-gradient-to-br from-primary/20 via-accent/10 to-transparent blur-2xl" />
             <WidgetMockup t={t} />
           </div>
         </section>
 
         {/* ─── Features ─── */}
-        <section id="features" className="scroll-mt-16 border-t bg-card/50 px-4 py-16 dark:bg-card/20 sm:px-6 sm:py-24">
+        <section
+          id="features"
+          className="scroll-mt-16 border-t bg-card/50 px-4 py-16 dark:bg-card/20 sm:px-6 sm:py-24"
+        >
           <div className="mx-auto max-w-5xl">
             <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
-              {t('landing.features.title')}
+              {t("landing.features.title")}
             </h2>
             <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
-              {t('landing.features.description')}
+              {t("landing.features.description")}
             </p>
 
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-5">
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
               <FeatureCard
                 icon={BookOpen}
-                title={t('landing.features.knowledge')}
-                description={t('landing.features.knowledgeDesc')}
-              />
-              <FeatureCard
-                icon={Palette}
-                title={t('landing.features.customization')}
-                description={t('landing.features.customizationDesc')}
-              />
-              <FeatureCard
-                icon={BarChart3}
-                title={t('landing.features.insights')}
-                description={t('landing.features.insightsDesc')}
-              />
-              <FeatureCard
-                icon={MessageCircle}
-                title={t('landing.features.liveChat')}
-                description={t('landing.features.liveChatDesc')}
+                title={t("landing.features.knowledge")}
+                description={t("landing.features.knowledgeDesc")}
               />
               <FeatureCard
                 icon={Code2}
-                title={t('landing.features.integration')}
-                description={t('landing.features.integrationDesc')}
+                title={t("landing.features.integration")}
+                description={t("landing.features.integrationDesc")}
               />
-            </div>
-          </div>
-        </section>
-
-        {/* ─── Demo ─── */}
-        <section className="border-t px-4 py-16 sm:px-6 sm:py-24">
-          <div className="mx-auto max-w-5xl">
-            <div className="text-center">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-sm text-muted-foreground shadow-sm">
-                <MessageSquare className="h-4 w-4 text-primary" />
-                {t('landing.demo.badge')}
-              </div>
-              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                {t('landing.demo.title')}
-              </h2>
-              <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-                {t('landing.demo.description')}
-              </p>
-            </div>
-
-            <div className="mx-auto mt-10 max-w-sm">
-              <ChatWidget
-                inline
-                botName={t('landing.demo.botName')}
-                welcomeMessage={t('landing.demo.welcome')}
-                primaryColor="#6366f1"
+              <FeatureCard
+                icon={Palette}
+                title={t("landing.features.customization")}
+                description={t("landing.features.customizationDesc")}
+              />
+              <FeatureCard
+                icon={BarChart3}
+                title={t("landing.features.insights")}
+                description={t("landing.features.insightsDesc")}
               />
             </div>
           </div>
@@ -166,106 +143,147 @@ export function HomePage(): React.ReactNode {
         >
           <div className="mx-auto max-w-4xl">
             <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
-              {t('landing.steps.title')}
+              {t("landing.steps.title")}
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
-              {t('landing.steps.description')}
+              {t("landing.steps.description")}
             </p>
 
             <div className="mt-12 grid gap-8 sm:grid-cols-3">
               <StepCard
                 step={1}
                 icon={Plus}
-                title={t('landing.steps.createTitle')}
-                description={t('landing.steps.createDesc')}
+                title={t("landing.steps.createTitle")}
+                description={t("landing.steps.createDesc")}
               />
               <StepCard
                 step={2}
                 icon={Zap}
-                title={t('landing.steps.customizeTitle')}
-                description={t('landing.steps.customizeDesc')}
+                title={t("landing.steps.customizeTitle")}
+                description={t("landing.steps.customizeDesc")}
               />
               <StepCard
                 step={3}
                 icon={Puzzle}
-                title={t('landing.steps.embedTitle')}
-                description={t('landing.steps.embedDesc')}
+                title={t("landing.steps.embedTitle")}
+                description={t("landing.steps.embedDesc")}
               />
             </div>
           </div>
         </section>
 
+        {/* ─── Demo ─── */}
+        <section
+          id="demo"
+          className="scroll-mt-16 border-t bg-card/50 px-4 py-16 dark:bg-card/20 sm:px-6 sm:py-24"
+        >
+          <div className="mx-auto max-w-5xl">
+            <div className="text-center">
+              <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-sm text-muted-foreground shadow-sm">
+                <MessageSquare className="h-4 w-4 text-primary" />
+                {t("landing.demo.badge")}
+              </div>
+              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+                {t("landing.demo.title")}
+              </h2>
+              <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
+                {t("landing.demo.description")}
+              </p>
+            </div>
+
+            <div className="mx-auto mt-10 max-w-sm">
+              <DemoWidget t={t} />
+            </div>
+          </div>
+        </section>
+
         {/* ─── Pricing ─── */}
-        <section className="border-t bg-card/50 px-4 py-16 dark:bg-card/20 sm:px-6 sm:py-24">
+        <section
+          id="pricing"
+          className="scroll-mt-16 border-t px-4 py-16 sm:px-6 sm:py-24"
+        >
           <div className="mx-auto max-w-5xl">
             <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
-              {t('landing.pricing.title')}
+              {t("landing.pricing.title")}
             </h2>
             <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
-              {t('landing.pricing.description')}
+              {t("landing.pricing.description")}
             </p>
 
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
               <PricingCard
-                name={t('landing.pricing.basicName')}
-                price={t('landing.pricing.basicPrice')}
-                period={t('landing.pricing.perMonth')}
-                description={t('landing.pricing.basicDesc')}
+                name={t("landing.pricing.free")}
+                price={t("landing.pricing.freePrice")}
+                period={t("landing.pricing.perMonth")}
+                description={t("landing.pricing.freeDesc")}
                 features={[
-                  t('landing.pricing.basicF1'),
-                  t('landing.pricing.basicF2'),
-                  t('landing.pricing.basicF3'),
+                  t("landing.pricing.freeF1"),
+                  t("landing.pricing.freeF2"),
+                  t("landing.pricing.freeF3"),
                 ]}
-                cta={t('landing.pricing.basicCta')}
+                cta={t("landing.pricing.freeCta")}
                 ctaHref="/signup"
-                popularLabel={t('landing.pricing.popular')}
+                popularLabel={t("landing.pricing.popular")}
               />
               <PricingCard
-                name={t('landing.pricing.startupName')}
-                price={t('landing.pricing.startupPrice')}
-                period={t('landing.pricing.perMonth')}
-                description={t('landing.pricing.startupDesc')}
+                name={t("landing.pricing.pro")}
+                price={t("landing.pricing.proPrice")}
+                period={t("landing.pricing.perMonth")}
+                description={t("landing.pricing.proDesc")}
                 features={[
-                  t('landing.pricing.startupF1'),
-                  t('landing.pricing.startupF2'),
-                  t('landing.pricing.startupF3'),
+                  t("landing.pricing.proF1"),
+                  t("landing.pricing.proF2"),
+                  t("landing.pricing.proF3"),
                 ]}
-                cta={t('landing.pricing.startupCta')}
+                cta={t("landing.pricing.proCta")}
                 ctaHref="/signup"
                 highlighted
-                popularLabel={t('landing.pricing.popular')}
+                popularLabel={t("landing.pricing.popular")}
               />
               <PricingCard
-                name={t('landing.pricing.proName')}
-                price={t('landing.pricing.proNewPrice')}
-                period={t('landing.pricing.perMonth')}
-                description={t('landing.pricing.proNewDesc')}
+                name={t("landing.pricing.enterprise")}
+                price={t("landing.pricing.enterprisePrice")}
+                description={t("landing.pricing.enterpriseDesc")}
                 features={[
-                  t('landing.pricing.proNewF1'),
-                  t('landing.pricing.proNewF2'),
-                  t('landing.pricing.proNewF3'),
+                  t("landing.pricing.enterpriseF1"),
+                  t("landing.pricing.enterpriseF2"),
+                  t("landing.pricing.enterpriseF3"),
                 ]}
-                cta={t('landing.pricing.proNewCta')}
-                ctaHref="/signup"
-                popularLabel={t('landing.pricing.popular')}
-                note={t('landing.pricing.proNote')}
+                cta={t("landing.pricing.enterpriseCta")}
+                ctaHref="mailto:kontakt@chatpulse.no"
+                popularLabel={t("landing.pricing.popular")}
               />
             </div>
 
-            <div className="mt-8 flex flex-col items-center gap-4">
+            <div className="mt-8 flex justify-center">
               <Link
                 href="/pricing"
                 className={cn(buttonVariants({ variant: "outline" }))}
               >
-                {t('landing.pricing.viewAll')}
+                {t("landing.pricing.viewAll")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
-              <p className="text-sm text-muted-foreground">
-                {t('landing.pricing.setupBanner')}{' '}
-                <Link href="/pricing#setup" className="text-primary underline transition-colors hover:text-primary/80">
-                  {t('landing.pricing.setupBannerLink')} &rarr;
-                </Link>
-              </p>
+            </div>
+          </div>
+        </section>
+
+        {/* ─── Final CTA ─── */}
+        <section className="border-t bg-gradient-to-br from-primary/5 via-accent/5 to-background px-4 py-16 sm:px-6 sm:py-24">
+          <div className="mx-auto max-w-2xl text-center">
+            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+              {t("landing.cta.title")}
+            </h2>
+            <p className="mx-auto mt-4 max-w-lg text-muted-foreground">
+              {t("landing.cta.description")}
+            </p>
+            <div className="mt-8">
+              <Link
+                href="/signup"
+                className={cn(buttonVariants({ size: "lg" }))}
+              >
+                {t("landing.cta.button")}
+                <ArrowRight className="ml-2 h-4 w-4" />
+              </Link>
             </div>
           </div>
         </section>
@@ -278,37 +296,95 @@ export function HomePage(): React.ReactNode {
 
 /* ─── Sub-components ─── */
 
-function WidgetMockup({ t }: { t: (key: string) => string }): React.ReactNode {
+function WidgetMockup({
+  t,
+}: {
+  t: (key: string) => string;
+}): React.ReactNode {
   return (
-    <div className="rounded-xl border bg-card p-0 shadow-lg">
+    <div className="relative rounded-xl border bg-card p-0 shadow-lg">
       {/* Header bar */}
       <div className="flex items-center gap-2 rounded-t-xl bg-primary px-4 py-3">
         <div className="flex h-7 w-7 items-center justify-center rounded-full bg-white/20">
           <Sparkles className="h-3.5 w-3.5 text-white" />
         </div>
         <span className="text-sm font-semibold text-white">
-          {t('landing.widget.botName')}
+          {t("landing.widget.botName")}
         </span>
+        <span className="ml-auto flex h-2 w-2 rounded-full bg-green-400" />
       </div>
-      {/* Messages */}
+      {/* Messages with staggered animation */}
       <div className="space-y-3 p-4">
-        <div className="max-w-[75%] rounded-2xl rounded-bl-md bg-muted px-4 py-2 text-sm">
-          {t('landing.widget.greeting')}
+        <div
+          className="max-w-[75%] rounded-2xl rounded-bl-md bg-muted px-4 py-2 text-sm animate-fade-in-up"
+          style={{ animationDelay: "0.2s", animationFillMode: "both" }}
+        >
+          {t("landing.widget.greeting")}
         </div>
-        <div className="ml-auto max-w-[75%] rounded-2xl rounded-br-md bg-primary px-4 py-2 text-sm text-white">
-          {t('landing.widget.userMsg')}
+        <div
+          className="ml-auto max-w-[75%] rounded-2xl rounded-br-md bg-primary px-4 py-2 text-sm text-white animate-fade-in-up"
+          style={{ animationDelay: "0.6s", animationFillMode: "both" }}
+        >
+          {t("landing.widget.userMsg")}
         </div>
-        <div className="max-w-[75%] rounded-2xl rounded-bl-md bg-muted px-4 py-2 text-sm">
-          {t('landing.widget.botReply')}
+        <div
+          className="max-w-[75%] rounded-2xl rounded-bl-md bg-muted px-4 py-2 text-sm animate-fade-in-up"
+          style={{ animationDelay: "1s", animationFillMode: "both" }}
+        >
+          {t("landing.widget.botReply")}
         </div>
       </div>
       {/* Input */}
       <div className="border-t p-3">
         <div className="flex items-center gap-2 rounded-lg border bg-background px-3 py-2 text-sm text-muted-foreground">
-          {t('landing.widget.placeholder')}
+          {t("landing.widget.placeholder")}
         </div>
       </div>
     </div>
+  );
+}
+
+function DemoWidget({
+  t,
+}: {
+  t: (key: string) => string;
+}): React.ReactNode {
+  // Lazy-load the real chat widget only in the demo section
+  const [Widget, setWidget] = useState<React.ComponentType<{
+    inline?: boolean;
+    botName?: string;
+    welcomeMessage?: string;
+    primaryColor?: string;
+  }> | null>(null);
+
+  if (!Widget) {
+    return (
+      <button
+        type="button"
+        onClick={() => {
+          import("@/components/widget/chat-widget").then((m) => {
+            setWidget(() => m.ChatWidget);
+          });
+        }}
+        className="flex w-full flex-col items-center gap-4 rounded-xl border bg-card p-8 shadow-sm transition-all hover:shadow-md"
+      >
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+          <MessageSquare className="h-7 w-7" />
+        </div>
+        <span className="text-sm font-medium text-muted-foreground">
+          {t("landing.demo.clickToTry")}
+        </span>
+      </button>
+    );
+  }
+
+  return (
+    <Widget
+      inline
+      botName={t("landing.demo.botName")}
+      welcomeMessage={t("landing.demo.welcome")}
+      primaryColor="#6366f1"
+    />
   );
 }
 
@@ -369,7 +445,6 @@ function PricingCard({
   ctaHref,
   highlighted = false,
   popularLabel,
-  note,
 }: {
   name: string;
   price: string;
@@ -380,7 +455,6 @@ function PricingCard({
   ctaHref: string;
   highlighted?: boolean;
   popularLabel: string;
-  note?: string;
 }): React.ReactNode {
   return (
     <div
@@ -414,9 +488,6 @@ function PricingCard({
           </li>
         ))}
       </ul>
-      {note && (
-        <p className="mt-3 text-xs font-medium text-primary">{note}</p>
-      )}
       <Link
         href={ctaHref}
         className={cn(

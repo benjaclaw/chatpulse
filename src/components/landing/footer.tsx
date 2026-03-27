@@ -15,31 +15,69 @@ export function LandingFooter(): React.ReactNode {
   const t = createT(language);
 
   return (
-    <footer className="border-t px-4 py-8 sm:px-6">
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 sm:flex-row sm:justify-between">
-        <Link href="/" className="flex items-center">
-          <Image src="/logo.svg" alt="ChatPulse" width={100} height={20} />
-        </Link>
-        <div className="flex flex-wrap items-center justify-center gap-4 text-sm text-muted-foreground sm:gap-6">
-          <Link
-            href="/privacy"
-            className="transition-colors hover:text-foreground"
-          >
-            {t("landing.footer.privacy")}
-          </Link>
-          <Link
-            href="/terms"
-            className="transition-colors hover:text-foreground"
-          >
-            {t("landing.footer.terms")}
-          </Link>
-          <Link
-            href="/cookies"
-            className="transition-colors hover:text-foreground"
-          >
-            {t("landing.footer.cookies")}
-          </Link>
-          <span>&copy; {new Date().getFullYear()} Gains AS</span>
+    <footer className="border-t px-4 py-10 sm:px-6">
+      <div className="mx-auto max-w-5xl">
+        <div className="flex flex-col gap-8 sm:flex-row sm:justify-between">
+          {/* Brand */}
+          <div className="flex flex-col gap-3">
+            <Link href="/" className="flex items-center">
+              <Image src="/logo.svg" alt="ChatPulse" width={100} height={20} />
+            </Link>
+            <p className="max-w-xs text-sm text-muted-foreground">
+              {t("landing.footer.tagline")}
+            </p>
+          </div>
+
+          {/* Links */}
+          <div className="flex flex-wrap gap-8 text-sm">
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold text-foreground">
+                {t("landing.footer.product")}
+              </span>
+              <Link
+                href="/features"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {t("landing.header.features")}
+              </Link>
+              <Link
+                href="/pricing"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {t("landing.header.pricing")}
+              </Link>
+            </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold text-foreground">
+                {t("landing.footer.legal")}
+              </span>
+              <Link
+                href="/privacy"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {t("landing.footer.privacy")}
+              </Link>
+              <Link
+                href="/terms"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {t("landing.footer.terms")}
+              </Link>
+              <Link
+                href="/cookies"
+                className="text-muted-foreground transition-colors hover:text-foreground"
+              >
+                {t("landing.footer.cookies")}
+              </Link>
+            </div>
+          </div>
+        </div>
+
+        {/* Bottom bar */}
+        <div className="mt-8 flex flex-col items-center gap-4 border-t pt-6 sm:flex-row sm:justify-between">
+          <span className="text-sm text-muted-foreground">
+            &copy; {new Date().getFullYear()} Gains AS
+          </span>
         </div>
       </div>
     </footer>
