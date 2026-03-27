@@ -66,8 +66,11 @@ export function ChatWidget({
   const t = createT(i18nLang);
   const placeholder = (language && PLACEHOLDER_MAP[language]) || PLACEHOLDER_MAP.nb;
 
+  const personalizedWelcome = botName && botName !== "ChatPulse"
+    ? `Hei! Jeg er ${botName}. Hvordan kan jeg hjelpe?`
+    : t('widget.defaultWelcome');
   const defaultMessages: Message[] = [
-    { id: "welcome", role: "assistant", content: t('widget.defaultWelcome') },
+    { id: "welcome", role: "assistant", content: personalizedWelcome },
   ];
   const demoReplies = [t('widget.demo1'), t('widget.demo2'), t('widget.demo3'), t('widget.demo4')];
 
@@ -93,6 +96,8 @@ export function ChatWidget({
   const [queuePosition, setQueuePosition] = useState<number | null>(null);
   const [agentsOnline, setAgentsOnline] = useState(false);
   const [limitReached, setLimitReached] = useState(false);
+  const [configLoading, setConfigLoading] = useState(false);
+  const [configLoaded, setConfigLoaded] = useState(false);
   const [hasInteracted, setHasInteracted] = useState(() => {
     try {
       const saved = sessionStorage.getItem("chatpulse_messages");
@@ -102,7 +107,7 @@ export function ChatWidget({
   });
 
   const messagesEndRef = useRef<HTMLDivElement>(null);
-  const inputRef = useRef<HTMLInputElement>(null);
+  const inputRef = useRef<HTMLTextAreaElement>(null);
   const conversationIdRef = useRef<string | null>(null);
   const workspaceIdRef = useRef<string | null>(null);
   const pendingLiveChatRef = useRef<{ conversationId: string; workspaceId?: string } | null>(null);
@@ -134,16 +139,19 @@ export function ChatWidget({
 
   useEffect(() => {
     if (isOpen && inputRef.current) inputRef.current.focus({ preventScroll: true });
-    if (isOpen && chatbotId) {
+    if (isOpen && chatbotId && !configLoaded) {
+      setConfigLoading(true);
       fetch(`/api/widget-config?chatbotId=${encodeURIComponent(chatbotId)}`)
         .then((r) => r.json())
         .then((data: { workspaceId?: string; agentsOnline?: boolean }) => {
           if (data.workspaceId) workspaceIdRef.current = data.workspaceId;
           setAgentsOnline(!!data.agentsOnline);
+          setConfigLoaded(true);
         })
-        .catch((err) => console.error('Widget config fetch failed:', err));
+        .catch((err) => console.error('Widget config fetch failed:', err))
+        .finally(() => setConfigLoading(false));
     }
-  }, [isOpen, chatbotId]);
+  }, [isOpen, chatbotId, configLoaded]);
 
   useEffect(() => {
     if (welcomeMessage !== undefined) {
@@ -290,7 +298,7 @@ export function ChatWidget({
     }
   }
 
-  const showChoices = agentsOnline && !liveChatMode && !handoffTriggered;
+  const showChoices = agentsOnline && !liveChatMode && !handoffTriggered && !configLoading;
   const choiceButtons = showChoices ? (
     <div className="flex flex-col gap-2 px-1">
       <button type="button" onClick={() => { inputRef.current?.focus(); inputRef.current?.scrollIntoView({ behavior: "smooth" }); if (inputRef.current) { inputRef.current.style.borderColor = primaryColor; inputRef.current.style.boxShadow = `0 0 0 2px ${primaryColor}33`; setTimeout(() => { if (inputRef.current) { inputRef.current.style.borderColor = ""; inputRef.current.style.boxShadow = ""; } }, 2000); } }} className="rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:bg-opacity-10" style={{ borderColor: primaryColor, color: primaryColor }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = primaryColor + "1a")} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}>
@@ -323,8 +331,16 @@ export function ChatWidget({
   const sharedContent = (
     <>
       <WidgetHeader botName={botName} primaryColor={primaryColor} logoUrl={logoUrl} onClose={() => setIsOpen(false)} showClose={!inline} t={t} subtext={headerSubtext} agentsOnline={agentsOnline} />
-      <MessageList messages={messages} isTyping={isTyping} agentTyping={agentTyping} primaryColor={primaryColor} ref={messagesEndRef} queuePosition={queuePosition} i18nLang={i18nLang} handoffForm={handoffForm} choiceButtons={choiceButtons} chatEndedButton={restartButton} />
-      <WidgetInput value={input} onChange={(v) => { setInput(v); if (liveChatMode) sendVisitorTyping(); }} onSend={handleSend} primaryColor={primaryColor} ref={inputRef} t={t} hideWatermark={hideWatermark} placeholderText={placeholder} i18nLang={i18nLang} onEndChat={messages.length > 1 ? resetChat : undefined} disabled={limitReached} disabledMessage={limitReached ? "Chatboten har nådd meldingsgrensen for denne perioden." : undefined} />
+      {configLoading ? (
+        <div className="flex flex-1 items-center justify-center">
+          <div className="h-6 w-6 animate-spin rounded-full border-2 border-muted-foreground/30 border-t-current" style={{ color: primaryColor }} />
+        </div>
+      ) : (
+        <>
+          <MessageList messages={messages} isTyping={isTyping} agentTyping={agentTyping} primaryColor={primaryColor} ref={messagesEndRef} queuePosition={queuePosition} i18nLang={i18nLang} handoffForm={handoffForm} choiceButtons={choiceButtons} chatEndedButton={restartButton} />
+          <WidgetInput value={input} onChange={(v) => { setInput(v); if (liveChatMode) sendVisitorTyping(); }} onSend={handleSend} primaryColor={primaryColor} ref={inputRef} t={t} hideWatermark={hideWatermark} placeholderText={placeholder} i18nLang={i18nLang} onEndChat={messages.length > 1 ? resetChat : undefined} disabled={limitReached} disabledMessage={limitReached ? "Chatboten har nådd meldingsgrensen for denne perioden." : undefined} />
+        </>
+      )}
     </>
   );
 
