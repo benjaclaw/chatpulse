@@ -97,6 +97,8 @@ export function ChatWidget({
   const [agentsOnline, setAgentsOnline] = useState(false);
   const [limitReached, setLimitReached] = useState(false);
   const [showScrollBtn, setShowScrollBtn] = useState(false);
+  const [closedConversationId, setClosedConversationId] = useState<string | null>(null);
+  const [ratingSubmitted, setRatingSubmitted] = useState(false);
   const scrollContainerRef = useRef<HTMLDivElement>(null);
   const [configLoading, setConfigLoading] = useState(false);
   const [configLoaded, setConfigLoaded] = useState(false);
@@ -122,7 +124,8 @@ export function ChatWidget({
   const subscribeToRealtime = useRealtimeSubscription(
     i18nLang, setMessages, setAgentTyping, setQueuePosition,
     setLiveChatMode, setChatEnded, setHasInteracted,
-    conversationIdRef, typingTimeoutRef, realtimeChannelRef, typingChannelRef
+    conversationIdRef, typingTimeoutRef, realtimeChannelRef, typingChannelRef,
+    setClosedConversationId
   );
 
   // Remove iframe loading placeholder once hydrated
@@ -348,8 +351,44 @@ export function ChatWidget({
 
   const headerSubtext = liveChatMode ? "Live chat" : agentsOnline ? t('widget.supportOnline') : t('widget.aiAssistant');
 
+  async function handleRating(rating: "good" | "ok" | "bad") {
+    if (!closedConversationId) return;
+    setRatingSubmitted(true);
+    try {
+      await fetch("/api/ratings", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversationId: closedConversationId, rating }),
+      });
+    } catch {
+      // Best-effort, don't block the UI
+    }
+  }
+
+  const csatWidget = chatEnded && closedConversationId && !ratingSubmitted ? (
+    <div className="flex flex-col items-center gap-2 py-3">
+      <p className="text-sm text-muted-foreground">{t('widget.csatPrompt')}</p>
+      <div className="flex gap-3">
+        <button type="button" onClick={() => handleRating("good")} className="flex flex-col items-center gap-1 rounded-lg border px-4 py-2 text-sm transition-colors hover:bg-muted" title={t('widget.csatGood')}>
+          <span className="text-xl">😊</span>
+          <span className="text-xs text-muted-foreground">{t('widget.csatGood')}</span>
+        </button>
+        <button type="button" onClick={() => handleRating("ok")} className="flex flex-col items-center gap-1 rounded-lg border px-4 py-2 text-sm transition-colors hover:bg-muted" title={t('widget.csatOk')}>
+          <span className="text-xl">😐</span>
+          <span className="text-xs text-muted-foreground">{t('widget.csatOk')}</span>
+        </button>
+        <button type="button" onClick={() => handleRating("bad")} className="flex flex-col items-center gap-1 rounded-lg border px-4 py-2 text-sm transition-colors hover:bg-muted" title={t('widget.csatBad')}>
+          <span className="text-xl">😞</span>
+          <span className="text-xs text-muted-foreground">{t('widget.csatBad')}</span>
+        </button>
+      </div>
+    </div>
+  ) : chatEnded && ratingSubmitted ? (
+    <p className="py-2 text-center text-sm text-muted-foreground">{t('widget.csatThanks')}</p>
+  ) : null;
+
   const resetChat = () => {
-    setLiveChatMode(false); conversationIdRef.current = null; setHasInteracted(false); setChatEnded(false); setHandoffTriggered(false); setHandoffSubmitted(false); pendingLiveChatRef.current = null;
+    setLiveChatMode(false); conversationIdRef.current = null; setHasInteracted(false); setChatEnded(false); setHandoffTriggered(false); setHandoffSubmitted(false); pendingLiveChatRef.current = null; setClosedConversationId(null); setRatingSubmitted(false);
     try { sessionStorage.removeItem('chatpulse_live_chat_mode'); sessionStorage.removeItem('chatpulse_conversation_id'); sessionStorage.removeItem('chatpulse_workspace_id'); sessionStorage.removeItem('chatpulse_messages'); } catch { /* sessionStorage may be unavailable in embedded widget iframes */ }
     setMessages([{ id: 'welcome', role: 'assistant' as const, content: welcomeMessage || t('widget.defaultWelcome') }]);
   };
@@ -374,7 +413,7 @@ export function ChatWidget({
       ) : (
         <>
           <div className="relative flex-1 overflow-hidden">
-            <MessageList messages={messages} isTyping={isTyping} agentTyping={agentTyping} primaryColor={primaryColor} ref={messagesEndRef} queuePosition={queuePosition} i18nLang={i18nLang} handoffForm={handoffForm} choiceButtons={choiceButtons} chatEndedButton={restartButton} scrollContainerRef={scrollContainerRef} />
+            <MessageList messages={messages} isTyping={isTyping} agentTyping={agentTyping} primaryColor={primaryColor} ref={messagesEndRef} queuePosition={queuePosition} i18nLang={i18nLang} handoffForm={handoffForm} choiceButtons={choiceButtons} csatWidget={csatWidget} chatEndedButton={restartButton} scrollContainerRef={scrollContainerRef} />
             {showScrollBtn && (
               <button
                 type="button"

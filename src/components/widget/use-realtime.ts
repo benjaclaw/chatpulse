@@ -19,7 +19,8 @@ export function useRealtimeSubscription(
   conversationIdRef: React.MutableRefObject<string | null>,
   typingTimeoutRef: React.MutableRefObject<ReturnType<typeof setTimeout> | null>,
   realtimeChannelRef: React.MutableRefObject<ReturnType<ReturnType<typeof createClient>["channel"]> | null>,
-  typingChannelRef: React.MutableRefObject<ReturnType<ReturnType<typeof createClient>["channel"]> | null>
+  typingChannelRef: React.MutableRefObject<ReturnType<ReturnType<typeof createClient>["channel"]> | null>,
+  setClosedConversationId?: (id: string | null) => void
 ) {
   const subscribeToRealtime = useCallback((conversationId: string) => {
     const supabase = createClient();
@@ -76,6 +77,7 @@ export function useRealtimeSubscription(
               { id: `agent-joined-${Date.now()}`, role: "assistant" as const, content: i18nLang === "nb" ? `${name} har koblet til samtalen.` : `${name} has joined the conversation.` },
             ]);
           } else if (status === "closed") {
+            setClosedConversationId?.(conversationIdRef.current);
             setLiveChatMode(false);
             conversationIdRef.current = null;
             setHasInteracted(false);
@@ -108,7 +110,7 @@ export function useRealtimeSubscription(
       supabase.removeChannel(typingChannel);
       supabase.removeChannel(statusChannel);
     };
-  }, [i18nLang, setMessages, setAgentTyping, setQueuePosition, setLiveChatMode, setChatEnded, setHasInteracted, conversationIdRef, typingTimeoutRef, realtimeChannelRef, typingChannelRef]);
+  }, [i18nLang, setMessages, setAgentTyping, setQueuePosition, setLiveChatMode, setChatEnded, setHasInteracted, conversationIdRef, typingTimeoutRef, realtimeChannelRef, typingChannelRef, setClosedConversationId]);
 
   return subscribeToRealtime;
 }

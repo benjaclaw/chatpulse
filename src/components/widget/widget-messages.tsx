@@ -17,6 +17,7 @@ export const MessageList = ({
   queuePosition,
   i18nLang,
   choiceButtons,
+  csatWidget,
   chatEndedButton,
   scrollContainerRef,
 }: {
@@ -29,6 +30,7 @@ export const MessageList = ({
   queuePosition?: number | null;
   i18nLang?: string;
   choiceButtons?: React.ReactNode;
+  csatWidget?: React.ReactNode;
   chatEndedButton?: React.ReactNode;
   scrollContainerRef?: React.RefObject<HTMLDivElement | null>;
 }): React.ReactNode => {
@@ -67,6 +69,7 @@ export const MessageList = ({
         </div>
       ))}
       {choiceButtons}
+      {csatWidget}
       {chatEndedButton}
       {queuePosition != null && queuePosition > 0 && (
         <div className="flex justify-start">
