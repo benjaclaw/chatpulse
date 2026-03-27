@@ -3,6 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { ExternalLink } from "lucide-react";
 import { createT, type Language } from "@/lib/i18n";
 
 export function LandingFooter(): React.ReactNode {
@@ -70,14 +71,45 @@ export function LandingFooter(): React.ReactNode {
                 {t("landing.footer.cookies")}
               </Link>
             </div>
+            <div className="flex flex-col gap-2">
+              <span className="font-semibold text-foreground">Følg oss</span>
+              <a
+                href="#"
+                className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
+                aria-label="LinkedIn"
+              >
+                LinkedIn <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+              <a
+                href="#"
+                className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
+                aria-label="Twitter / X"
+              >
+                Twitter / X <ExternalLink className="h-3.5 w-3.5" />
+              </a>
+            </div>
           </nav>
         </div>
 
-        {/* Bottom bar */}
-        <div className="mt-8 flex flex-col items-center gap-4 border-t pt-6 sm:flex-row sm:justify-between">
-          <span className="text-sm text-muted-foreground">
-            &copy; {new Date().getFullYear()} Gains AS
-          </span>
+        {/* Company info */}
+        <div className="mt-8 border-t pt-6 text-sm text-muted-foreground">
+          <div className="flex flex-col gap-1">
+            <span>ChatPulse AS — Org.nr: 000 000 000</span>
+            <span>Postadresse: Adresseveien 1, 0000 Oslo</span>
+            <span>
+              Kontakt:{" "}
+              <a
+                href="mailto:post@chatpulse.no"
+                className="underline transition-colors hover:text-foreground"
+              >
+                post@chatpulse.no
+              </a>
+            </span>
+          </div>
+          <div className="mt-4">
+            &copy; {new Date().getFullYear()} ChatPulse AS. Alle rettigheter
+            reservert.
+          </div>
         </div>
       </div>
     </footer>
