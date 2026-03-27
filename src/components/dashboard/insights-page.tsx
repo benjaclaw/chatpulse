@@ -245,7 +245,11 @@ export function InsightsPageClient(): React.ReactNode {
                 {page * PAGE_SIZE + i + 1}
               </div>
               <div className="flex-1 min-w-0">
-                <p className="text-sm font-medium">{q.question}</p>
+                <p className="text-sm font-medium line-clamp-2 break-words">
+                  {q.question && q.question.length > 500 
+                    ? q.question.substring(0, 500) + '…'
+                    : q.question}
+                </p>
                 <p className="mt-0.5 text-xs text-muted-foreground">
                   {t('insights.lastAsked')}{" "}
                   {new Date(q.last_asked_at).toLocaleDateString(dateLocale)}
@@ -322,7 +326,11 @@ const BarChart = memo(function BarChart({ questions, maxCount }: { questions: Qu
         return (
           <div key={q.id} className="space-y-1">
             <div className="flex items-center justify-between text-sm">
-              <span className="truncate pr-4">{q.question}</span>
+              <span className="truncate pr-4 line-clamp-1">
+                {q.question && q.question.length > 200 
+                  ? q.question.substring(0, 200) + '…'
+                  : q.question}
+              </span>
               <span className="shrink-0 font-medium">{q.count}</span>
             </div>
             <div className="h-2.5 w-full rounded-full bg-muted">
