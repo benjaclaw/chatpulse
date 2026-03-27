@@ -38,6 +38,7 @@ import {
   CreditCard,
   Zap,
   Clock,
+  Smartphone,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { getPlanDetail, getPlanLimit, VISIBLE_PLAN_DETAILS } from "@/lib/plans";
@@ -267,6 +268,22 @@ export function SettingsPageClient(): React.ReactNode {
 
       {/* Business Hours */}
       <BusinessHoursCard workspaceId={workspace.id} t={t} />
+
+      {/* Mobile app */}
+      <div className="flex items-center gap-3 rounded-lg border border-blue-200 bg-blue-50 px-4 py-3 text-sm text-blue-800 dark:border-blue-800 dark:bg-blue-950/50 dark:text-blue-300">
+        <Smartphone className="h-5 w-5 shrink-0" />
+        <p>
+          📱 Svar kunder på farten med ChatPulse-appen —{" "}
+          <a
+            href="https://github.com/chatpulse/mobile/releases"
+            target="_blank"
+            rel="noopener noreferrer"
+            className="font-medium underline underline-offset-2 hover:text-blue-900 dark:hover:text-blue-200"
+          >
+            Last ned her
+          </a>
+        </p>
+      </div>
 
       {/* Danger zone */}
       <Card className="border-destructive/30">
