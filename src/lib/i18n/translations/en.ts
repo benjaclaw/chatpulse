@@ -337,6 +337,9 @@ const en: Record<string, string> = {
   'landing.hero.description': 'Train the chatbot with your knowledge base. Embed on your website. See what customers ask about.',
   'landing.hero.cta': 'Get started for free',
   'landing.hero.demo': 'See demo',
+  'landing.hero.trustGdpr': 'GDPR compliant',
+  'landing.hero.trustEu': 'Data stored in EU',
+  'landing.hero.trustSupport': 'Norwegian support',
   'landing.hero.howItWorks': 'See how it works',
   'landing.features.title': 'Everything you need for smart customer service',
   'landing.features.description': 'From knowledge base to live widget — ChatPulse gives you full control.',
@@ -610,6 +613,8 @@ const en: Record<string, string> = {
   'pricing.faq3A': 'Coming soon — 2 months free.',
   'pricing.faq4Q': 'Is there a commitment period?',
   'pricing.faq4A': 'No, cancel at any time.',
+  'pricing.faq5Q': 'How do I embed the chatbot?',
+  'pricing.faq5A': 'Copy one line of code from your dashboard and paste it into your HTML. Works on any website.',
 
   // Onboarding wizard
   'onboarding.title': "Welcome to ChatPulse! Let's set up your chatbot in under 5 minutes.",

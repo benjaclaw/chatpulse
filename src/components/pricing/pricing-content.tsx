@@ -10,6 +10,7 @@ import {
   Sparkles,
   TestTube,
   Code2,
+  Plus,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -250,11 +251,12 @@ export function PricingContent(): React.ReactNode {
           <h2 className="text-center text-2xl font-bold tracking-tight sm:text-3xl">
             {t("pricing.faqTitle")}
           </h2>
-          <div className="mt-12 space-y-6">
+          <div className="mt-12 space-y-3">
             <FaqItem question={t("pricing.faq1Q")} answer={t("pricing.faq1A")} />
             <FaqItem question={t("pricing.faq2Q")} answer={t("pricing.faq2A")} />
             <FaqItem question={t("pricing.faq3Q")} answer={t("pricing.faq3A")} />
             <FaqItem question={t("pricing.faq4Q")} answer={t("pricing.faq4A")} />
+            <FaqItem question={t("pricing.faq5Q")} answer={t("pricing.faq5A")} />
           </div>
         </div>
       </section>
@@ -371,10 +373,27 @@ function FaqItem({
   question: string;
   answer: string;
 }): React.ReactNode {
+  const [open, setOpen] = useState(false);
   return (
-    <div className="rounded-lg border bg-card p-5">
-      <h3 className="font-semibold">{question}</h3>
-      <p className="mt-2 text-sm text-muted-foreground">{answer}</p>
+    <div className="rounded-lg border bg-card">
+      <button
+        type="button"
+        onClick={() => setOpen(!open)}
+        className="flex w-full items-center justify-between p-5 text-left"
+      >
+        <h3 className="font-semibold">{question}</h3>
+        <Plus
+          className={cn(
+            "h-4 w-4 shrink-0 text-muted-foreground transition-transform duration-200",
+            open && "rotate-45"
+          )}
+        />
+      </button>
+      {open && (
+        <div className="px-5 pb-5">
+          <p className="text-sm text-muted-foreground">{answer}</p>
+        </div>
+      )}
     </div>
   );
 }

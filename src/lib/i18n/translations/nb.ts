@@ -337,6 +337,9 @@ const nb: Record<string, string> = {
   'landing.hero.description': 'Tren chatboten med din kunnskapsbase. Embed på nettsiden. Se hva kundene spør om.',
   'landing.hero.cta': 'Kom i gang gratis',
   'landing.hero.demo': 'Se demo',
+  'landing.hero.trustGdpr': 'GDPR-kompatibel',
+  'landing.hero.trustEu': 'Data lagret i EU',
+  'landing.hero.trustSupport': 'Norsk support',
   'landing.hero.howItWorks': 'Se hvordan det fungerer',
   'landing.features.title': 'Alt du trenger for smart kundeservice',
   'landing.features.description': 'Fra kunnskapsbase til live widget — ChatPulse gir deg full kontroll.',
@@ -610,6 +613,8 @@ const nb: Record<string, string> = {
   'pricing.faq3A': 'Kommer snart — 2 måneder gratis.',
   'pricing.faq4Q': 'Er det bindingstid?',
   'pricing.faq4A': 'Nei, avbryt når som helst.',
+  'pricing.faq5Q': 'Hvordan embed jeg chatboten?',
+  'pricing.faq5A': 'Kopier én linje med kode fra dashboardet og lim inn i HTML-en din. Fungerer på alle nettsider.',
 
   // Onboarding wizard
   'onboarding.title': 'Velkommen til ChatPulse! La oss sette opp chatboten din på under 5 minutter.',
