@@ -337,8 +337,8 @@ export function ChatWidget({
           email: email.trim(),
           name: name.trim(),
           botId: chatbotId,
-          workspaceId: workspaceIdRef.current,
           visitorId: getVisitorId(),
+          conversationId: conversationIdRef.current, // Use existing if available
         }),
       });
 

@@ -18,10 +18,10 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const { email, name, botId, visitorId } = body;
+  const { email, name, botId, visitorId, conversationId: existingConvId } = body;
 
-  // Validate
-  if (!email?.trim() || !name?.trim() || !botId || !visitorId) {
+  // Validate required fields
+  if (!email?.trim() || !name?.trim() || !visitorId) {
     return Response.json({ error: "Missing required fields" }, { status: 400 });
   }
 
@@ -33,33 +33,57 @@ export async function POST(request: Request): Promise<Response> {
   const supabase = createServiceClient();
 
   try {
-    // 1. Find workspace by botId
-    const { data: bot } = await supabase
-      .from("chatbots")
-      .select("workspace_id")
-      .eq("id", botId)
-      .single();
+    let workspaceId: string;
+    let conversation: any;
 
-    if (!bot) {
-      return Response.json({ error: "Chatbot not found" }, { status: 404 });
+    // If conversation already exists (from AI chat), use it
+    if (existingConvId) {
+      const { data: existingConv } = await supabase
+        .from("conversations")
+        .select("id, workspace_id")
+        .eq("id", existingConvId)
+        .single();
+
+      if (existingConv) {
+        conversation = existingConv;
+        workspaceId = existingConv.workspace_id;
+      }
     }
 
-    const workspaceId = bot.workspace_id;
+    // Otherwise: Create new conversation
+    if (!conversation) {
+      // Need workspace ID — try botId if provided
+      if (botId) {
+        const { data: bot } = await supabase
+          .from("chatbots")
+          .select("workspace_id")
+          .eq("id", botId)
+          .single();
 
-    // 2. Create conversation (atomic)
-    const { data: conversation, error: convError } = await supabase
-      .from("conversations")
-      .insert({
-        workspace_id: workspaceId,
-        status: "waiting",
-        started_at: new Date().toISOString(),
-      })
-      .select()
-      .single();
+        if (!bot) {
+          return Response.json({ error: "Chatbot not found" }, { status: 404 });
+        }
+        workspaceId = bot.workspace_id;
+      } else {
+        return Response.json({ error: "No conversation or botId provided" }, { status: 400 });
+      }
 
-    if (convError || !conversation) {
-      logError("Handoff: create conversation", convError);
-      return Response.json({ error: "Failed to create conversation" }, { status: 500 });
+      // Create conversation
+      const { data: newConv, error: convError } = await supabase
+        .from("conversations")
+        .insert({
+          workspace_id: workspaceId,
+          status: "waiting",
+          started_at: new Date().toISOString(),
+        })
+        .select()
+        .single();
+
+      if (convError || !newConv) {
+        logError("Handoff: create conversation", convError);
+        return Response.json({ error: "Failed to create conversation" }, { status: 500 });
+      }
+      conversation = newConv;
     }
 
     // 3. Create lead
