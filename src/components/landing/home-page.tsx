@@ -74,16 +74,16 @@ export function HomePage(): React.ReactNode {
                 {t("landing.hero.cta")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
-              <a
-                href="#demo"
+              <Link
+                href="/features"
                 className={cn(
                   buttonVariants({ variant: "outline", size: "lg" }),
                   "w-full sm:w-auto"
                 )}
               >
                 <MessageSquare className="mr-2 h-4 w-4" />
-                {t("landing.hero.demo")}
-              </a>
+                {t("landing.header.features")}
+              </Link>
             </div>
 
             <div className="mt-4">
@@ -168,31 +168,6 @@ export function HomePage(): React.ReactNode {
                 title={t("landing.steps.embedTitle")}
                 description={t("landing.steps.embedDesc")}
               />
-            </div>
-          </div>
-        </section>
-
-        {/* ─── Demo ─── */}
-        <section
-          id="demo"
-          className="scroll-mt-16 border-t bg-card/50 px-4 py-16 dark:bg-card/20 sm:px-6 sm:py-24"
-        >
-          <div className="mx-auto max-w-5xl">
-            <div className="text-center">
-              <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-sm text-muted-foreground shadow-sm">
-                <MessageSquare className="h-4 w-4 text-primary" />
-                {t("landing.demo.badge")}
-              </div>
-              <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
-                {t("landing.demo.title")}
-              </h2>
-              <p className="mx-auto mt-3 max-w-xl text-muted-foreground">
-                {t("landing.demo.description")}
-              </p>
-            </div>
-
-            <div className="mx-auto mt-10 max-w-sm">
-              <DemoWidget t={t} />
             </div>
           </div>
         </section>
@@ -344,49 +319,6 @@ function WidgetMockup({
   );
 }
 
-function DemoWidget({
-  t,
-}: {
-  t: (key: string) => string;
-}): React.ReactNode {
-  // Lazy-load the real chat widget only in the demo section
-  const [Widget, setWidget] = useState<React.ComponentType<{
-    inline?: boolean;
-    botName?: string;
-    welcomeMessage?: string;
-    primaryColor?: string;
-  }> | null>(null);
-
-  if (!Widget) {
-    return (
-      <button
-        type="button"
-        onClick={() => {
-          import("@/components/widget/chat-widget").then((m) => {
-            setWidget(() => m.ChatWidget);
-          });
-        }}
-        className="flex w-full flex-col items-center gap-4 rounded-xl border bg-card p-8 shadow-sm transition-all hover:shadow-md"
-      >
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
-          <MessageSquare className="h-7 w-7" />
-        </div>
-        <span className="text-sm font-medium text-muted-foreground">
-          {t("landing.demo.clickToTry")}
-        </span>
-      </button>
-    );
-  }
-
-  return (
-    <Widget
-      inline
-      botName={t("landing.demo.botName")}
-      welcomeMessage={t("landing.demo.welcome")}
-      primaryColor="#6366f1"
-    />
-  );
-}
 
 function FeatureCard({
   icon: Icon,

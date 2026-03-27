@@ -37,6 +37,8 @@ const en: Record<string, string> = {
   'dashboard.quick.insightsDesc': 'See top questions',
   'dashboard.quick.team': 'Team',
   'dashboard.quick.teamDesc': 'Invite members',
+  'dashboard.quick.customize': 'Customize chatbot',
+  'dashboard.quick.customizeDesc': 'Change appearance and behavior',
   'dashboard.time.minAgo': 'min ago',
   'dashboard.time.hoursAgo': 'h ago',
   'dashboard.time.daysAgo': 'd ago',
@@ -592,7 +594,7 @@ const en: Record<string, string> = {
   'pricing.faq4A': 'No, cancel at any time.',
 
   // Onboarding wizard
-  'onboarding.title': 'Set up ChatPulse',
+  'onboarding.title': "Welcome to ChatPulse! Let's set up your chatbot in under 5 minutes.",
   'onboarding.step1': 'Workspace',
   'onboarding.step2': 'Company Info',
   'onboarding.step3': 'Chatbot',

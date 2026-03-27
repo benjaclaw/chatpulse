@@ -9,6 +9,7 @@ import {
   ArrowRight,
   Rocket,
   MessageCircle,
+  Palette,
 } from "lucide-react";
 import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/context";
@@ -225,10 +226,10 @@ export function DashboardContent({ stats }: { stats: DashboardStats }): React.Re
               href="/dashboard/insights"
             />
             <QuickAction
-              icon={Users}
-              title={t('dashboard.quick.team')}
-              description={t('dashboard.quick.teamDesc')}
-              href="/dashboard/team"
+              icon={Palette}
+              title={t('dashboard.quick.customize')}
+              description={t('dashboard.quick.customizeDesc')}
+              href="/dashboard/chatbot"
             />
           </div>
         </div>

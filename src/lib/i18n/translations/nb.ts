@@ -37,6 +37,8 @@ const nb: Record<string, string> = {
   'dashboard.quick.insightsDesc': 'Se topp-spørsmål',
   'dashboard.quick.team': 'Team',
   'dashboard.quick.teamDesc': 'Inviter medlemmer',
+  'dashboard.quick.customize': 'Tilpass chatbot',
+  'dashboard.quick.customizeDesc': 'Endre utseende og oppførsel',
   'dashboard.time.minAgo': 'min siden',
   'dashboard.time.hoursAgo': 't siden',
   'dashboard.time.daysAgo': 'd siden',
@@ -592,7 +594,7 @@ const nb: Record<string, string> = {
   'pricing.faq4A': 'Nei, avbryt når som helst.',
 
   // Onboarding wizard
-  'onboarding.title': 'Sett opp ChatPulse',
+  'onboarding.title': 'Velkommen til ChatPulse! La oss sette opp chatboten din på under 5 minutter.',
   'onboarding.step1': 'Workspace',
   'onboarding.step2': 'Bedriftsinfo',
   'onboarding.step3': 'Chatbot',
