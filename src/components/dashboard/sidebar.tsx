@@ -59,17 +59,30 @@ export function Sidebar({
 
   const manualOverride = useRef(false);
 
-  // Toggle online status — just flips the DB status, no heartbeat needed
+  // Toggle online status — wait for API before updating UI
   async function toggleOnline() {
     manualOverride.current = true;
     const newStatus = !isOnline;
-    setIsOnline(newStatus);
-    localStorage.setItem(LS_KEY, String(newStatus));
-    await fetch("/api/presence", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ workspaceId: activeWorkspace.id, status: newStatus ? "online" : "offline" }),
-    }).catch((err) => console.error('Presence toggle failed:', err));
+    const previousStatus = isOnline;
+
+    try {
+      const res = await fetch("/api/presence", {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId: activeWorkspace.id, status: newStatus ? "online" : "offline" }),
+      });
+
+      if (res.ok) {
+        setIsOnline(newStatus);
+        localStorage.setItem(LS_KEY, String(newStatus));
+      } else {
+        console.error('Presence toggle failed:', res.status);
+        // Don't update UI/localStorage if API fails
+      }
+    } catch (err) {
+      console.error('Presence toggle failed:', err);
+      // Don't update UI/localStorage if API fails
+    }
   }
 
   // Business hours auto-toggle
