@@ -30,6 +30,7 @@ export function PricingContent(): React.ReactNode {
   const [workspaceId, setWorkspaceId] = useState<string | null>(null);
   const [checkoutLoading, setCheckoutLoading] = useState<string | null>(null);
   const [checkoutError, setCheckoutError] = useState<string | null>(null);
+  const [annual, setAnnual] = useState(true);
 
   useEffect(() => {
     const supabase = createClient();
@@ -85,6 +86,48 @@ export function PricingContent(): React.ReactNode {
             <p className="mx-auto mt-4 max-w-2xl text-lg text-muted-foreground">
               {t("pricing.subtitle")}
             </p>
+
+            {/* Annual / Monthly toggle */}
+            <div className="mt-8 flex items-center justify-center gap-3">
+              <span
+                className={cn(
+                  "text-sm font-medium",
+                  !annual ? "text-foreground" : "text-muted-foreground"
+                )}
+              >
+                {t("pricing.monthly")}
+              </span>
+              <button
+                type="button"
+                role="switch"
+                aria-checked={annual}
+                onClick={() => setAnnual(!annual)}
+                className={cn(
+                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
+                  annual ? "bg-primary" : "bg-muted"
+                )}
+              >
+                <span
+                  className={cn(
+                    "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm ring-0 transition-transform",
+                    annual ? "translate-x-5" : "translate-x-0"
+                  )}
+                />
+              </button>
+              <span
+                className={cn(
+                  "text-sm font-medium",
+                  annual ? "text-foreground" : "text-muted-foreground"
+                )}
+              >
+                {t("pricing.annual")}
+              </span>
+              {annual && (
+                <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                  {t("pricing.save20")}
+                </span>
+              )}
+            </div>
           </div>
 
           {checkoutError && (
@@ -96,8 +139,8 @@ export function PricingContent(): React.ReactNode {
           <div className="mt-16 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
             <PlanCard
               name={t("pricing.basicName")}
-              price={t("pricing.basicPrice")}
-              period={t("pricing.perMonth")}
+              price={annual ? t("pricing.basicPriceAnnual") : t("pricing.basicPrice")}
+              period={annual ? t("pricing.perYear") : t("pricing.perMonth")}
               features={[
                 t("pricing.basicF1"),
                 t("pricing.basicF2"),
@@ -114,8 +157,8 @@ export function PricingContent(): React.ReactNode {
             />
             <PlanCard
               name={t("pricing.startupName")}
-              price={t("pricing.startupPrice")}
-              period={t("pricing.perMonth")}
+              price={annual ? t("pricing.startupPriceAnnual") : t("pricing.startupPrice")}
+              period={annual ? t("pricing.perYear") : t("pricing.perMonth")}
               popular
               popularLabel={t("pricing.popular")}
               features={[
@@ -134,8 +177,8 @@ export function PricingContent(): React.ReactNode {
             />
             <PlanCard
               name={t("pricing.proName")}
-              price={t("pricing.proPrice")}
-              period={t("pricing.perMonth")}
+              price={annual ? t("pricing.proPriceAnnual") : t("pricing.proPrice")}
+              period={annual ? t("pricing.perYear") : t("pricing.perMonth")}
               features={[
                 t("pricing.proF1"),
                 t("pricing.proF2"),
@@ -292,14 +335,25 @@ function PlanCard({
   return (
     <div
       className={cn(
-        "relative flex flex-col rounded-xl border p-6 transition-all duration-200",
+        "relative flex flex-col rounded-xl p-6 transition-all duration-200",
         popular
-          ? "border-primary bg-card shadow-lg ring-1 ring-primary/20"
-          : "bg-card shadow-sm hover:shadow-md"
+          ? "border-0 bg-card shadow-lg"
+          : "border bg-card shadow-sm hover:shadow-md"
       )}
+      style={
+        popular
+          ? {
+              backgroundImage:
+                "linear-gradient(var(--card), var(--card)), linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.4), hsl(var(--primary)))",
+              backgroundOrigin: "border-box",
+              backgroundClip: "padding-box, border-box",
+              border: "2px solid transparent",
+            }
+          : undefined
+      }
     >
       {popular && popularLabel && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-0.5 text-xs font-semibold text-white">
+        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-white shadow-md">
           {popularLabel}
         </div>
       )}
