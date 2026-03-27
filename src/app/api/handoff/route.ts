@@ -37,9 +37,9 @@ export async function POST(request: Request): Promise<Response> {
     let workspaceId: string = "";
     let conversation: any;
 
-    // If conversation already exists (from AI chat), use it
+    // If conversation already exists (from AI chat), use it and update status
     if (existingConvId) {
-      const { data: existingConv } = await supabase
+      const { data: existingConv, error: fetchError } = await supabase
         .from("conversations")
         .select("id, workspace_id")
         .eq("id", existingConvId)
@@ -48,6 +48,14 @@ export async function POST(request: Request): Promise<Response> {
       if (existingConv) {
         conversation = existingConv;
         workspaceId = existingConv.workspace_id;
+        
+        // Update status to "waiting" so it appears in agent inbox
+        await supabase
+          .from("conversations")
+          .update({ status: "waiting", started_at: new Date().toISOString() })
+          .eq("id", existingConvId);
+      } else {
+        logError("Handoff: fetch existing conversation", fetchError);
       }
     }
 
