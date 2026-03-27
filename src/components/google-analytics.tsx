@@ -4,7 +4,7 @@ import Script from "next/script";
 import { useEffect, useState } from "react";
 import { hasAnalyticsConsent } from "./cookie-banner";
 
-const GA_ID = "G-XXXXXXXXXX";
+const GA_ID = process.env.NEXT_PUBLIC_GA_ID;
 
 export function GoogleAnalytics(): React.ReactNode {
   const [consented, setConsented] = useState(false);
@@ -13,7 +13,7 @@ export function GoogleAnalytics(): React.ReactNode {
     setConsented(hasAnalyticsConsent());
   }, []);
 
-  if (!consented) return null;
+  if (!consented || !GA_ID) return null;
 
   return (
     <>
