@@ -29,6 +29,9 @@ export const metadata: Metadata = {
   description:
     "Tren chatboten med din kunnskapsbase. Embed på nettsiden. Se hva kundene spør om. Klar på minutter.",
   metadataBase: new URL(siteUrl),
+  icons: {
+    icon: "/favicon.png",
+  },
   openGraph: {
     title: "ChatPulse — AI-chatbot for din bedrift",
     description:
