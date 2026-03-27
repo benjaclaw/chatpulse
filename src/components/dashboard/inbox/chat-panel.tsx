@@ -191,7 +191,7 @@ export function ChatPanel({
       {/* Chat header */}
       <div className="flex items-center justify-between border-b px-4 py-2">
         <div className="flex items-center gap-2">
-          <button onClick={onDeselect} className="md:hidden rounded-lg p-1 hover:bg-muted">
+          <button onClick={onDeselect} className="md:hidden rounded-lg p-1 hover:bg-muted" aria-label={t('common.back') || 'Back'}>
             <ArrowLeft className="h-4 w-4" />
           </button>
           <span className="text-sm font-medium">
@@ -266,7 +266,7 @@ export function ChatPanel({
             <div className="mb-2">
               <form onSubmit={(e) => { e.preventDefault(); handleAddNote(); }} className="flex items-center gap-2">
                 <Input value={noteInput} onChange={(e) => setNoteInput(e.target.value)} placeholder={t('inbox.addNote')} className="text-xs h-8 bg-yellow-50 dark:bg-yellow-900/10 border-yellow-200 dark:border-yellow-800" />
-                <Button size="sm" variant="outline" className="h-8 text-xs" disabled={!noteInput.trim()}>
+                <Button size="sm" variant="outline" className="h-8 text-xs" disabled={!noteInput.trim()} aria-label={t('inbox.addNote') || 'Add note'}>
                   <StickyNote className="h-3 w-3" />
                 </Button>
               </form>
@@ -285,7 +285,7 @@ export function ChatPanel({
           )}
           <form onSubmit={(e) => { e.preventDefault(); handleSend(); }} className="flex items-center gap-2">
             <Input value={input} onChange={(e) => handleInputChange(e.target.value)} placeholder={t('inbox.messagePlaceholder')} className="text-sm" />
-            <Button size="icon" disabled={!input.trim()} className="shrink-0"><Send className="h-4 w-4" /></Button>
+            <Button size="icon" disabled={!input.trim()} className="shrink-0" aria-label={t('inbox.send') || 'Send message'}><Send className="h-4 w-4" /></Button>
           </form>
         </div>
       )}

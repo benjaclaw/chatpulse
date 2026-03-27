@@ -34,11 +34,13 @@ export function ConversationList({
       )}
     >
       {/* Filter tabs */}
-      <div className="flex border-b p-2 gap-1">
+      <div className="flex border-b p-2 gap-1" role="tablist" aria-label="Conversation filters">
         {(["waiting", "human", "closed"] as const).map((f) => (
           <button
             key={f}
             onClick={() => onFilterChange(f)}
+            role="tab"
+            aria-selected={filter === f}
             className={cn(
               "flex-1 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors",
               filter === f

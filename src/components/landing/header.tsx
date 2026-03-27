@@ -26,7 +26,7 @@ export function LandingHeader(): React.ReactNode {
         </Link>
 
         {/* Desktop nav */}
-        <div className="hidden md:flex md:items-center md:gap-4">
+        <nav className="hidden md:flex md:items-center md:gap-4" role="navigation" aria-label="Main navigation">
           <Link
             href="/pricing"
             className={cn(buttonVariants({ variant: "ghost" }))}
@@ -48,7 +48,7 @@ export function LandingHeader(): React.ReactNode {
           <Link href="/signup" className={cn(buttonVariants())}>
             {t("landing.header.getStarted")}
           </Link>
-        </div>
+        </nav>
 
         {/* Hamburger button */}
         <button
@@ -63,7 +63,7 @@ export function LandingHeader(): React.ReactNode {
       {/* Mobile menu */}
       {mobileOpen && (
         <div className="border-t bg-background px-4 pb-4 pt-2 md:hidden">
-          <nav className="flex flex-col gap-2">
+          <nav className="flex flex-col gap-2" role="navigation" aria-label="Mobile navigation">
             <Link
               href="/pricing"
               onClick={() => setMobileOpen(false)}

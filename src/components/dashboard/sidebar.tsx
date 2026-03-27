@@ -158,12 +158,12 @@ export function Sidebar({
   }, [activeWorkspace.id]);
 
   return (
-    <aside className="flex h-screen w-[260px] flex-col border-r bg-card">
+    <aside className="flex h-screen w-[260px] flex-col border-r bg-card" role="complementary" aria-label="Sidebar">
       {/* Workspace selector */}
       <div className="p-3">
         {workspaces.length > 1 ? (
           <DropdownMenu>
-            <DropdownMenuTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-heading text-base font-semibold transition-colors hover:bg-muted">
+            <DropdownMenuTrigger className="flex w-full items-center justify-between rounded-lg px-3 py-2.5 font-heading text-base font-semibold transition-colors hover:bg-muted" aria-label={t('nav.workspaceSelector') || 'Select workspace'}>
               <span className="truncate">{activeWorkspace.name}</span>
               <ChevronsUpDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
             </DropdownMenuTrigger>
@@ -195,7 +195,7 @@ export function Sidebar({
       <Separator />
 
       {/* Navigation */}
-      <nav className="flex-1 overflow-y-auto p-2">
+      <nav className="flex-1 overflow-y-auto p-2" role="navigation" aria-label="Dashboard navigation">
         <ul className="space-y-1">
           {NAV_ITEMS.map((item) => {
             const active = isNavActive(item.href, pathname);
@@ -236,6 +236,9 @@ export function Sidebar({
         <button
           onClick={toggleOnline}
           className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-muted"
+          aria-label={isOnline ? t('inbox.goOffline') : t('inbox.goOnline')}
+          role="switch"
+          aria-checked={isOnline}
         >
           <span
             className={`relative flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
@@ -259,7 +262,7 @@ export function Sidebar({
       {/* User menu */}
       <div className="p-2">
         <DropdownMenu>
-          <DropdownMenuTrigger className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-muted">
+          <DropdownMenuTrigger className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 transition-colors hover:bg-muted" aria-label={t('nav.userMenu') || 'User menu'}>
             <div className="relative">
               <Avatar className="h-8 w-8">
                 <AvatarFallback className="bg-primary/10 text-primary text-xs">

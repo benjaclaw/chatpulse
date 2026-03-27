@@ -29,7 +29,7 @@ export function LandingFooter(): React.ReactNode {
           </div>
 
           {/* Links */}
-          <div className="flex flex-wrap gap-8 text-sm">
+          <nav className="flex flex-wrap gap-8 text-sm" role="navigation" aria-label="Footer navigation">
             <div className="flex flex-col gap-2">
               <span className="font-semibold text-foreground">
                 {t("landing.footer.product")}
@@ -70,7 +70,7 @@ export function LandingFooter(): React.ReactNode {
                 {t("landing.footer.cookies")}
               </Link>
             </div>
-          </div>
+          </nav>
         </div>
 
         {/* Bottom bar */}
