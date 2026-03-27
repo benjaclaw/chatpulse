@@ -17,7 +17,28 @@
   var unreadCount = 0;
   var openIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>';
   var closeIcon = '<svg xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><line x1="18" y1="6" x2="6" y2="18"/><line x1="6" y1="6" x2="18" y2="18"/></svg>';
-  var w, f, badge;
+  var w, f, badge, closeBtn;
+
+  function isMobile() { return window.innerWidth < 480; }
+
+  function applySize() {
+    if (!w) return;
+    if (isMobile()) {
+      w.style.width = "100vw";
+      w.style.height = "100vh";
+      w.style.maxHeight = "none";
+      w.style.borderRadius = "0";
+      w.style.marginBottom = "0";
+      if (closeBtn) closeBtn.style.display = "flex";
+    } else {
+      w.style.width = "370px";
+      w.style.height = "500px";
+      w.style.maxHeight = "";
+      w.style.borderRadius = "16px";
+      w.style.marginBottom = "16px";
+      if (closeBtn) closeBtn.style.display = "none";
+    }
+  }
 
   function updateBadge() {
     if (!badge) return;
@@ -42,22 +63,37 @@
       w.appendChild(f);
       iframeLoaded = true;
     }
+    applySize();
     w.style.transform = open ? "translateY(0)" : "translateY(20px)";
     w.style.opacity = open ? "1" : "0";
     w.style.pointerEvents = open ? "auto" : "none";
     btn.innerHTML = open ? closeIcon : openIcon;
     btn.setAttribute("aria-label", open ? "Lukk chat" : "Åpne chat");
+    /* On mobile: hide FAB when open, show close btn inside widget */
+    if (isMobile()) {
+      btn.style.display = open ? "none" : "flex";
+      if (closeBtn) closeBtn.style.display = open ? "flex" : "none";
+    }
     if (open) { unreadCount = 0; updateBadge(); }
   }
 
   function init() {
+    try {
+    if (document.getElementById("chatpulse-widget")) return;
+
     var c = document.createElement("div");
     c.id = "chatpulse-widget";
-    c.style.cssText = "position:fixed;bottom:20px;z-index:2147483647;" + (pos === "left" ? "left:20px;" : "right:20px;");
+    c.style.cssText = "position:fixed;bottom:0;z-index:2147483647;" + (pos === "left" ? "left:0;" : "right:0;") + (isMobile() ? "bottom:0;left:0;right:0;" : "bottom:20px;" + (pos === "left" ? "left:20px;" : "right:20px;"));
 
     w = document.createElement("div");
-    var isMobile = window.innerWidth < 480;
-    w.style.cssText = (isMobile ? "width:calc(100vw - 32px);height:calc(100vh - 100px);max-height:600px;" : "width:370px;height:500px;") + "margin-bottom:16px;border-radius:16px;overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s cubic-bezier(.4,0,.2,1);transform:translateY(20px);opacity:0;pointer-events:none;background:#fff;";
+    w.style.cssText = "position:relative;" + (isMobile() ? "width:100vw;height:100vh;max-height:none;margin-bottom:0;border-radius:0;" : "width:370px;height:500px;margin-bottom:16px;border-radius:16px;") + "overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s cubic-bezier(.4,0,.2,1);transform:translateY(20px);opacity:0;pointer-events:none;background:#fff;";
+
+    closeBtn = document.createElement("button");
+    closeBtn.setAttribute("aria-label", "Lukk chat");
+    closeBtn.innerHTML = closeIcon;
+    closeBtn.style.cssText = "display:none;position:absolute;top:8px;right:8px;z-index:10;width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;background:rgba(0,0,0,.5);align-items:center;justify-content:center;";
+    closeBtn.onclick = function () { toggle(b, false); };
+    w.appendChild(closeBtn);
 
     var b = document.createElement("button");
     b.setAttribute("aria-label", "Åpne chat");
@@ -74,15 +110,31 @@
 
     window.addEventListener("message", function (e) {
       if (e.data && e.data.type === "chatpulse:close") toggle(b, false);
+      if (e.data && e.data.type === "chatpulse:resize" && e.data.height) {
+        w.style.height = Math.min(Number(e.data.height), 700) + "px";
+      }
       if (e.data && e.data.type === "chatpulse:unread" && typeof e.data.count === "number") {
         unreadCount = e.data.count;
         updateBadge();
       }
     });
 
+    window.addEventListener("resize", function () {
+      applySize();
+      /* reposition container for mobile fullscreen vs desktop offset */
+      if (isMobile()) {
+        c.style.bottom = "0"; c.style.left = "0"; c.style.right = "0";
+      } else {
+        c.style.bottom = "20px";
+        c.style.left = pos === "left" ? "20px" : "";
+        c.style.right = pos === "left" ? "" : "20px";
+      }
+    });
+
     c.appendChild(w);
     c.appendChild(b);
     document.body.appendChild(c);
+    } catch (err) { console.error("[ChatPulse] Widget init failed:", err); }
   }
 
   if (document.readyState === "loading") document.addEventListener("DOMContentLoaded", init);
