@@ -41,6 +41,7 @@ interface ConversationRow {
   preview: string;
   started_at: string;
   message_count: number;
+  duration_min: number | null;
 }
 
 function getDateFrom(range: DateRange): string | null {
@@ -131,7 +132,7 @@ export function ConversationsPageClient(): React.ReactNode {
     // Build data query
     let dataQuery = supabase
       .from("conversations")
-      .select("id, visitor_id, started_at, messages(id, content, role)")
+      .select("id, visitor_id, started_at, messages(id, content, role, created_at)")
       .eq("workspace_id", workspaceId)
       .order("started_at", { ascending: false })
       .range(from, to);
@@ -143,13 +144,24 @@ export function ConversationsPageClient(): React.ReactNode {
 
     setTotalCount(countResult.count ?? 0);
     const rows: ConversationRow[] = (dataResult.data ?? []).map(
-      (c: { id: string; visitor_id: string; started_at: string; messages: { id: string; content: string; role: string }[] }) => {
+      (c: { id: string; visitor_id: string; started_at: string; messages: { id: string; content: string; role: string; created_at: string }[] }) => {
         const firstUserMsg = c.messages?.find((m) => m.role === "user");
+        let duration_min: number | null = null;
+        if (c.messages?.length > 0) {
+          const lastMsg = c.messages.reduce((a, b) =>
+            a.created_at > b.created_at ? a : b
+          );
+          duration_min = Math.round(
+            (new Date(lastMsg.created_at).getTime() - new Date(c.started_at).getTime()) / 60000
+          );
+          if (duration_min < 0) duration_min = 0;
+        }
         return {
           id: c.id,
           visitor_id: c.visitor_id,
           started_at: c.started_at,
           message_count: c.messages?.length ?? 0,
+          duration_min,
           preview: firstUserMsg?.content?.slice(0, 80) || t('conversations.noMessages'),
         };
       }
@@ -252,14 +264,23 @@ export function ConversationsPageClient(): React.ReactNode {
                       {conv.message_count} {t('conversations.msgBadge')}
                     </Badge>
                   </div>
-                  <div className="mt-1 flex items-center gap-1 text-xs text-muted-foreground">
-                    <Clock className="h-3 w-3" />
-                    {new Date(conv.started_at).toLocaleString(dateLocale, {
-                      day: "numeric",
-                      month: "short",
-                      hour: "2-digit",
-                      minute: "2-digit",
-                    })}
+                  <div className="mt-1 flex items-center gap-3 text-xs text-muted-foreground">
+                    <span className="flex items-center gap-1">
+                      <Clock className="h-3 w-3" />
+                      {new Date(conv.started_at).toLocaleString(dateLocale, {
+                        day: "numeric",
+                        month: "short",
+                        hour: "2-digit",
+                        minute: "2-digit",
+                      })}
+                    </span>
+                    {conv.duration_min != null && (
+                      <span>
+                        {conv.duration_min < 60
+                          ? `${conv.duration_min} ${t('conversations.minutes')}`
+                          : `${Math.round(conv.duration_min / 60)} ${t('conversations.hours')}`}
+                      </span>
+                    )}
                   </div>
                 </div>
                 {expandedId === conv.id ? (

@@ -128,6 +128,8 @@ const en: Record<string, string> = {
   'conversations.previous': 'Previous',
   'conversations.pageOf': 'Page {page} of {total}',
   'conversations.next': 'Next',
+  'conversations.minutes': 'min',
+  'conversations.hours': 'hrs',
 
   // Insights
   'insights.title': 'Insights',

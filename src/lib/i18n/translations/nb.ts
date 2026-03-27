@@ -128,6 +128,8 @@ const nb: Record<string, string> = {
   'conversations.previous': 'Forrige',
   'conversations.pageOf': 'Side {page} av {total}',
   'conversations.next': 'Neste',
+  'conversations.minutes': 'min',
+  'conversations.hours': 'timer',
 
   // Insights
   'insights.title': 'Innsikt',
