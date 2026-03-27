@@ -332,29 +332,41 @@ export function ChatWidget({
     const convId = pending?.conversationId || conversationIdRef.current;
     const wsId = pending?.workspaceId || workspaceIdRef.current;
 
-    // 1. Create lead
+    if (!convId || !wsId) {
+      setMessages((prev) => [...prev, { id: `error-${Date.now()}`, role: "assistant", content: t('widget.error') }]);
+      return;
+    }
+
+    // 1. Update conversation status to "waiting" (this creates inbox entry)
+    try {
+      await fetch("/api/live-chat", {
+        method: "POST", 
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ conversationId: convId, content: `Customer ${email} requesting live chat`, role: "system" }),
+      });
+    } catch (err) {
+      console.error("Failed to update conversation:", err);
+    }
+
+    // 2. Create lead
     await fetch("/api/leads", {
-      method: "POST", headers: { "Content-Type": "application/json" },
+      method: "POST", 
+      headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ email, name: name || null, workspaceId: wsId, conversationId: convId }),
     });
 
-    // 2. Activate live chat mode (works with or without pending request)
-    if (convId && wsId) {
-      setLiveChatMode(true);
-      try { 
-        sessionStorage.setItem("chatpulse_live_chat_mode", "true"); 
-        sessionStorage.setItem("chatpulse_conversation_id", convId); 
-        sessionStorage.setItem("chatpulse_workspace_id", wsId); 
-      } catch { /* sessionStorage may be unavailable in embedded widget iframes */ }
-      
-      // 3. Show confirmation and setup realtime
-      setMessages((prev) => [...prev, { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: t('widget.handoffConnecting').replace('{name}', name || email) }]);
-      subscribeToRealtime(convId);
-      fetchQueuePosition(convId, wsId);
-    } else {
-      // Fallback if no conversation ID (shouldn't happen)
-      setMessages((prev) => [...prev, { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: t('widget.handoffConfirm') }]);
-    }
+    // 3. Activate live chat mode
+    setLiveChatMode(true);
+    try { 
+      sessionStorage.setItem("chatpulse_live_chat_mode", "true"); 
+      sessionStorage.setItem("chatpulse_conversation_id", convId); 
+      sessionStorage.setItem("chatpulse_workspace_id", wsId); 
+    } catch { /* sessionStorage may be unavailable */ }
+    
+    // 4. Show confirmation and setup realtime
+    setMessages((prev) => [...prev, { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: t('widget.handoffConnecting').replace('{name}', name || email) }]);
+    subscribeToRealtime(convId);
+    fetchQueuePosition(convId, wsId);
 
     if (pending) {
       pendingLiveChatRef.current = null;
@@ -369,7 +381,33 @@ export function ChatWidget({
       <button type="button" onClick={() => { inputRef.current?.focus(); inputRef.current?.scrollIntoView({ behavior: "smooth" }); if (inputRef.current) { inputRef.current.style.borderColor = primaryColor; inputRef.current.style.boxShadow = `0 0 0 2px ${primaryColor}33`; setTimeout(() => { if (inputRef.current) { inputRef.current.style.borderColor = ""; inputRef.current.style.boxShadow = ""; } }, 2000); } }} className="rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:bg-opacity-10" style={{ borderColor: primaryColor, color: primaryColor }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = primaryColor + "1a")} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}>
         {t('widget.askQuestion')}
       </button>
-      <button type="button" onClick={() => setHandoffTriggered(true)} className="rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:bg-opacity-10" style={{ borderColor: primaryColor, color: primaryColor }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = primaryColor + "1a")} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}>
+      <button type="button" onClick={async () => {
+        // Create conversation first, then show form
+        if (!conversationIdRef.current && chatbotId && workspaceIdRef.current) {
+          try {
+            const res = await fetch("/api/chat", {
+              method: "POST",
+              headers: { "Content-Type": "application/json" },
+              body: JSON.stringify({
+                message: "",
+                botId: chatbotId,
+                visitorId: getVisitorId(),
+                conversationId: null,
+              }),
+            });
+            if (res.ok) {
+              const data = await res.json();
+              if (data.conversationId) {
+                conversationIdRef.current = data.conversationId;
+                if (data.workspaceId) workspaceIdRef.current = data.workspaceId;
+              }
+            }
+          } catch (err) {
+            console.error("Failed to create conversation:", err);
+          }
+        }
+        setHandoffTriggered(true);
+      }} className="rounded-lg border px-3 py-2 text-left text-sm transition-colors hover:bg-opacity-10" style={{ borderColor: primaryColor, color: primaryColor }} onMouseEnter={(e) => (e.currentTarget.style.backgroundColor = primaryColor + "1a")} onMouseLeave={(e) => (e.currentTarget.style.backgroundColor = "transparent")}>
         {t('widget.talkToPerson')}
       </button>
     </div>

@@ -363,11 +363,9 @@ VIKTIGE REGLER:
 
       if (onlineAgents && onlineAgents.length > 0) {
         // Agent is explicitly online — allow live chat regardless of business hours
+        // NOTE: Do NOT update status to "waiting" here. Wait for form submit to do it.
+        // This prevents creating inbox entry before user fills handoff form.
         liveChat = true;
-        await supabase
-          .from("conversations")
-          .update({ status: "waiting" })
-          .eq("id", activeConversationId);
       }
     } catch (err) {
       logError("Live chat check", err);
