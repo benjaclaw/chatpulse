@@ -325,21 +325,39 @@ export function ChatWidget({
   }
 
   async function handleHandoffSubmit(email: string, name: string) {
+    if (!email.trim() || !name.trim()) return; // Safety check
+    setHandoffSubmitted(true);
+    
+    const pending = pendingLiveChatRef.current;
+    const convId = pending?.conversationId || conversationIdRef.current;
+    const wsId = pending?.workspaceId || workspaceIdRef.current;
+
+    // 1. Create lead
     await fetch("/api/leads", {
       method: "POST", headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ email, name: name || null, workspaceId: workspaceIdRef.current, conversationId: conversationIdRef.current }),
+      body: JSON.stringify({ email, name: name || null, workspaceId: wsId, conversationId: convId }),
     });
-    setHandoffSubmitted(true);
-    const pending = pendingLiveChatRef.current;
+
+    // 2. Activate live chat mode (works with or without pending request)
+    if (convId && wsId) {
+      setLiveChatMode(true);
+      try { 
+        sessionStorage.setItem("chatpulse_live_chat_mode", "true"); 
+        sessionStorage.setItem("chatpulse_conversation_id", convId); 
+        sessionStorage.setItem("chatpulse_workspace_id", wsId); 
+      } catch { /* sessionStorage may be unavailable in embedded widget iframes */ }
+      
+      // 3. Show confirmation and setup realtime
+      setMessages((prev) => [...prev, { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: t('widget.handoffConnecting').replace('{name}', name || email) }]);
+      subscribeToRealtime(convId);
+      fetchQueuePosition(convId, wsId);
+    } else {
+      // Fallback if no conversation ID (shouldn't happen)
+      setMessages((prev) => [...prev, { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: t('widget.handoffConfirm') }]);
+    }
+
     if (pending) {
       pendingLiveChatRef.current = null;
-      setLiveChatMode(true);
-      try { sessionStorage.setItem("chatpulse_live_chat_mode", "true"); sessionStorage.setItem("chatpulse_conversation_id", pending.conversationId); if (pending.workspaceId) sessionStorage.setItem("chatpulse_workspace_id", pending.workspaceId); } catch { /* sessionStorage may be unavailable in embedded widget iframes */ }
-      setMessages((prev) => [...prev, { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: t('widget.handoffConnecting').replace('{name}', name || email) }]);
-      subscribeToRealtime(pending.conversationId);
-      if (pending.workspaceId) fetchQueuePosition(pending.conversationId, pending.workspaceId);
-    } else {
-      setMessages((prev) => [...prev, { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: t('widget.handoffConfirm') }]);
     }
   }
 
