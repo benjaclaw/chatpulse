@@ -42,6 +42,23 @@ export default async function WidgetPage({
 
   return (
     <div className="flex h-dvh w-full flex-col">
+      {/* Inline loading state — visible until React hydrates and mounts ChatWidget */}
+      <div
+        id="widget-loader"
+        className="flex h-full w-full flex-col items-center justify-center gap-3"
+        style={{ color: primaryColor }}
+      >
+        {logoUrl ? (
+          // eslint-disable-next-line @next/next/no-img-element
+          <img src={logoUrl} alt="" width={40} height={40} className="animate-pulse rounded-full" />
+        ) : (
+          <svg className="animate-pulse" width="40" height="40" viewBox="0 0 40 40" fill="none">
+            <rect width="40" height="40" rx="10" fill="currentColor" opacity="0.15" />
+            <path d="M12 20h4m4 0h8M12 26h16M12 14h10" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+          </svg>
+        )}
+        <span className="text-sm animate-pulse opacity-70">Laster…</span>
+      </div>
       <ChatWidget
         inline
         chatbotId={chatbotId}

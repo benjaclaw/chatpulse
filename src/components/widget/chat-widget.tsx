@@ -125,6 +125,11 @@ export function ChatWidget({
     conversationIdRef, typingTimeoutRef, realtimeChannelRef, typingChannelRef
   );
 
+  // Remove iframe loading placeholder once hydrated
+  useEffect(() => {
+    document.getElementById("widget-loader")?.remove();
+  }, []);
+
   // Persist messages to sessionStorage
   useEffect(() => {
     try {
