@@ -47,15 +47,37 @@ export function Sidebar({
   });
   const [waitingCount, setWaitingCount] = useState(0);
   const supabase = createClient();
-  // On mount: sync toggle state to DB
+  
+  // On mount: fetch real status from DB to sync with localStorage
   useEffect(() => {
-    const status = localStorage.getItem(LS_KEY) === "true" ? "online" : "offline";
-    fetch("/api/presence", {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ workspaceId: activeWorkspace.id, status }),
-    }).catch((err) => console.error('Presence sync failed:', err));
-  }, [activeWorkspace.id]);
+    const syncPresenceFromDB = async () => {
+      try {
+        const { data: { user } } = await supabase.auth.getUser();
+        if (!user) return;
+
+        const { data: presence } = await supabase
+          .from("agent_presence")
+          .select("status")
+          .eq("user_id", user.id)
+          .eq("workspace_id", activeWorkspace.id)
+          .single();
+
+        const dbIsOnline = presence?.status === "online" || presence?.status === "busy";
+        const lsIsOnline = localStorage.getItem(LS_KEY) === "true";
+
+        // If localStorage and DB mismatch, trust DB
+        if (dbIsOnline !== lsIsOnline) {
+          setIsOnline(dbIsOnline);
+          localStorage.setItem(LS_KEY, String(dbIsOnline));
+        }
+      } catch (err) {
+        console.error('Failed to sync presence from DB:', err);
+        // Fall back to localStorage on error
+      }
+    };
+
+    syncPresenceFromDB();
+  }, [activeWorkspace.id, supabase]);
 
   const manualOverride = useRef(false);
 
