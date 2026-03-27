@@ -55,16 +55,20 @@ export async function POST(request: Request): Promise<Response> {
     if (!conversation) {
       // Need workspace ID — try botId if provided
       if (botId) {
-        const { data: bot } = await supabase
-          .from("chatbots")
+        const { data: bot, error: botError } = await supabase
+          .from("chatbot_config")
           .select("workspace_id")
           .eq("id", botId)
           .single();
 
-        if (!bot) {
-          return Response.json({ error: "Chatbot not found" }, { status: 404 });
+        if (botError || !bot) {
+          logError("Handoff: find chatbot", botError);
+          return Response.json({ error: "Chatbot not found or is invalid" }, { status: 500 });
         }
         workspaceId = bot.workspace_id;
+        if (!workspaceId) {
+          return Response.json({ error: "Chatbot has no workspace" }, { status: 400 });
+        }
       } else {
         return Response.json({ error: "No conversation or botId provided" }, { status: 400 });
       }
