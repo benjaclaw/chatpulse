@@ -16,12 +16,18 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
-import { Loader2 } from "lucide-react";
+import { Loader2, Eye, EyeOff } from "lucide-react";
 import { createT, type Language } from "@/lib/i18n";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
 
+const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
 export function SignupForm(): React.ReactNode {
   const { error, pending, handleSubmit } = useFormAction();
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [showPassword, setShowPassword] = useState(false);
+  const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
   const [language] = useState<Language>(() => {
     if (typeof window !== 'undefined') {
       return (localStorage.getItem('chatpulse_lang') as Language) || 'nb';
@@ -29,6 +35,10 @@ export function SignupForm(): React.ReactNode {
     return 'nb';
   });
   const t = createT(language);
+
+  const emailError = touched.email && !EMAIL_RE.test(email) ? "Ugyldig e-postadresse" : null;
+  const passwordError = touched.password && password.length < 8 ? "Passord må være minst 8 tegn" : null;
+  const isValid = EMAIL_RE.test(email) && password.length >= 8;
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
@@ -80,26 +90,48 @@ export function SignupForm(): React.ReactNode {
               required
               autoComplete="email"
               disabled={pending}
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              onBlur={() => setTouched((p) => ({ ...p, email: true }))}
             />
+            {emailError && <p className="text-xs text-destructive">{emailError}</p>}
           </div>
           <div className="space-y-2">
             <Label htmlFor="password">{t('auth.signup.password')}</Label>
-            <Input
-              id="password"
-              name="password"
-              type="password"
-              required
-              minLength={8}
-              autoComplete="new-password"
-              disabled={pending}
-            />
-            <p className="text-xs text-muted-foreground">
-              {t('auth.signup.passwordHelp')}
-            </p>
+            <div className="relative">
+              <Input
+                id="password"
+                name="password"
+                type={showPassword ? "text" : "password"}
+                required
+                minLength={8}
+                autoComplete="new-password"
+                disabled={pending}
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                onBlur={() => setTouched((p) => ({ ...p, password: true }))}
+                className="pr-10"
+              />
+              <button
+                type="button"
+                onClick={() => setShowPassword((v) => !v)}
+                className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground"
+                tabIndex={-1}
+              >
+                {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+              </button>
+            </div>
+            {passwordError ? (
+              <p className="text-xs text-destructive">{passwordError}</p>
+            ) : (
+              <p className="text-xs text-muted-foreground">
+                {t('auth.signup.passwordHelp')}
+              </p>
+            )}
           </div>
         </CardContent>
         <CardFooter className="flex flex-col gap-4">
-          <Button type="submit" className="w-full" disabled={pending}>
+          <Button type="submit" className="w-full" disabled={pending || !isValid}>
             {pending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
             {pending ? t('auth.signup.creating') : t('auth.signup.create')}
           </Button>
