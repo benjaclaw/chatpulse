@@ -435,15 +435,53 @@ export function ChatWidget({
     <p className="py-2 text-center text-sm text-muted-foreground px-2">{t('widget.csatThanks')}</p>
   ) : null;
 
-  const resetChat = () => {
+  const resetChat = async () => {
+    // Close conversation if it exists and is still waiting
+    const convId = conversationIdRef.current;
+    if (convId) {
+      try {
+        await fetch("/api/live-chat/close", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ conversationId: convId }),
+        });
+      } catch (err) {
+        console.error("Failed to close conversation:", err);
+      }
+    }
+    
     setLiveChatMode(false); conversationIdRef.current = null; setHasInteracted(false); setChatEnded(false); setHandoffTriggered(false); setHandoffSubmitted(false); pendingLiveChatRef.current = null; setClosedConversationId(null); setRatingSubmitted(false);
     try { sessionStorage.removeItem('chatpulse_live_chat_mode'); sessionStorage.removeItem('chatpulse_conversation_id'); sessionStorage.removeItem('chatpulse_workspace_id'); sessionStorage.removeItem('chatpulse_messages'); } catch { /* sessionStorage may be unavailable in embedded widget iframes */ }
     setMessages([{ id: 'welcome', role: 'assistant' as const, content: welcomeMessage || t('widget.defaultWelcome') }]);
   };
 
+  const handleRestartChat = async () => {
+    // Close conversation if it exists
+    const convId = conversationIdRef.current;
+    if (convId) {
+      try {
+        await fetch("/api/live-chat/close", {
+          method: "POST",
+          headers: { "Content-Type": "application/json" },
+          body: JSON.stringify({ conversationId: convId }),
+        });
+      } catch (err) {
+        console.error("Failed to close conversation:", err);
+      }
+    }
+    // Reset state
+    setChatEnded(false);
+    setHasInteracted(false);
+    setHandoffTriggered(false);
+    setHandoffSubmitted(false);
+    conversationIdRef.current = null;
+    setMessages([{ id: "welcome", role: "assistant", content: welcomeMessage || t('widget.defaultWelcome') }]);
+    try { sessionStorage.removeItem("chatpulse_messages"); sessionStorage.removeItem('chatpulse_conversation_id'); } catch { /* sessionStorage may be unavailable */ }
+  };
+
   const restartButton = chatEnded ? (
     <div className="flex justify-center py-2">
-      <button onClick={() => { setChatEnded(false); setHasInteracted(false); setHandoffTriggered(false); setHandoffSubmitted(false); setMessages([{ id: "welcome", role: "assistant", content: welcomeMessage || t('widget.defaultWelcome') }]); try { sessionStorage.removeItem("chatpulse_messages"); } catch { /* sessionStorage may be unavailable */ } }} className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted" style={{ borderColor: primaryColor, color: primaryColor }}>
+      <button onClick={handleRestartChat} className="rounded-lg border px-4 py-2 text-sm font-medium transition-colors hover:bg-muted" style={{ borderColor: primaryColor, color: primaryColor }}>
         {t('widget.startNewChat')}
       </button>
     </div>
