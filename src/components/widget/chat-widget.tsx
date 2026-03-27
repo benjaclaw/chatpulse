@@ -412,7 +412,7 @@ export function ChatWidget({
         </div>
       ) : (
         <>
-          <div className="relative flex-1 overflow-hidden">
+          <div className="relative flex flex-col flex-1 overflow-hidden">
             <MessageList messages={messages} isTyping={isTyping} agentTyping={agentTyping} primaryColor={primaryColor} ref={messagesEndRef} queuePosition={queuePosition} i18nLang={i18nLang} handoffForm={handoffForm} choiceButtons={choiceButtons} csatWidget={csatWidget} chatEndedButton={restartButton} scrollContainerRef={scrollContainerRef} />
             {showScrollBtn && (
               <button
