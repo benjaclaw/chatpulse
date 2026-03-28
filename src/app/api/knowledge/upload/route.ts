@@ -1,4 +1,21 @@
 import { createClient } from "@/lib/supabase/server";
+import { isValidUUID } from "@/lib/utils";
+
+// --- In-memory rate limiting (per authenticated user) ---
+const rateMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 10; // 10 uploads per minute per user
+const WINDOW_MS = 60_000;
+
+function checkRate(key: string): boolean {
+  const now = Date.now();
+  const bucket = rateMap.get(key);
+  if (!bucket || now > bucket.resetAt) {
+    rateMap.set(key, { count: 1, resetAt: now + WINDOW_MS });
+    return true;
+  }
+  bucket.count++;
+  return bucket.count <= RATE_LIMIT;
+}
 
 const ALLOWED_TYPES = new Set([
   "application/pdf",
@@ -61,6 +78,11 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
+  // Rate limit per user
+  if (!checkRate(user.id)) {
+    return Response.json({ error: "Too many uploads. Please wait before uploading again." }, { status: 429 });
+  }
+
   const formData = await request.formData();
   const file = formData.get("file") as File | null;
   const workspaceId = formData.get("workspace_id") as string | null;
@@ -70,6 +92,15 @@ export async function POST(request: Request): Promise<Response> {
       { error: "File and workspace_id are required" },
       { status: 400 },
     );
+  }
+
+  if (!isValidUUID(workspaceId)) {
+    return Response.json({ error: "Invalid workspace_id" }, { status: 400 });
+  }
+
+  // Path traversal check on filename
+  if (file.name.includes("..") || file.name.includes("/") || file.name.includes("\\")) {
+    return Response.json({ error: "Invalid file name" }, { status: 400 });
   }
 
   // Validate file size
@@ -152,10 +183,9 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     return Response.json(data);
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Unknown error";
+  } catch {
     return Response.json(
-      { error: `Text extraction failed: ${message}` },
+      { error: "Text extraction failed" },
       { status: 500 },
     );
   }

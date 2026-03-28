@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { logError } from "@/lib/logger";
+import { isValidUUID } from "@/lib/utils";
 
 export const runtime = "nodejs";
 
@@ -24,6 +25,10 @@ export async function PUT(request: Request): Promise<Response> {
   const validStatuses = ["online", "busy", "away", "offline"];
   if (!workspaceId || !status || !validStatuses.includes(status)) {
     return Response.json({ error: "Invalid workspaceId or status" }, { status: 400 });
+  }
+
+  if (!isValidUUID(workspaceId)) {
+    return Response.json({ error: "Invalid workspaceId" }, { status: 400 });
   }
 
   // Verify user is a member of the workspace
@@ -84,6 +89,10 @@ export async function GET(request: Request): Promise<Response> {
 
   if (!workspaceId) {
     return Response.json({ error: "Missing workspaceId" }, { status: 400 });
+  }
+
+  if (!isValidUUID(workspaceId)) {
+    return Response.json({ error: "Invalid workspaceId" }, { status: 400 });
   }
 
   const supabase = createServiceClient();

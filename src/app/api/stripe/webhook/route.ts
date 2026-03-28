@@ -5,6 +5,11 @@ import type { PlanId } from "@/lib/plans";
 export const runtime = "nodejs";
 
 export async function POST(request: Request): Promise<Response> {
+  const webhookSecret = process.env.STRIPE_WEBHOOK_SECRET;
+  if (!webhookSecret) {
+    return Response.json({ error: "Webhook not configured" }, { status: 500 });
+  }
+
   const body = await request.text();
   const signature = request.headers.get("stripe-signature");
 
@@ -17,11 +22,10 @@ export async function POST(request: Request): Promise<Response> {
     event = getStripe().webhooks.constructEvent(
       body,
       signature,
-      process.env.STRIPE_WEBHOOK_SECRET!
+      webhookSecret
     );
-  } catch (err) {
-    const message = err instanceof Error ? err.message : "Invalid signature";
-    return Response.json({ error: message }, { status: 400 });
+  } catch {
+    return Response.json({ error: "Invalid signature" }, { status: 400 });
   }
 
   const supabase = createServiceClient();
