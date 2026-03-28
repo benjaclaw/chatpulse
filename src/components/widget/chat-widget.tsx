@@ -128,12 +128,11 @@ export function ChatWidget({
     setClosedConversationId
   );
 
-  // Remove iframe loading placeholder once config is loaded (not just on mount)
+  // Remove iframe loading placeholder as soon as React hydrates —
+  // ChatWidget handles its own loading state via configLoading spinner.
   useEffect(() => {
-    if (configLoaded) {
-      document.getElementById("widget-loader")?.remove();
-    }
-  }, [configLoaded]);
+    document.getElementById("widget-loader")?.remove();
+  }, []);
 
   // Persist messages to sessionStorage
   useEffect(() => {
