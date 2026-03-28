@@ -8,9 +8,28 @@ export async function POST(request: Request): Promise<Response> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { expo_push_token, device_id, workspace_id } = await request.json();
+  let body: { expo_push_token: string; device_id: string; workspace_id: string };
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ error: "Invalid request" }, { status: 400 });
+  }
+
+  const { expo_push_token, device_id, workspace_id } = body;
   if (!expo_push_token || !device_id || !workspace_id) {
     return Response.json({ error: "Missing fields" }, { status: 400 });
+  }
+
+  // Verify workspace membership
+  const { data: member } = await supabase
+    .from("members")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .eq("workspace_id", workspace_id)
+    .single();
+
+  if (!member) {
+    return Response.json({ error: "Not a member of this workspace" }, { status: 403 });
   }
 
   const serviceClient = createServiceClient();
@@ -28,7 +47,13 @@ export async function DELETE(request: Request): Promise<Response> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  const { device_id } = await request.json();
+  let body: { device_id: string };
+  try {
+    body = await request.json();
+  } catch {
+    return Response.json({ error: "Invalid request" }, { status: 400 });
+  }
+  const { device_id } = body;
   if (!device_id) return Response.json({ error: "Missing device_id" }, { status: 400 });
 
   const serviceClient = createServiceClient();

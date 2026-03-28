@@ -43,7 +43,7 @@ export function ResetPasswordForm(): React.ReactNode {
       return;
     }
 
-    if (password.length < 6) {
+    if (password.length < 8) {
       setClientError(t('auth.reset.tooShort'));
       return;
     }

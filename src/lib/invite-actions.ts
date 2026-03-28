@@ -34,6 +34,16 @@ export async function sendInvite(workspaceId: string, formData: FormData): Promi
     return { error: "Email is required" };
   }
 
+  // Validate role — only allow member and admin (owners can't be invited)
+  if (!["member", "admin"].includes(role)) {
+    return { error: "Invalid role" };
+  }
+
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  if (!emailRegex.test(email.trim())) {
+    return { error: "Invalid email address" };
+  }
+
   // Check for existing invite
   const { data: existingInvite } = await supabase
     .from("invites")

@@ -3,7 +3,28 @@ import { logError } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
+// --- In-memory rate limiting ---
+const rateMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 5; // 5 handoffs per minute per IP
+const WINDOW_MS = 60_000;
+
+function checkRate(key: string): boolean {
+  const now = Date.now();
+  const bucket = rateMap.get(key);
+  if (!bucket || now > bucket.resetAt) {
+    rateMap.set(key, { count: 1, resetAt: now + WINDOW_MS });
+    return true;
+  }
+  bucket.count++;
+  return bucket.count <= RATE_LIMIT;
+}
+
 export async function POST(request: Request): Promise<Response> {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!checkRate(ip)) {
+    return Response.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   let body: {
     email: string;
     name: string;
@@ -26,8 +47,12 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Missing required fields" }, { status: 400 });
   }
 
+  // Sanitize & limit field lengths
+  const safeEmail = email.trim().slice(0, 254).toLowerCase();
+  const safeName = name.trim().slice(0, 200);
+
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email.trim())) {
+  if (!emailRegex.test(safeEmail)) {
     return Response.json({ error: "Invalid email" }, { status: 400 });
   }
 
@@ -106,8 +131,8 @@ export async function POST(request: Request): Promise<Response> {
       .insert({
         workspace_id: workspaceId,
         conversation_id: conversation.id,
-        email: email.trim(),
-        name: name.trim(),
+        email: safeEmail,
+        name: safeName,
         status: "new",
       })
       .select()

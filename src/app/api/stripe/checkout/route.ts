@@ -33,6 +33,18 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Missing workspaceId" }, { status: 400 });
   }
 
+  // Verify user is owner or admin of the workspace
+  const { data: member } = await supabase
+    .from("members")
+    .select("role")
+    .eq("user_id", user.id)
+    .eq("workspace_id", workspaceId)
+    .single();
+
+  if (!member || !["owner", "admin"].includes(member.role)) {
+    return Response.json({ error: "Not authorized to upgrade this workspace" }, { status: 403 });
+  }
+
   const priceId = STRIPE_PRICE_MAP[planId as Exclude<PlanId, "free">];
   if (!priceId) {
     return Response.json(

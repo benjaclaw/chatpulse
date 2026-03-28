@@ -8,6 +8,10 @@ export async function POST(request: Request): Promise<Response> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
 
+  if (!user) {
+    return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
   let body: { conversationId: string; workspaceId?: string };
   try {
     body = await request.json();
@@ -22,18 +26,27 @@ export async function POST(request: Request): Promise<Response> {
 
   const service = createServiceClient();
 
-  // Validate conversation exists and belongs to workspace if provided
-  if (workspaceId) {
-    const { data: conv, error: checkError } = await service
-      .from("conversations")
-      .select("id")
-      .eq("id", conversationId)
-      .eq("workspace_id", workspaceId)
-      .single();
+  // Always fetch the conversation to verify workspace membership
+  const { data: conv, error: checkError } = await service
+    .from("conversations")
+    .select("id, workspace_id")
+    .eq("id", conversationId)
+    .single();
 
-    if (checkError || !conv) {
-      return Response.json({ error: "Conversation not found" }, { status: 404 });
-    }
+  if (checkError || !conv) {
+    return Response.json({ error: "Conversation not found" }, { status: 404 });
+  }
+
+  // Verify user is a member of the conversation's workspace
+  const { data: member } = await supabase
+    .from("members")
+    .select("user_id")
+    .eq("user_id", user.id)
+    .eq("workspace_id", conv.workspace_id)
+    .single();
+
+  if (!member) {
+    return Response.json({ error: "Not a member of this workspace" }, { status: 403 });
   }
 
   await service

@@ -20,16 +20,9 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Protect admin routes
-  if (path.startsWith("/admin") && !user) {
-    const url = request.nextUrl.clone();
-    url.pathname = "/login";
-    url.searchParams.set("redirect", path);
-    return NextResponse.redirect(url);
-  }
-
-  // Protect dashboard routes
-  if (!isPublicRoute && path.startsWith("/dashboard") && !user) {
+  // Protect authenticated routes
+  const protectedPrefixes = ["/admin", "/dashboard", "/create-workspace", "/onboarding"];
+  if (!user && protectedPrefixes.some((prefix) => path.startsWith(prefix))) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
     url.searchParams.set("redirect", path);

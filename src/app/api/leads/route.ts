@@ -3,7 +3,28 @@ import { logError } from "@/lib/logger";
 
 export const runtime = "nodejs";
 
+// --- In-memory rate limiting ---
+const rateMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 10; // 10 leads per minute per IP
+const WINDOW_MS = 60_000;
+
+function checkRate(key: string): boolean {
+  const now = Date.now();
+  const bucket = rateMap.get(key);
+  if (!bucket || now > bucket.resetAt) {
+    rateMap.set(key, { count: 1, resetAt: now + WINDOW_MS });
+    return true;
+  }
+  bucket.count++;
+  return bucket.count <= RATE_LIMIT;
+}
+
 export async function POST(request: Request): Promise<Response> {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!checkRate(ip)) {
+    return Response.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   let body: { email: string; name?: string; workspaceId: string; conversationId: string | null };
   try {
     body = await request.json();
@@ -57,8 +78,8 @@ export async function POST(request: Request): Promise<Response> {
     .insert({
       workspace_id: workspaceId,
       conversation_id: conversationId || null,
-      email: email.trim(),
-      name: name?.trim() || null,
+      email: email.trim().slice(0, 254).toLowerCase(),
+      name: name?.trim().slice(0, 200) || null,
       status: leadStatus,
     })
     .select()

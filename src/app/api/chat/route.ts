@@ -180,10 +180,14 @@ export async function POST(request: Request): Promise<Response> {
     ? (() => {
         const orFilter = words
           .map((w) => {
-            const safe = w.replace(/[%_'"()]/g, "");
+            // Strip all non-alphanumeric chars (except common Unicode letters) to prevent PostgREST filter injection
+            const safe = w.replace(/[^a-zA-Z0-9\u00C0-\u024F\u0400-\u04FF]/g, "");
+            if (!safe) return null;
             return `title.ilike.%${safe}%,content.ilike.%${safe}%`;
           })
+          .filter(Boolean)
           .join(",");
+        if (!orFilter) return Promise.resolve({ data: null, error: null });
         return supabase
           .from("knowledge")
           .select("title, content")
