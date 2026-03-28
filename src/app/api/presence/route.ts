@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedClient } from "@/lib/supabase/api-auth";
 import { createServiceClient } from "@/lib/supabase/service";
 import { logError } from "@/lib/logger";
 import { isValidUUID } from "@/lib/utils";
@@ -7,10 +7,9 @@ export const runtime = "nodejs";
 
 // PUT: Update agent status (authenticated)
 export async function PUT(request: Request): Promise<Response> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { supabase, user } = await getAuthenticatedClient(request);
 
-  if (!user) {
+  if (!user || !supabase) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 

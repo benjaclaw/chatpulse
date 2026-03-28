@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedClient } from "@/lib/supabase/api-auth";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendBroadcast } from "@/lib/supabase/broadcast";
 import { logError } from "@/lib/logger";
@@ -6,10 +6,9 @@ import { logError } from "@/lib/logger";
 export const runtime = "nodejs";
 
 export async function POST(request: Request): Promise<Response> {
-  const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
+  const { supabase, user } = await getAuthenticatedClient(request);
 
-  if (!user) {
+  if (!user || !supabase) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 

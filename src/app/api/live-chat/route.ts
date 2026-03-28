@@ -1,4 +1,4 @@
-import { createClient } from "@/lib/supabase/server";
+import { getAuthenticatedClient } from "@/lib/supabase/api-auth";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendBroadcast } from "@/lib/supabase/broadcast";
 import { logError } from "@/lib/logger";
@@ -76,8 +76,7 @@ export async function POST(request: Request): Promise<Response> {
 
   if (role === "agent") {
     // Agent messages require authentication + assignment check
-    const supabase = await createClient();
-    const { data: { user } } = await supabase.auth.getUser();
+    const { user } = await getAuthenticatedClient(request);
 
     if (!user) {
       return Response.json({ error: "Unauthorized" }, { status: 401 });
