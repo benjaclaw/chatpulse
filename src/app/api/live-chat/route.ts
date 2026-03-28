@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { sendBroadcast } from "@/lib/supabase/broadcast";
 import { logError } from "@/lib/logger";
 import { isValidUUID } from "@/lib/utils";
+import { notifyNewMessage } from "@/lib/push";
 
 export const runtime = "nodejs";
 
@@ -174,6 +175,9 @@ export async function POST(request: Request): Promise<Response> {
       role: "user",
       content: sanitizedContent,
     });
+
+    // Push notification to assigned agent (fire-and-forget)
+    notifyNewMessage(conversationId, sanitizedContent).catch(() => {});
 
     return Response.json({ ok: true });
   }

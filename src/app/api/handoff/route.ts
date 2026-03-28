@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { logError } from "@/lib/logger";
 import { isValidUUID } from "@/lib/utils";
+import { notifyNewConversation } from "@/lib/push";
 
 export const runtime = "nodejs";
 
@@ -156,7 +157,10 @@ export async function POST(request: Request): Promise<Response> {
       // Don't fail — lead is secondary to conversation
     }
 
-    // 4. Return success with all needed data
+    // 4. Send push notification to workspace agents (fire-and-forget)
+    notifyNewConversation(workspaceId, conversation.id, `${safeName}: ny henvendelse`).catch(() => {});
+
+    // 5. Return success with all needed data
     return Response.json(
       {
         ok: true,
