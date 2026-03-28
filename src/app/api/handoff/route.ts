@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { logError } from "@/lib/logger";
+import { isValidUUID } from "@/lib/utils";
 
 export const runtime = "nodejs";
 
@@ -56,6 +57,14 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Invalid email" }, { status: 400 });
   }
 
+  if (existingConvId && !isValidUUID(existingConvId)) {
+    return Response.json({ error: "Invalid conversationId" }, { status: 400 });
+  }
+
+  if (botId && !isValidUUID(botId)) {
+    return Response.json({ error: "Invalid botId" }, { status: 400 });
+  }
+
   const supabase = createServiceClient();
 
   try {
@@ -66,14 +75,18 @@ export async function POST(request: Request): Promise<Response> {
     if (existingConvId) {
       const { data: existingConv, error: fetchError } = await supabase
         .from("conversations")
-        .select("id, workspace_id")
+        .select("id, workspace_id, visitor_id")
         .eq("id", existingConvId)
         .single();
 
       if (existingConv) {
+        // Verify the visitor owns this conversation
+        if (existingConv.visitor_id !== body.visitorId) {
+          return Response.json({ error: "Conversation not found" }, { status: 404 });
+        }
         conversation = existingConv;
         workspaceId = existingConv.workspace_id;
-        
+
         // Update status to "waiting" so it appears in agent inbox
         await supabase
           .from("conversations")

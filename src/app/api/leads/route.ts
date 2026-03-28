@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { logError } from "@/lib/logger";
+import { isValidUUID } from "@/lib/utils";
 
 export const runtime = "nodejs";
 
@@ -41,6 +42,14 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
+  if (!isValidUUID(workspaceId)) {
+    return Response.json({ error: "Ugyldig workspaceId" }, { status: 400 });
+  }
+
+  if (conversationId && !isValidUUID(conversationId)) {
+    return Response.json({ error: "Ugyldig conversationId" }, { status: 400 });
+  }
+
   // Validate email format
   const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
   if (!emailRegex.test(email.trim())) {
@@ -65,9 +74,15 @@ export async function POST(request: Request): Promise<Response> {
   if (conversationId) {
     const { data: conv } = await supabase
       .from("conversations")
-      .select("status")
+      .select("status, workspace_id")
       .eq("id", conversationId)
       .single();
+
+    // Verify conversation belongs to the specified workspace
+    if (conv && conv.workspace_id !== workspaceId) {
+      return Response.json({ error: "Conversation not found" }, { status: 404 });
+    }
+
     if (conv && (conv.status === "human" || conv.status === "waiting")) {
       leadStatus = "contacted";
     }

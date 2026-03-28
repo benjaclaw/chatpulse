@@ -122,7 +122,7 @@ export async function POST(request: Request): Promise<Response> {
 
     if (uploadError) {
       return Response.json(
-        { error: `Upload failed: ${uploadError.message}` },
+        { error: "File upload failed" },
         { status: 500 },
       );
     }
@@ -146,7 +146,7 @@ export async function POST(request: Request): Promise<Response> {
 
     if (insertError) {
       return Response.json(
-        { error: `Failed to save: ${insertError.message}` },
+        { error: "Failed to save knowledge entry" },
         { status: 500 },
       );
     }

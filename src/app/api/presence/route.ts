@@ -56,8 +56,29 @@ export async function PUT(request: Request): Promise<Response> {
   return Response.json({ ok: true, status });
 }
 
+// --- In-memory rate limiting for GET ---
+const getRateMap = new Map<string, { count: number; resetAt: number }>();
+const GET_RATE_LIMIT = 30;
+const GET_WINDOW_MS = 60_000;
+
+function checkGetRate(key: string): boolean {
+  const now = Date.now();
+  const bucket = getRateMap.get(key);
+  if (!bucket || now > bucket.resetAt) {
+    getRateMap.set(key, { count: 1, resetAt: now + GET_WINDOW_MS });
+    return true;
+  }
+  bucket.count++;
+  return bucket.count <= GET_RATE_LIMIT;
+}
+
 // GET: Check if any agents are online for a workspace (public, uses service client)
 export async function GET(request: Request): Promise<Response> {
+  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
+  if (!checkGetRate(ip)) {
+    return Response.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   const { searchParams } = new URL(request.url);
   const workspaceId = searchParams.get("workspaceId");
 

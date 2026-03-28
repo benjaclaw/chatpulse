@@ -252,7 +252,7 @@ export function ChatWidget({
 
   const fetchQueuePosition = useCallback(async (conversationId: string, wsId: string) => {
     try {
-      const res = await fetch(`/api/widget-queue?conversationId=${encodeURIComponent(conversationId)}&workspaceId=${encodeURIComponent(wsId)}`);
+      const res = await fetch(`/api/widget-queue?conversationId=${encodeURIComponent(conversationId)}&visitorId=${encodeURIComponent(getVisitorId())}`);
       if (res.ok) { const data = await res.json() as { position: number }; setQueuePosition(data.position > 0 ? data.position : null); }
     } catch (err) { console.error('Queue position fetch failed:', err); }
   }, []);

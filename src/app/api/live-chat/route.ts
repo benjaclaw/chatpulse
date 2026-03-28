@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendBroadcast } from "@/lib/supabase/broadcast";
 import { logError } from "@/lib/logger";
+import { isValidUUID } from "@/lib/utils";
 
 export const runtime = "nodejs";
 
@@ -56,6 +57,10 @@ export async function POST(request: Request): Promise<Response> {
   const { conversationId, content, role, visitorId } = body;
   if (!conversationId || !content?.trim() || !role) {
     return Response.json({ error: "Missing required fields" }, { status: 400 });
+  }
+
+  if (!isValidUUID(conversationId)) {
+    return Response.json({ error: "Invalid conversationId" }, { status: 400 });
   }
 
   // FIX 2: Limit content length

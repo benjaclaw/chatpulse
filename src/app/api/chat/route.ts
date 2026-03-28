@@ -1,6 +1,7 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { getPlanLimit } from "@/lib/plans";
 import { logError } from "@/lib/logger";
+import { isValidUUID } from "@/lib/utils";
 
 export const runtime = "nodejs";
 
@@ -77,6 +78,10 @@ export async function POST(request: Request): Promise<Response> {
       { error: "Mangler chatbotId, message eller visitorId" },
       { status: 400 }
     );
+  }
+
+  if (!isValidUUID(chatbotId)) {
+    return Response.json({ error: "Ugyldig chatbotId" }, { status: 400 });
   }
 
   // Rate limit per visitor

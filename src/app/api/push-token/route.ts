@@ -38,7 +38,7 @@ export async function POST(request: Request): Promise<Response> {
     { onConflict: "user_id,device_id" }
   );
 
-  if (error) return Response.json({ error: error.message }, { status: 500 });
+  if (error) return Response.json({ error: "Failed to register push token" }, { status: 500 });
   return Response.json({ ok: true });
 }
 
@@ -63,6 +63,6 @@ export async function DELETE(request: Request): Promise<Response> {
     .eq("user_id", user.id)
     .eq("device_id", device_id);
 
-  if (error) return Response.json({ error: error.message }, { status: 500 });
+  if (error) return Response.json({ error: "Failed to remove push token" }, { status: 500 });
   return Response.json({ ok: true });
 }

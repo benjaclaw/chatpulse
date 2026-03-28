@@ -5,11 +5,15 @@ import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
 
 export async function login(formData: FormData): Promise<ActionResult> {
-  const email = (formData.get("email") as string)?.trim();
+  const email = (formData.get("email") as string)?.trim().slice(0, 254);
   const password = formData.get("password") as string;
 
   if (!email || !password) {
     return { error: "Email and password are required" };
+  }
+
+  if (password.length > 128) {
+    return { error: "Password is too long" };
   }
 
   const supabase = await createClient();
@@ -27,7 +31,7 @@ export async function login(formData: FormData): Promise<ActionResult> {
 }
 
 export async function signup(formData: FormData): Promise<ActionResult> {
-  const email = (formData.get("email") as string)?.trim();
+  const email = (formData.get("email") as string)?.trim().slice(0, 254);
   const password = formData.get("password") as string;
   const name = (formData.get("name") as string)?.trim();
 
@@ -37,6 +41,10 @@ export async function signup(formData: FormData): Promise<ActionResult> {
 
   if (password.length < 8) {
     return { error: "Password must be at least 8 characters" };
+  }
+
+  if (password.length > 128) {
+    return { error: "Password is too long" };
   }
 
   if (name.length > 200) {
@@ -91,6 +99,10 @@ export async function forgotPassword(email: string): Promise<ActionResult> {
 export async function resetPassword(password: string): Promise<ActionResult> {
   if (!password || password.length < 8) {
     return { error: "Password must be at least 8 characters" };
+  }
+
+  if (password.length > 128) {
+    return { error: "Password is too long" };
   }
 
   const supabase = await createClient();

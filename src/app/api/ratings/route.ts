@@ -1,5 +1,6 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { logError } from "@/lib/logger";
+import { isValidUUID } from "@/lib/utils";
 
 export const runtime = "nodejs";
 
@@ -35,8 +36,12 @@ export async function POST(request: Request): Promise<Response> {
 
   const { conversationId, rating, visitorId } = body;
 
-  if (!conversationId || !rating) {
-    return Response.json({ error: "Missing conversationId or rating" }, { status: 400 });
+  if (!conversationId || !rating || !visitorId) {
+    return Response.json({ error: "Missing conversationId, rating or visitorId" }, { status: 400 });
+  }
+
+  if (!isValidUUID(conversationId)) {
+    return Response.json({ error: "Invalid conversationId" }, { status: 400 });
   }
 
   if (!["good", "ok", "bad"].includes(rating)) {
@@ -56,8 +61,8 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Conversation not found" }, { status: 404 });
   }
 
-  // If visitorId provided, verify ownership
-  if (visitorId && conv.visitor_id !== visitorId) {
+  // Verify visitor owns this conversation
+  if (conv.visitor_id !== visitorId) {
     return Response.json({ error: "Conversation not found" }, { status: 404 });
   }
 

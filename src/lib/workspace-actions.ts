@@ -30,6 +30,10 @@ export async function createWorkspace(formData: FormData): Promise<ActionResult>
     return { error: "Workspace name is required" };
   }
 
+  if (name.trim().length > 100) {
+    return { error: "Workspace name is too long (max 100 characters)" };
+  }
+
   const baseSlug = slugify(name);
   const slug = `${baseSlug}-${Math.random().toString(36).slice(2, 7)}`;
 

@@ -5,7 +5,7 @@ const supabaseDomain = supabaseUrl ? new URL(supabaseUrl).hostname : "*.supabase
 
 const cspDirectives = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline' 'unsafe-eval' https://www.googletagmanager.com https://www.google-analytics.com`,
+  `script-src 'self' 'unsafe-inline' https://www.googletagmanager.com https://www.google-analytics.com`,
   `style-src 'self' 'unsafe-inline'`,
   `img-src 'self' data: blob: https://${supabaseDomain}`,
   `font-src 'self'`,
