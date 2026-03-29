@@ -510,12 +510,14 @@ function BusinessHoursCard({
         <div className="flex items-center gap-3">
           <button
             onClick={() => setBh({ ...bh, enabled: !bh.enabled })}
-            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors ${
+            role="switch"
+            aria-checked={bh.enabled}
+            className={`relative inline-flex h-6 w-11 items-center rounded-full transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 ${
               bh.enabled ? "bg-primary" : "bg-muted"
             }`}
           >
             <span
-              className={`inline-block h-4 w-4 rounded-full bg-white transition-transform ${
+              className={`inline-block h-4 w-4 rounded-full bg-white shadow-sm transition-transform duration-200 ${
                 bh.enabled ? "translate-x-6" : "translate-x-1"
               }`}
             />
@@ -541,10 +543,10 @@ function BusinessHoursCard({
                       newSchedule[day] = isClosed ? { start: "09:00", end: "16:00" } : null;
                       setBh({ ...bh, schedule: newSchedule });
                     }}
-                    className={`rounded px-2 py-0.5 text-xs font-medium transition-colors ${
+                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                       isClosed
-                        ? "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400"
-                        : "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400"
+                        ? "bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
+                        : "bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50"
                     }`}
                   >
                     {isClosed ? t('settings.businessHours.closedLabel') : t('settings.businessHours.enabled')}

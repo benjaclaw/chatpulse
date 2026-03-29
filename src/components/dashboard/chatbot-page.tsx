@@ -176,6 +176,22 @@ export function ChatbotPageClient(): React.ReactNode {
             {t('chatbot.description')}
           </p>
         </div>
+        <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+          <div className="space-y-6">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="rounded-xl border bg-card p-6 shadow-sm">
+                <div className="h-5 w-32 animate-pulse rounded-md bg-muted" />
+                <div className="mt-4 space-y-4">
+                  <div className="h-4 w-20 animate-pulse rounded bg-muted" />
+                  <div className="h-10 w-full animate-pulse rounded-lg bg-muted" />
+                </div>
+              </div>
+            ))}
+          </div>
+          <div className="hidden lg:block">
+            <div className="h-[480px] animate-pulse rounded-xl border bg-muted" />
+          </div>
+        </div>
       </div>
     );
   }
@@ -602,7 +618,7 @@ function CannedResponsesCard({
                 </div>
                 <button
                   onClick={() => handleDelete(r.id)}
-                  className="shrink-0 rounded p-1 text-muted-foreground hover:bg-muted hover:text-destructive transition-colors"
+                  className="shrink-0 rounded-md p-1.5 text-muted-foreground transition-colors hover:bg-destructive/10 hover:text-destructive focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
                 >
                   <X className="h-3.5 w-3.5" />
                 </button>

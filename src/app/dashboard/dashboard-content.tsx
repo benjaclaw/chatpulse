@@ -184,13 +184,24 @@ export function DashboardContent({ stats }: { stats: DashboardStats }): React.Re
           <h3 className="text-base font-semibold">{t('dashboard.recentActivity')}</h3>
           <div className="mt-4 space-y-3">
             {loadingActivity ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                {t('common.loading')}
-              </p>
+              <div className="space-y-3">
+                {Array.from({ length: 4 }).map((_, i) => (
+                  <div key={i} className="flex items-center gap-3">
+                    <div className="h-6 w-6 shrink-0 animate-pulse rounded bg-muted" />
+                    <div className="h-4 flex-1 animate-pulse rounded bg-muted" />
+                    <div className="h-3 w-12 shrink-0 animate-pulse rounded bg-muted" />
+                  </div>
+                ))}
+              </div>
             ) : activities.length === 0 ? (
-              <p className="py-8 text-center text-sm text-muted-foreground">
-                {t('dashboard.noActivity')}
-              </p>
+              <div className="flex flex-col items-center py-8">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
+                  <MessageSquare className="h-6 w-6 text-muted-foreground" />
+                </div>
+                <p className="mt-3 text-sm text-muted-foreground">
+                  {t('dashboard.noActivity')}
+                </p>
+              </div>
             ) : (
               activities.map((a) => (
                 <div key={a.id} className="flex items-center gap-3 text-sm">
@@ -250,14 +261,14 @@ function StatCard({
   href?: string;
 }): React.ReactNode {
   const content = (
-    <div className="group rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md">
+    <div className="group rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15 dark:bg-primary/20">
           <Icon className="h-4 w-4" />
         </div>
         <span className="text-sm text-muted-foreground">{title}</span>
       </div>
-      <p className="mt-3 text-3xl font-bold">{value}</p>
+      <p className="mt-3 text-3xl font-bold tracking-tight">{value}</p>
     </div>
   );
 
@@ -281,14 +292,14 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="flex items-center gap-3 rounded-lg border p-3 transition-all duration-150 hover:bg-muted/50 hover:shadow-sm"
+      className="group flex items-center gap-3 rounded-lg border p-3 transition-all duration-200 hover:bg-muted/50 hover:shadow-sm"
     >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15 dark:bg-primary/20">
         <Icon className="h-4 w-4" />
       </div>
-      <div>
+      <div className="min-w-0">
         <p className="text-sm font-medium">{title}</p>
-        <p className="text-xs text-muted-foreground">{description}</p>
+        <p className="truncate text-xs text-muted-foreground">{description}</p>
       </div>
     </Link>
   );

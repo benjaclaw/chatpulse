@@ -250,4 +250,25 @@
     background-color: var(--primary);
     color: white;
   }
+
+  /* Smooth color scheme transitions for dark mode */
+  html {
+    color-scheme: light;
+  }
+  html.dark {
+    color-scheme: dark;
+  }
+
+  /* Minimum touch targets for mobile */
+  @media (pointer: coarse) {
+    button, a, [role="button"], input[type="checkbox"], input[type="radio"] {
+      min-height: 44px;
+      min-width: 44px;
+    }
+    /* Exclude inline text links and icon buttons that manage their own sizing */
+    a:not([class*="h-"]):not([class*="flex"]):not([class*="inline-flex"]) {
+      min-height: auto;
+      min-width: auto;
+    }
+  }
 }

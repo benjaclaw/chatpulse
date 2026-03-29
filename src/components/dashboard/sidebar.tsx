@@ -248,13 +248,14 @@ export function Sidebar({
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-150 ${
+                  className={`flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-200 ${
                     active
-                      ? "bg-primary/10 text-primary border-l-2 border-primary dark:bg-primary/20"
+                      ? "bg-primary/10 text-primary border-l-2 border-primary shadow-sm dark:bg-primary/20"
                       : locked
-                        ? "text-muted-foreground/50"
-                        : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                        ? "text-muted-foreground/50 cursor-not-allowed"
+                        : "text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.98]"
                   }`}
+                  aria-current={active ? "page" : undefined}
                 >
                   <item.icon className="h-4 w-4 shrink-0" />
                   <span className="flex-1">{t(item.labelKey)}</span>
@@ -275,23 +276,23 @@ export function Sidebar({
       <div className="px-3 py-2">
         <button
           onClick={toggleOnline}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2 text-sm transition-colors hover:bg-muted"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-muted"
           aria-label={isOnline ? t('inbox.goOffline') : t('inbox.goOnline')}
           role="switch"
           aria-checked={isOnline}
         >
           <span
-            className={`relative flex h-5 w-9 shrink-0 items-center rounded-full transition-colors ${
+            className={`relative flex h-5 w-9 shrink-0 items-center rounded-full transition-colors duration-200 ${
               isOnline ? "bg-green-500" : "bg-gray-300 dark:bg-gray-600"
             }`}
           >
             <span
-              className={`absolute h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform ${
+              className={`absolute h-3.5 w-3.5 rounded-full bg-white shadow-sm transition-transform duration-200 ${
                 isOnline ? "translate-x-[18px]" : "translate-x-[3px]"
               }`}
             />
           </span>
-          <span className={isOnline ? "text-foreground" : "text-muted-foreground"}>
+          <span className={`transition-colors duration-200 ${isOnline ? "text-foreground font-medium" : "text-muted-foreground"}`}>
             {isOnline ? t('sidebar.chatAvailable') : t('sidebar.chatUnavailable')}
           </span>
         </button>

@@ -69,7 +69,7 @@ export function MobileNav({
                     onWorkspaceChange(ws.id);
                     setOpen(false);
                   }}
-                  className={`flex h-11 w-full items-center text-left rounded-lg px-3 text-sm transition-colors ${
+                  className={`flex h-12 w-full items-center text-left rounded-lg px-3 text-sm transition-colors ${
                     ws.id === activeWorkspace.id
                       ? "bg-primary/10 text-primary font-medium dark:bg-primary/20"
                       : "text-muted-foreground hover:bg-muted"
@@ -96,13 +96,14 @@ export function MobileNav({
                   <Link
                     href={item.href}
                     onClick={() => setOpen(false)}
-                    className={`flex h-11 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-150 ${
+                    className={`flex h-12 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-200 ${
                       active
-                        ? "bg-primary/10 text-primary dark:bg-primary/20"
+                        ? "bg-primary/10 text-primary shadow-sm dark:bg-primary/20"
                         : locked
-                          ? "text-muted-foreground/50"
-                          : "text-muted-foreground hover:bg-muted hover:text-foreground"
+                          ? "text-muted-foreground/50 cursor-not-allowed"
+                          : "text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.98]"
                     }`}
+                    aria-current={active ? "page" : undefined}
                   >
                     <item.icon className="h-4 w-4 shrink-0" />
                     <span className="flex-1">{t(item.labelKey)}</span>

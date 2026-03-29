@@ -55,21 +55,21 @@ export function CookieBanner(): React.ReactNode {
   if (!visible) return null;
 
   return (
-    <div className="fixed bottom-0 left-0 right-0 z-50 border-t bg-background/95 p-4 backdrop-blur-sm">
-      <div className="mx-auto flex max-w-5xl flex-col items-center gap-3 sm:flex-row sm:justify-between">
+    <div className="fixed bottom-0 left-0 right-0 z-50 animate-slide-up border-t bg-background/95 p-4 backdrop-blur-sm">
+      <div className="mx-auto flex max-w-5xl flex-col items-center gap-4 sm:flex-row sm:justify-between">
         <p className="text-sm text-muted-foreground">
           {t("cookie.message")}
         </p>
         <div className="flex shrink-0 items-center gap-2">
           <button
             onClick={() => accept("all")}
-            className="rounded-md bg-primary px-4 py-2 text-xs font-medium text-white transition-colors hover:bg-primary/90"
+            className="rounded-lg bg-primary px-4 py-2.5 text-sm font-medium text-white transition-colors hover:bg-primary/90 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
           >
             {t("cookie.acceptAll")}
           </button>
           <button
             onClick={() => accept("necessary-only")}
-            className="rounded-md border px-4 py-2 text-xs font-medium transition-colors hover:bg-muted"
+            className="rounded-lg border px-4 py-2.5 text-sm font-medium transition-colors hover:bg-muted focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             {t("cookie.necessaryOnly")}
           </button>
@@ -77,7 +77,7 @@ export function CookieBanner(): React.ReactNode {
             href="/cookies"
             target="_blank"
             rel="noopener noreferrer"
-            className="px-2 text-xs text-muted-foreground underline transition-colors hover:text-foreground"
+            className="rounded-md px-3 py-2.5 text-sm text-muted-foreground underline underline-offset-4 transition-colors hover:text-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2"
           >
             {t("cookie.readMore")}
           </Link>
