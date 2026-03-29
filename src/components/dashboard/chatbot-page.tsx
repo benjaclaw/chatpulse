@@ -176,20 +176,20 @@ export function ChatbotPageClient(): React.ReactNode {
             {t('chatbot.description')}
           </p>
         </div>
-        <div className="grid gap-8 lg:grid-cols-[1fr_360px]">
+        <div className="grid gap-8 lg:grid-cols-[1fr_360px] animate-scroll-fade">
           <div className="space-y-6">
             {Array.from({ length: 3 }).map((_, i) => (
               <div key={i} className="rounded-xl border bg-card p-6 shadow-sm">
-                <div className="h-5 w-32 animate-pulse rounded-md bg-muted" />
+                <div className="h-5 w-32 rounded-md bg-muted animate-shimmer" />
                 <div className="mt-4 space-y-4">
-                  <div className="h-4 w-20 animate-pulse rounded bg-muted" />
-                  <div className="h-10 w-full animate-pulse rounded-lg bg-muted" />
+                  <div className="h-4 w-20 rounded bg-muted animate-shimmer" />
+                  <div className="h-10 w-full rounded-lg bg-muted animate-shimmer" />
                 </div>
               </div>
             ))}
           </div>
           <div className="hidden lg:block">
-            <div className="h-[480px] animate-pulse rounded-xl border bg-muted" />
+            <div className="h-[480px] rounded-xl border bg-muted animate-shimmer" />
           </div>
         </div>
       </div>

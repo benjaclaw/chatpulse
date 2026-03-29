@@ -105,18 +105,18 @@ export function CompanyPageClient(): React.ReactNode {
           <h1 className="text-3xl font-bold tracking-tight">{t('company.title')}</h1>
           <p className="mt-1 text-muted-foreground">{t('company.description')}</p>
         </div>
-        <div className="max-w-2xl space-y-6">
+        <div className="max-w-2xl space-y-6 animate-scroll-fade">
           {Array.from({ length: 2 }).map((_, i) => (
             <div key={i} className="rounded-xl border bg-card p-6 shadow-sm">
-              <div className="h-5 w-28 animate-pulse rounded-md bg-muted" />
+              <div className="h-5 w-28 rounded-md bg-muted animate-shimmer" />
               <div className="mt-4 space-y-4">
                 <div className="space-y-2">
-                  <div className="h-4 w-20 animate-pulse rounded bg-muted" />
-                  <div className="h-10 w-full animate-pulse rounded-lg bg-muted" />
+                  <div className="h-4 w-20 rounded bg-muted animate-shimmer" />
+                  <div className="h-10 w-full rounded-lg bg-muted animate-shimmer" />
                 </div>
                 <div className="space-y-2">
-                  <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-                  <div className="h-20 w-full animate-pulse rounded-lg bg-muted" />
+                  <div className="h-4 w-24 rounded bg-muted animate-shimmer" />
+                  <div className="h-20 w-full rounded-lg bg-muted animate-shimmer" />
                 </div>
               </div>
             </div>

@@ -701,12 +701,14 @@ const StatCard = memo(function StatCard({
   className?: string;
 }) {
   return (
-    <div className="rounded-xl border bg-card p-5 shadow-sm">
+    <div className="group rounded-xl border bg-card p-5 shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
       <div className="flex items-center gap-2 text-sm text-muted-foreground">
-        <Icon className={cn("h-4 w-4", className)} />
+        <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-muted transition-all duration-200 group-hover:scale-105">
+          <Icon className={cn("h-4 w-4", className)} />
+        </div>
         {label}
       </div>
-      <p className="mt-2 text-2xl font-bold">{value}</p>
+      <p className="mt-2 text-2xl font-bold tracking-tight">{value}</p>
     </div>
   );
 });

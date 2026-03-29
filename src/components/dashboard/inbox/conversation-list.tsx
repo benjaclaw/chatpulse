@@ -42,10 +42,10 @@ export function ConversationList({
             role="tab"
             aria-selected={filter === f}
             className={cn(
-              "flex-1 rounded-lg px-2 py-1.5 text-xs font-medium transition-colors",
+              "flex-1 rounded-lg px-2 py-2 text-xs font-medium transition-all duration-200",
               filter === f
-                ? "bg-primary/10 text-primary"
-                : "text-muted-foreground hover:bg-muted"
+                ? "bg-primary/10 text-primary shadow-sm"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.97]"
             )}
           >
             {f === "waiting" ? t('inbox.waiting') : f === "human" ? t('inbox.active') : t('inbox.closed')}
@@ -56,7 +56,17 @@ export function ConversationList({
       {/* Conversation list */}
       <div className="flex-1 overflow-y-auto">
         {loading ? (
-          <div className="p-4 text-center text-sm text-muted-foreground">{t('common.loading')}</div>
+          <div className="space-y-1 p-2">
+            {Array.from({ length: 5 }).map((_, i) => (
+              <div key={i} className="flex items-start gap-3 rounded-lg p-3">
+                <div className="flex-1 space-y-2">
+                  <div className="h-3 w-24 rounded bg-muted animate-shimmer" />
+                  <div className="h-3 w-full rounded bg-muted animate-shimmer" />
+                  <div className="h-2 w-16 rounded bg-muted animate-shimmer" />
+                </div>
+              </div>
+            ))}
+          </div>
         ) : conversations.length === 0 ? (
           <div className="p-4 text-center text-sm text-muted-foreground">
             {filter === "waiting"
@@ -72,8 +82,8 @@ export function ConversationList({
                 key={conv.id}
                 onClick={() => onSelect(conv.id)}
                 className={cn(
-                  "flex w-full items-start gap-3 border-b p-3 text-left transition-colors hover:bg-muted/50",
-                  selectedId === conv.id && "bg-muted"
+                  "flex w-full items-start gap-3 border-b p-3 text-left transition-all duration-150 hover:bg-muted/50",
+                  selectedId === conv.id && "bg-primary/5 border-l-2 border-l-primary dark:bg-primary/10"
                 )}
               >
                 <div className="flex-1 min-w-0">

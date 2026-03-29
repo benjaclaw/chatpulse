@@ -96,7 +96,7 @@ export function MobileNav({
                   <Link
                     href={item.href}
                     onClick={() => setOpen(false)}
-                    className={`flex h-12 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-200 ${
+                    className={`relative flex h-12 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-200 ${
                       active
                         ? "bg-primary/10 text-primary shadow-sm dark:bg-primary/20"
                         : locked

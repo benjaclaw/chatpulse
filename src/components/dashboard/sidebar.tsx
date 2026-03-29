@@ -248,16 +248,19 @@ export function Sidebar({
               <li key={item.href}>
                 <Link
                   href={item.href}
-                  className={`flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-200 ${
+                  className={`relative flex h-10 items-center gap-3 rounded-lg px-3 text-sm font-medium transition-all duration-200 ${
                     active
-                      ? "bg-primary/10 text-primary border-l-2 border-primary shadow-sm dark:bg-primary/20"
+                      ? "bg-primary/10 text-primary shadow-sm dark:bg-primary/20"
                       : locked
                         ? "text-muted-foreground/50 cursor-not-allowed"
                         : "text-muted-foreground hover:bg-muted hover:text-foreground active:scale-[0.98]"
                   }`}
                   aria-current={active ? "page" : undefined}
                 >
-                  <item.icon className="h-4 w-4 shrink-0" />
+                  {active && (
+                    <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-primary" />
+                  )}
+                  <item.icon className={`h-4 w-4 shrink-0 transition-transform duration-200 ${active ? "" : "group-hover:scale-110"}`} />
                   <span className="flex-1">{t(item.labelKey)}</span>
                   {isInbox && waitingCount > 0 && (
                     <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-orange-500 px-1.5 text-[10px] font-bold text-white">
@@ -273,10 +276,10 @@ export function Sidebar({
       </nav>
 
       {/* Availability toggle */}
-      <div className="px-3 py-2">
+      <div className="px-3 py-2.5">
         <button
           onClick={toggleOnline}
-          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-colors hover:bg-muted"
+          className="flex w-full items-center gap-3 rounded-lg px-3 py-2.5 text-sm transition-all duration-200 hover:bg-muted active:scale-[0.98]"
           aria-label={isOnline ? t('inbox.goOffline') : t('inbox.goOnline')}
           role="switch"
           aria-checked={isOnline}

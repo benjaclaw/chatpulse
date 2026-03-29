@@ -141,7 +141,7 @@ export function DashboardContent({ stats }: { stats: DashboardStats }): React.Re
             </div>
             <Link
               href="/dashboard/knowledge"
-              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground transition-colors hover:bg-primary/80"
+              className="inline-flex h-10 shrink-0 items-center gap-2 rounded-lg bg-primary px-4 text-sm font-medium text-primary-foreground shadow-sm transition-all duration-200 hover:bg-primary/90 hover:shadow-md active:scale-[0.97]"
             >
               {t('dashboard.onboarding.cta')}
               <ArrowRight className="h-4 w-4" />
@@ -204,7 +204,7 @@ export function DashboardContent({ stats }: { stats: DashboardStats }): React.Re
               </div>
             ) : (
               activities.map((a) => (
-                <div key={a.id} className="flex items-center gap-3 text-sm">
+                <div key={a.id} className="flex items-center gap-3 rounded-lg px-2 py-1.5 text-sm transition-colors duration-150 hover:bg-muted/50">
                   <span className="text-base">{a.icon}</span>
                   <span className="flex-1 truncate">{a.description}</span>
                   <span className="shrink-0 text-xs text-muted-foreground">{a.time}</span>
@@ -261,10 +261,10 @@ function StatCard({
   href?: string;
 }): React.ReactNode {
   const content = (
-    <div className="group rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md">
+    <div className="group rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:-translate-y-0.5 hover:shadow-md hover:border-primary/20">
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15 dark:bg-primary/20">
-          <Icon className="h-4 w-4" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all duration-200 group-hover:bg-primary/15 group-hover:scale-105 dark:bg-primary/20">
+          <Icon className="h-5 w-5" />
         </div>
         <span className="text-sm text-muted-foreground">{title}</span>
       </div>
@@ -292,13 +292,13 @@ function QuickAction({
   return (
     <Link
       href={href}
-      className="group flex items-center gap-3 rounded-lg border p-3 transition-all duration-200 hover:bg-muted/50 hover:shadow-sm"
+      className="group flex items-center gap-3 rounded-lg border p-3 transition-all duration-200 hover:bg-muted/50 hover:shadow-sm hover:border-primary/20 active:scale-[0.98]"
     >
-      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary transition-colors group-hover:bg-primary/15 dark:bg-primary/20">
+      <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all duration-200 group-hover:bg-primary/15 group-hover:scale-105 dark:bg-primary/20">
         <Icon className="h-4 w-4" />
       </div>
       <div className="min-w-0">
-        <p className="text-sm font-medium">{title}</p>
+        <p className="text-sm font-medium group-hover:text-primary transition-colors duration-200">{title}</p>
         <p className="truncate text-xs text-muted-foreground">{description}</p>
       </div>
     </Link>

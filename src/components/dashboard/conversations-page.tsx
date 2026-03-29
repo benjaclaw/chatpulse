@@ -301,11 +301,12 @@ export function ConversationsPageClient(): React.ReactNode {
 
       {/* Content */}
       {loading ? (
-        <div className="space-y-3">
+        <div className="space-y-3 animate-scroll-fade">
           {Array.from({ length: 3 }).map((_, i) => (
             <div
               key={i}
-              className="h-[72px] animate-pulse rounded-xl border bg-muted/30"
+              className="h-[72px] rounded-xl border bg-muted/30 animate-shimmer"
+              style={{ animationDelay: `${i * 100}ms` }}
             />
           ))}
         </div>
@@ -363,7 +364,7 @@ export function ConversationsPageClient(): React.ReactNode {
 
               {/* Expanded messages */}
               {expandedId === conv.id && (
-                <div className="mt-1 rounded-xl border bg-card p-4 shadow-sm">
+                <div className="mt-1 rounded-xl border bg-card p-4 shadow-sm animate-scroll-fade">
                   {messagesLoading ? (
                     <p className="text-sm text-muted-foreground text-center py-4">
                       {t('conversations.loadingMessages')}

@@ -350,7 +350,7 @@ export function KnowledgePageClient(): React.ReactNode {
           {items.map((item) => (
             <div
               key={item.id}
-              className="group rounded-xl border bg-card p-5 shadow-sm transition-all duration-200 hover:shadow-md"
+              className="group rounded-xl border bg-card p-5 shadow-sm transition-all duration-200 hover:shadow-md hover:border-primary/20 hover:-translate-y-0.5"
             >
               <div className="flex items-start justify-between gap-4">
                 <div className="flex-1 min-w-0">

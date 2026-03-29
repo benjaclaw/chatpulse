@@ -166,26 +166,32 @@ export function InsightsPageClient(): React.ReactNode {
 
       {/* Summary stats */}
       <div className="grid gap-4 sm:grid-cols-3">
-        <div className="rounded-xl border bg-card p-5 shadow-sm">
+        <div className="group rounded-xl border bg-card p-5 shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <TrendingUp className="h-4 w-4" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-primary/10 transition-all duration-200 group-hover:scale-105 dark:bg-primary/20">
+              <TrendingUp className="h-4 w-4 text-primary" />
+            </div>
             {t('insights.totalQuestions')}
           </div>
-          <p className="mt-2 text-2xl font-bold">{totalQuestionsCount}</p>
+          <p className="mt-2 text-2xl font-bold tracking-tight">{totalQuestionsCount}</p>
         </div>
-        <div className="rounded-xl border bg-card p-5 shadow-sm">
+        <div className="group rounded-xl border bg-card p-5 shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-green-500/10 transition-all duration-200 group-hover:scale-105 dark:bg-green-500/20">
+              <CheckCircle2 className="h-4 w-4 text-green-600 dark:text-green-400" />
+            </div>
             {t('insights.answered')}
           </div>
-          <p className="mt-2 text-2xl font-bold">{totalAnswered}</p>
+          <p className="mt-2 text-2xl font-bold tracking-tight">{totalAnswered}</p>
         </div>
-        <div className="rounded-xl border bg-card p-5 shadow-sm">
+        <div className="group rounded-xl border bg-card p-5 shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5">
           <div className="flex items-center gap-2 text-sm text-muted-foreground">
-            <XCircle className="h-4 w-4 text-destructive" />
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-destructive/10 transition-all duration-200 group-hover:scale-105 dark:bg-destructive/20">
+              <XCircle className="h-4 w-4 text-destructive" />
+            </div>
             {t('insights.unanswered')}
           </div>
-          <p className="mt-2 text-2xl font-bold">{totalUnanswered}</p>
+          <p className="mt-2 text-2xl font-bold tracking-tight">{totalUnanswered}</p>
         </div>
       </div>
 

@@ -204,6 +204,49 @@
   animation: pulse-glow 3s ease-in-out infinite;
 }
 
+@keyframes shimmer {
+  0% {
+    background-position: -200% 0;
+  }
+  100% {
+    background-position: 200% 0;
+  }
+}
+
+@utility animate-shimmer {
+  background: linear-gradient(90deg, transparent 0%, var(--muted) 20%, var(--muted-foreground)/8 50%, var(--muted) 80%, transparent 100%);
+  background-size: 200% 100%;
+  animation: shimmer 1.8s ease-in-out infinite;
+}
+
+@keyframes scroll-fade-in {
+  from {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@utility animate-scroll-fade {
+  animation: scroll-fade-in 0.4s ease-out both;
+}
+
+@keyframes gentle-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-4px);
+  }
+}
+
+@utility animate-gentle-bounce {
+  animation: gentle-bounce 2s ease-in-out infinite;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;
@@ -234,11 +277,17 @@
   *:focus-visible {
     outline: 2px solid var(--primary);
     outline-offset: 2px;
+    border-radius: 4px;
   }
 
   /* Smooth transitions on interactive elements */
   a, button, input, select, textarea {
     @apply transition-colors duration-200;
+  }
+
+  /* Card-level transitions for hover polish */
+  [data-slot="card"] {
+    @apply transition-shadow duration-200;
   }
 
   a, button, [role="button"], input[type="submit"], input[type="button"] {

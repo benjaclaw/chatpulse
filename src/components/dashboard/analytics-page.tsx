@@ -165,25 +165,25 @@ export function AnalyticsPageClient(): React.ReactNode {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 animate-scroll-fade">
         <div>
-          <div className="h-9 w-48 animate-pulse rounded-lg bg-muted" />
-          <div className="mt-2 h-5 w-72 animate-pulse rounded-md bg-muted" />
+          <div className="h-9 w-48 rounded-lg bg-muted animate-shimmer" />
+          <div className="mt-2 h-5 w-72 rounded-md bg-muted animate-shimmer" />
         </div>
         <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
           {Array.from({ length: 4 }).map((_, i) => (
-            <div key={i} className="rounded-xl border bg-card p-6 shadow-sm">
+            <div key={i} className="rounded-xl border bg-card p-6 shadow-sm" style={{ animationDelay: `${i * 100}ms` }}>
               <div className="flex items-center gap-3">
-                <div className="h-9 w-9 animate-pulse rounded-lg bg-muted" />
-                <div className="h-4 w-24 animate-pulse rounded-md bg-muted" />
+                <div className="h-10 w-10 rounded-xl bg-muted animate-shimmer" />
+                <div className="h-4 w-24 rounded-md bg-muted animate-shimmer" />
               </div>
-              <div className="mt-3 h-9 w-16 animate-pulse rounded-md bg-muted" />
+              <div className="mt-3 h-9 w-16 rounded-md bg-muted animate-shimmer" />
             </div>
           ))}
         </div>
         <div className="grid gap-4 lg:grid-cols-2">
           {Array.from({ length: 2 }).map((_, i) => (
-            <div key={i} className="h-72 animate-pulse rounded-xl border bg-muted/30" />
+            <div key={i} className="h-72 rounded-xl border bg-muted/30 animate-shimmer" />
           ))}
         </div>
       </div>
@@ -390,14 +390,14 @@ const StatCard = memo(function StatCard({
   value: string;
 }) {
   return (
-    <div className="rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md">
+    <div className="group rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md hover:-translate-y-0.5 hover:border-primary/20">
       <div className="flex items-center gap-3">
-        <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-          <Icon className="h-4 w-4" />
+        <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-primary/10 text-primary transition-all duration-200 group-hover:scale-105 group-hover:bg-primary/15 dark:bg-primary/20">
+          <Icon className="h-5 w-5" />
         </div>
         <span className="text-sm text-muted-foreground">{label}</span>
       </div>
-      <p className="mt-3 text-3xl font-bold">{value}</p>
+      <p className="mt-3 text-3xl font-bold tracking-tight">{value}</p>
     </div>
   );
 });

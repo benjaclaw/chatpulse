@@ -196,7 +196,7 @@ export function TeamPageClient(): React.ReactNode {
               {members.map((member) => (
                 <div
                   key={member.id}
-                  className="flex items-center gap-4 rounded-lg border p-4 transition-colors hover:bg-muted/50"
+                  className="flex items-center gap-4 rounded-lg border p-4 transition-all duration-200 hover:bg-muted/50 hover:shadow-sm hover:border-primary/20"
                 >
                   <Avatar>
                     <AvatarFallback className="bg-primary/10 text-primary">

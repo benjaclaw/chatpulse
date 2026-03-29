@@ -20,9 +20,9 @@ export function RouteError({
   }, [error]);
 
   return (
-    <div className="flex min-h-[40vh] flex-col items-center justify-center px-4 text-center">
-      <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-destructive/10 dark:bg-destructive/20">
-        <AlertTriangle className="h-7 w-7 text-destructive" />
+    <div className="flex min-h-[40vh] flex-col items-center justify-center px-4 text-center animate-scroll-fade">
+      <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-destructive/10 shadow-sm dark:bg-destructive/20">
+        <AlertTriangle className="h-8 w-8 text-destructive" />
       </div>
       <h2 className="mt-5 text-lg font-bold tracking-tight">{title}</h2>
       <p className="mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">{description}</p>
