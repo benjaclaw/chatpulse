@@ -630,7 +630,7 @@ const nb: Record<string, string> = {
   'pricing.faq2Q': 'Hva skjer når meldingsgrensen er nådd?',
   'pricing.faq2A': 'Chatboten pauser til neste måned, eller du kan oppgradere.',
   'pricing.faq3Q': 'Tilbyr dere årlig betaling?',
-  'pricing.faq3A': 'Kommer snart — 2 måneder gratis.',
+  'pricing.faq3A': 'Ja! Velg årlig betaling og spar opptil 20% — tilsvarer 2 måneder gratis.',
   'pricing.faq4Q': 'Er det bindingstid?',
   'pricing.faq4A': 'Nei, avbryt når som helst.',
   'pricing.faq5Q': 'Hvordan embed jeg chatboten?',

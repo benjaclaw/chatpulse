@@ -630,7 +630,7 @@ const en: Record<string, string> = {
   'pricing.faq2Q': 'What happens when the message limit is reached?',
   'pricing.faq2A': 'The chatbot pauses until next month, or you can upgrade.',
   'pricing.faq3Q': 'Do you offer annual billing?',
-  'pricing.faq3A': 'Coming soon — 2 months free.',
+  'pricing.faq3A': 'Yes! Choose annual billing and save up to 20% — equivalent to 2 months free.',
   'pricing.faq4Q': 'Is there a commitment period?',
   'pricing.faq4A': 'No, cancel at any time.',
   'pricing.faq5Q': 'How do I embed the chatbot?',
