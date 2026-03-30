@@ -71,23 +71,7 @@ export function LandingFooter(): React.ReactNode {
                 {t("landing.footer.cookies")}
               </Link>
             </div>
-            <div className="flex flex-col gap-2">
-              <span className="font-semibold text-foreground">Følg oss</span>
-              <a
-                href="#"
-                className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
-                aria-label="LinkedIn"
-              >
-                LinkedIn <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-              <a
-                href="#"
-                className="inline-flex items-center gap-1 text-muted-foreground transition-colors hover:text-foreground"
-                aria-label="Twitter / X"
-              >
-                Twitter / X <ExternalLink className="h-3.5 w-3.5" />
-              </a>
-            </div>
+
           </nav>
         </div>
 
