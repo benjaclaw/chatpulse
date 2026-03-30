@@ -28,6 +28,7 @@ import { createT, type Language } from "@/lib/i18n";
 import { LandingHeader } from "./header";
 import { LandingFooter } from "./footer";
 import { GoogleHeroButton } from "@/components/auth/google-sign-in-button";
+import { PricingContent } from "@/components/pricing/pricing-content";
 
 export function HomePage(): React.ReactNode {
   const [language] = useState<Language>(() => {
@@ -183,71 +184,9 @@ export function HomePage(): React.ReactNode {
         {/* ─── Pricing ─── */}
         <section
           id="pricing"
-          className="scroll-mt-16 border-t bg-card/50 px-4 py-16 dark:bg-card/20 sm:px-6 sm:py-24"
+          className="scroll-mt-16 border-t bg-card/50 dark:bg-card/20"
         >
-          <div className="mx-auto max-w-5xl">
-            <h2 className="font-heading text-center text-2xl font-bold tracking-tight sm:text-3xl">
-              {t("landing.pricing.title")}
-            </h2>
-            <p className="mx-auto mt-3 max-w-xl text-center text-muted-foreground">
-              {t("landing.pricing.description")}
-            </p>
-
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              <PricingCard
-                name={t("landing.pricing.free")}
-                price={t("landing.pricing.freePrice")}
-                period={t("landing.pricing.perMonth")}
-                description={t("landing.pricing.freeDesc")}
-                features={[
-                  t("landing.pricing.freeF1"),
-                  t("landing.pricing.freeF2"),
-                  t("landing.pricing.freeF3"),
-                ]}
-                cta={t("landing.pricing.freeCta")}
-                ctaHref="/signup"
-                popularLabel={t("landing.pricing.popular")}
-              />
-              <PricingCard
-                name={t("landing.pricing.pro")}
-                price={t("landing.pricing.proPrice")}
-                period={t("landing.pricing.perMonth")}
-                description={t("landing.pricing.proDesc")}
-                features={[
-                  t("landing.pricing.proF1"),
-                  t("landing.pricing.proF2"),
-                  t("landing.pricing.proF3"),
-                ]}
-                cta={t("landing.pricing.proCta")}
-                ctaHref="/signup"
-                highlighted
-                popularLabel={t("landing.pricing.popular")}
-              />
-              <PricingCard
-                name={t("landing.pricing.enterprise")}
-                price={t("landing.pricing.enterprisePrice")}
-                description={t("landing.pricing.enterpriseDesc")}
-                features={[
-                  t("landing.pricing.enterpriseF1"),
-                  t("landing.pricing.enterpriseF2"),
-                  t("landing.pricing.enterpriseF3"),
-                ]}
-                cta={t("landing.pricing.enterpriseCta")}
-                ctaHref="mailto:kontakt@chatpulse.no"
-                popularLabel={t("landing.pricing.popular")}
-              />
-            </div>
-
-            <div className="mt-8 flex justify-center">
-              <Link
-                href="/pricing"
-                className={cn(buttonVariants({ variant: "outline" }))}
-              >
-                {t("landing.pricing.viewAll")}
-                <ArrowRight className="ml-2 h-4 w-4" />
-              </Link>
-            </div>
-          </div>
+          <PricingContent />
         </section>
 
         {/* ─── Final CTA ─── */}
@@ -379,71 +318,4 @@ function StepCard({
   );
 }
 
-function PricingCard({
-  name,
-  price,
-  period,
-  description,
-  features,
-  cta,
-  ctaHref,
-  highlighted = false,
-  popularLabel,
-}: {
-  name: string;
-  price: string;
-  period?: string;
-  description: string;
-  features: string[];
-  cta: string;
-  ctaHref: string;
-  highlighted?: boolean;
-  popularLabel: string;
-}): React.ReactNode {
-  return (
-    <div
-      className={cn(
-        "relative flex flex-col rounded-xl border p-6 transition-all duration-200",
-        highlighted
-          ? "border-primary bg-card shadow-lg ring-1 ring-primary/20"
-          : "bg-card shadow-sm hover:shadow-md"
-      )}
-    >
-      {highlighted && (
-        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-3 py-0.5 text-xs font-semibold text-white">
-          {popularLabel}
-        </div>
-      )}
-      <div>
-        <h3 className="text-lg font-semibold">{name}</h3>
-        <div className="mt-2 flex items-baseline gap-1">
-          <span className="text-3xl font-bold tracking-tight">{price}</span>
-          {period && (
-            <span className="text-sm text-muted-foreground">{period}</span>
-          )}
-        </div>
-        <p className="mt-2 text-sm text-muted-foreground">{description}</p>
-      </div>
-      <ul className="mt-6 flex-1 space-y-2.5">
-        {features.map((f) => (
-          <li key={f} className="flex items-start gap-2 text-sm">
-            <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-            {f}
-          </li>
-        ))}
-      </ul>
-      <Link
-        href={ctaHref}
-        className={cn(
-          buttonVariants({
-            variant: highlighted ? "default" : "outline",
-            size: "lg",
-          }),
-          "mt-8 w-full"
-        )}
-      >
-        {cta}
-      </Link>
-    </div>
-  );
-}
+
