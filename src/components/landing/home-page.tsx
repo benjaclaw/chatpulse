@@ -14,7 +14,7 @@ import {
   Zap,
   Puzzle,
   MessageSquare,
-  Play,
+
   Users,
   Building2,
   Globe,
@@ -85,16 +85,7 @@ export function HomePage(): React.ReactNode {
                 {t("landing.hero.cta")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
-              <Link
-                href="#how-it-works"
-                className={cn(
-                  buttonVariants({ variant: "outline", size: "lg" }),
-                  "w-full sm:w-auto"
-                )}
-              >
-                <Play className="mr-2 h-4 w-4" />
-                {t("landing.hero.demo")}
-              </Link>
+              
             </div>
 
             <div className="mt-4">
