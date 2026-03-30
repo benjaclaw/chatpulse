@@ -92,38 +92,7 @@ export function HomePage(): React.ReactNode {
               <GoogleHeroButton />
             </div>
 
-            {/* Social proof */}
-            <div className="mt-10 flex flex-wrap items-center justify-center gap-6 text-sm text-muted-foreground sm:gap-8">
-              <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-primary" />
-                <span>500+ bedrifter</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <MessageSquare className="h-4 w-4 text-primary" />
-                <span>1M+ samtaler</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <Globe className="h-4 w-4 text-primary" />
-                <span>99.9% oppetid</span>
-              </div>
             </div>
-          </div>
-
-          {/* Trust bar */}
-          <div className="mt-8 flex flex-wrap items-center justify-center gap-6 text-xs text-muted-foreground/70 sm:gap-8">
-            <div className="flex items-center gap-1.5">
-              <ShieldCheck className="h-3.5 w-3.5" />
-              <span>{t("landing.hero.trustGdpr")}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Server className="h-3.5 w-3.5" />
-              <span>{t("landing.hero.trustEu")}</span>
-            </div>
-            <div className="flex items-center gap-1.5">
-              <Headphones className="h-3.5 w-3.5" />
-              <span>{t("landing.hero.trustSupport")}</span>
-            </div>
-          </div>
 
           {/* Animated widget mockup */}
           <div className="relative z-10 mx-auto mt-16 w-full max-w-sm animate-fade-in-up">
