@@ -1,12 +1,33 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
+import { isValidUUID } from "@/lib/utils";
 
 export const runtime = "nodejs";
+
+// --- In-memory rate limiting (per user) ---
+const rateMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 10; // 10 per minute per user
+const WINDOW_MS = 60_000;
+
+function checkRate(key: string): boolean {
+  const now = Date.now();
+  const bucket = rateMap.get(key);
+  if (!bucket || now > bucket.resetAt) {
+    rateMap.set(key, { count: 1, resetAt: now + WINDOW_MS });
+    return true;
+  }
+  bucket.count++;
+  return bucket.count <= RATE_LIMIT;
+}
 
 export async function POST(request: Request): Promise<Response> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
+
+  if (!checkRate(user.id)) {
+    return Response.json({ error: "Too many requests" }, { status: 429 });
+  }
 
   let body: { expo_push_token: string; device_id: string; workspace_id: string };
   try {
@@ -18,6 +39,15 @@ export async function POST(request: Request): Promise<Response> {
   const { expo_push_token, device_id, workspace_id } = body;
   if (!expo_push_token || !device_id || !workspace_id) {
     return Response.json({ error: "Missing fields" }, { status: 400 });
+  }
+
+  if (!isValidUUID(workspace_id)) {
+    return Response.json({ error: "Invalid workspace_id" }, { status: 400 });
+  }
+
+  // Limit token/device_id length to prevent abuse
+  if (expo_push_token.length > 200 || device_id.length > 200) {
+    return Response.json({ error: "Invalid field length" }, { status: 400 });
   }
 
   // Verify workspace membership
@@ -47,6 +77,10 @@ export async function DELETE(request: Request): Promise<Response> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
+  if (!checkRate(user.id)) {
+    return Response.json({ error: "Too many requests" }, { status: 429 });
+  }
+
   let body: { device_id: string };
   try {
     body = await request.json();
@@ -55,6 +89,10 @@ export async function DELETE(request: Request): Promise<Response> {
   }
   const { device_id } = body;
   if (!device_id) return Response.json({ error: "Missing device_id" }, { status: 400 });
+
+  if (device_id.length > 200) {
+    return Response.json({ error: "Invalid device_id" }, { status: 400 });
+  }
 
   const serviceClient = createServiceClient();
   const { error } = await serviceClient

@@ -84,6 +84,15 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Ugyldig chatbotId" }, { status: 400 });
   }
 
+  // Validate visitorId length to prevent abuse
+  if (typeof visitorId !== "string" || visitorId.length > 100) {
+    return Response.json({ error: "Ugyldig visitorId" }, { status: 400 });
+  }
+
+  if (conversationId && !isValidUUID(conversationId)) {
+    return Response.json({ error: "Ugyldig conversationId" }, { status: 400 });
+  }
+
   // Rate limit per visitor
   if (!checkRate(visitorRateMap, visitorId, VISITOR_LIMIT)) {
     return Response.json(

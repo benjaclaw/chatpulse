@@ -1,13 +1,19 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendBroadcast } from "@/lib/supabase/broadcast";
+import { timingSafeEqual } from "node:crypto";
 
 export const runtime = "nodejs";
+
+function safeCompare(a: string, b: string): boolean {
+  if (a.length !== b.length) return false;
+  return timingSafeEqual(Buffer.from(a), Buffer.from(b));
+}
 
 export async function GET(request: Request): Promise<Response> {
   const authHeader = request.headers.get("authorization");
   const cronSecret = process.env.CRON_SECRET;
 
-  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
+  if (!cronSecret || !authHeader || !safeCompare(authHeader, `Bearer ${cronSecret}`)) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 

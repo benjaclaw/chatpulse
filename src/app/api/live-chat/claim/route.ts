@@ -2,14 +2,35 @@ import { getAuthenticatedClient } from "@/lib/supabase/api-auth";
 import { createServiceClient } from "@/lib/supabase/service";
 import { sendBroadcast } from "@/lib/supabase/broadcast";
 import { logError } from "@/lib/logger";
+import { isValidUUID } from "@/lib/utils";
 
 export const runtime = "nodejs";
+
+// --- In-memory rate limiting (per user) ---
+const rateMap = new Map<string, { count: number; resetAt: number }>();
+const RATE_LIMIT = 20; // 20 claims per minute per user
+const WINDOW_MS = 60_000;
+
+function checkRate(key: string): boolean {
+  const now = Date.now();
+  const bucket = rateMap.get(key);
+  if (!bucket || now > bucket.resetAt) {
+    rateMap.set(key, { count: 1, resetAt: now + WINDOW_MS });
+    return true;
+  }
+  bucket.count++;
+  return bucket.count <= RATE_LIMIT;
+}
 
 export async function POST(request: Request): Promise<Response> {
   const { supabase, user } = await getAuthenticatedClient(request);
 
   if (!user || !supabase) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!checkRate(user.id)) {
+    return Response.json({ error: "Too many requests" }, { status: 429 });
   }
 
   let body: { conversationId: string; workspaceId?: string };
@@ -22,6 +43,10 @@ export async function POST(request: Request): Promise<Response> {
   const { conversationId, workspaceId } = body;
   if (!conversationId) {
     return Response.json({ error: "Missing conversationId" }, { status: 400 });
+  }
+
+  if (!isValidUUID(conversationId)) {
+    return Response.json({ error: "Invalid conversationId" }, { status: 400 });
   }
 
   const serviceClient = createServiceClient();
