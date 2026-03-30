@@ -140,7 +140,7 @@ export function PricingContent(): React.ReactNode {
             <PlanCard
               name={t("pricing.basicName")}
               price={annual ? t("pricing.basicPriceAnnual") : t("pricing.basicPrice")}
-              period={annual ? t("pricing.perYear") : t("pricing.perMonth")}
+              period={t("pricing.perMonth")}
               features={[
                 t("pricing.basicF1"),
                 t("pricing.basicF2"),
@@ -158,7 +158,7 @@ export function PricingContent(): React.ReactNode {
             <PlanCard
               name={t("pricing.startupName")}
               price={annual ? t("pricing.startupPriceAnnual") : t("pricing.startupPrice")}
-              period={annual ? t("pricing.perYear") : t("pricing.perMonth")}
+              period={t("pricing.perMonth")}
               popular
               popularLabel={t("pricing.popular")}
               features={[
@@ -178,7 +178,7 @@ export function PricingContent(): React.ReactNode {
             <PlanCard
               name={t("pricing.proName")}
               price={annual ? t("pricing.proPriceAnnual") : t("pricing.proPrice")}
-              period={annual ? t("pricing.perYear") : t("pricing.perMonth")}
+              period={t("pricing.perMonth")}
               features={[
                 t("pricing.proF1"),
                 t("pricing.proF2"),
