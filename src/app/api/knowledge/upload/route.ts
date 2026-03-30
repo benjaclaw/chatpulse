@@ -1,21 +1,8 @@
 import { createClient } from "@/lib/supabase/server";
 import { isValidUUID } from "@/lib/utils";
+import { createRateLimiter } from "@/lib/rate-limit";
 
-// --- In-memory rate limiting (per authenticated user) ---
-const rateMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 10; // 10 uploads per minute per user
-const WINDOW_MS = 60_000;
-
-function checkRate(key: string): boolean {
-  const now = Date.now();
-  const bucket = rateMap.get(key);
-  if (!bucket || now > bucket.resetAt) {
-    rateMap.set(key, { count: 1, resetAt: now + WINDOW_MS });
-    return true;
-  }
-  bucket.count++;
-  return bucket.count <= RATE_LIMIT;
-}
+const rateLimiter = createRateLimiter(10); // 10 uploads per minute per user
 
 const ALLOWED_TYPES = new Set([
   "application/pdf",
@@ -79,7 +66,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // Rate limit per user
-  if (!checkRate(user.id)) {
+  if (!rateLimiter.check(user.id)) {
     return Response.json({ error: "Too many uploads. Please wait before uploading again." }, { status: 429 });
   }
 

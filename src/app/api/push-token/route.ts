@@ -1,31 +1,18 @@
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { isValidUUID } from "@/lib/utils";
+import { createRateLimiter } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
-// --- In-memory rate limiting (per user) ---
-const rateMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 10; // 10 per minute per user
-const WINDOW_MS = 60_000;
-
-function checkRate(key: string): boolean {
-  const now = Date.now();
-  const bucket = rateMap.get(key);
-  if (!bucket || now > bucket.resetAt) {
-    rateMap.set(key, { count: 1, resetAt: now + WINDOW_MS });
-    return true;
-  }
-  bucket.count++;
-  return bucket.count <= RATE_LIMIT;
-}
+const rateLimiter = createRateLimiter(10); // 10 per minute per user
 
 export async function POST(request: Request): Promise<Response> {
   const supabase = await createClient();
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (!checkRate(user.id)) {
+  if (!rateLimiter.check(user.id)) {
     return Response.json({ error: "Too many requests" }, { status: 429 });
   }
 
@@ -77,7 +64,7 @@ export async function DELETE(request: Request): Promise<Response> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (!checkRate(user.id)) {
+  if (!rateLimiter.check(user.id)) {
     return Response.json({ error: "Too many requests" }, { status: 429 });
   }
 

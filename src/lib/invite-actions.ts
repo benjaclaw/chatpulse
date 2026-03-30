@@ -3,8 +3,13 @@
 import { createClient } from "@/lib/supabase/server";
 import { redirect } from "next/navigation";
 import type { ActionResult, InviteRecord, MemberRecord } from "@/lib/types";
+import { isValidUUID } from "@/lib/utils";
 
 export async function sendInvite(workspaceId: string, formData: FormData): Promise<ActionResult> {
+  if (!isValidUUID(workspaceId)) {
+    return { error: "Invalid workspaceId" };
+  }
+
   const supabase = await createClient();
 
   const {
@@ -72,6 +77,10 @@ export async function sendInvite(workspaceId: string, formData: FormData): Promi
 }
 
 export async function acceptInvite(token: string): Promise<ActionResult> {
+  if (!isValidUUID(token)) {
+    return { error: "Invalid or expired invite" };
+  }
+
   const supabase = await createClient();
 
   const {
@@ -132,6 +141,8 @@ export async function acceptInvite(token: string): Promise<ActionResult> {
 }
 
 export async function getWorkspaceInvites(workspaceId: string): Promise<InviteRecord[]> {
+  if (!isValidUUID(workspaceId)) return [];
+
   const supabase = await createClient();
 
   const { data } = await supabase
@@ -145,6 +156,8 @@ export async function getWorkspaceInvites(workspaceId: string): Promise<InviteRe
 }
 
 export async function getWorkspaceMembers(workspaceId: string): Promise<MemberRecord[]> {
+  if (!isValidUUID(workspaceId)) return [];
+
   const supabase = await createClient();
 
   const { data } = await supabase

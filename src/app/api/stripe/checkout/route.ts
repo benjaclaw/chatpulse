@@ -2,26 +2,13 @@ import { createClient } from "@/lib/supabase/server";
 import { getStripe, STRIPE_PRICE_MAP } from "@/lib/stripe";
 import { isValidUUID } from "@/lib/utils";
 import type { PlanId } from "@/lib/plans";
+import { createRateLimiter } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
 const VALID_PLANS: Array<Exclude<PlanId, "free">> = ["basic", "startup", "pro"];
 
-// --- In-memory rate limiting (per user) ---
-const rateMap = new Map<string, { count: number; resetAt: number }>();
-const RATE_LIMIT = 5; // 5 checkout attempts per minute per user
-const WINDOW_MS = 60_000;
-
-function checkRate(key: string): boolean {
-  const now = Date.now();
-  const bucket = rateMap.get(key);
-  if (!bucket || now > bucket.resetAt) {
-    rateMap.set(key, { count: 1, resetAt: now + WINDOW_MS });
-    return true;
-  }
-  bucket.count++;
-  return bucket.count <= RATE_LIMIT;
-}
+const rateLimiter = createRateLimiter(5); // 5 checkout attempts per minute per user
 
 export async function POST(request: Request): Promise<Response> {
   const supabase = await createClient();
@@ -33,7 +20,7 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!checkRate(user.id)) {
+  if (!rateLimiter.check(user.id)) {
     return Response.json({ error: "Too many requests" }, { status: 429 });
   }
 

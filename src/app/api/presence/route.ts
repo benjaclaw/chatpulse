@@ -2,24 +2,11 @@ import { getAuthenticatedClient } from "@/lib/supabase/api-auth";
 import { createServiceClient } from "@/lib/supabase/service";
 import { logError } from "@/lib/logger";
 import { isValidUUID } from "@/lib/utils";
+import { createRateLimiter } from "@/lib/rate-limit";
 
 export const runtime = "nodejs";
 
-// --- In-memory rate limiting for PUT ---
-const putRateMap = new Map<string, { count: number; resetAt: number }>();
-const PUT_RATE_LIMIT = 20; // 20 status updates per minute per user
-const PUT_WINDOW_MS = 60_000;
-
-function checkPutRate(key: string): boolean {
-  const now = Date.now();
-  const bucket = putRateMap.get(key);
-  if (!bucket || now > bucket.resetAt) {
-    putRateMap.set(key, { count: 1, resetAt: now + PUT_WINDOW_MS });
-    return true;
-  }
-  bucket.count++;
-  return bucket.count <= PUT_RATE_LIMIT;
-}
+const putRateLimiter = createRateLimiter(20); // 20 status updates per minute per user
 
 // PUT: Update agent status (authenticated)
 export async function PUT(request: Request): Promise<Response> {
@@ -29,7 +16,7 @@ export async function PUT(request: Request): Promise<Response> {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!checkPutRate(user.id)) {
+  if (!putRateLimiter.check(user.id)) {
     return Response.json({ error: "Too many requests" }, { status: 429 });
   }
 
@@ -80,26 +67,12 @@ export async function PUT(request: Request): Promise<Response> {
   return Response.json({ ok: true, status });
 }
 
-// --- In-memory rate limiting for GET ---
-const getRateMap = new Map<string, { count: number; resetAt: number }>();
-const GET_RATE_LIMIT = 30;
-const GET_WINDOW_MS = 60_000;
-
-function checkGetRate(key: string): boolean {
-  const now = Date.now();
-  const bucket = getRateMap.get(key);
-  if (!bucket || now > bucket.resetAt) {
-    getRateMap.set(key, { count: 1, resetAt: now + GET_WINDOW_MS });
-    return true;
-  }
-  bucket.count++;
-  return bucket.count <= GET_RATE_LIMIT;
-}
+const getRateLimiter = createRateLimiter(30); // 30 checks per minute per IP
 
 // GET: Check if any agents are online for a workspace (public, uses service client)
 export async function GET(request: Request): Promise<Response> {
   const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (!checkGetRate(ip)) {
+  if (!getRateLimiter.check(ip)) {
     return Response.json({ error: "Too many requests" }, { status: 429 });
   }
 
