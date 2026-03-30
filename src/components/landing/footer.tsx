@@ -77,20 +77,7 @@ export function LandingFooter(): React.ReactNode {
 
         {/* Company info */}
         <div className="mt-8 border-t pt-6 text-sm text-muted-foreground">
-          <div className="flex flex-col gap-1">
-            <span>ChatPulse AS — Org.nr: 000 000 000</span>
-            <span>Postadresse: Adresseveien 1, 0000 Oslo</span>
-            <span>
-              Kontakt:{" "}
-              <a
-                href="mailto:post@chatpulse.no"
-                className="underline transition-colors hover:text-foreground"
-              >
-                post@chatpulse.no
-              </a>
-            </span>
-          </div>
-          <div className="mt-4">
+          <div>
             &copy; {new Date().getFullYear()} ChatPulse AS. Alle rettigheter
             reservert.
           </div>
