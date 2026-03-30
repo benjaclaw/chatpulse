@@ -1,17 +1,12 @@
 import { type NextRequest, NextResponse } from "next/server";
 import { updateSession } from "@/lib/supabase/proxy";
 
-const publicRoutes = ["/", "/login", "/signup", "/invite/accept"];
 const authRoutes = ["/login", "/signup"];
+const protectedPrefixes = ["/admin", "/dashboard", "/create-workspace", "/onboarding"];
 
 export async function proxy(request: NextRequest) {
   const { user, supabaseResponse } = await updateSession(request);
   const path = request.nextUrl.pathname;
-
-  // Allow public routes
-  const isPublicRoute = publicRoutes.some(
-    (route) => path === route || path.startsWith("/invite/accept")
-  );
 
   // Redirect authenticated users away from auth pages
   if (user && authRoutes.some((route) => path === route)) {
@@ -20,12 +15,14 @@ export async function proxy(request: NextRequest) {
     return NextResponse.redirect(url);
   }
 
-  // Protect authenticated routes
-  const protectedPrefixes = ["/admin", "/dashboard", "/create-workspace", "/onboarding"];
+  // Protect authenticated routes — redirect to login if not authenticated
   if (!user && protectedPrefixes.some((prefix) => path.startsWith(prefix))) {
     const url = request.nextUrl.clone();
     url.pathname = "/login";
-    url.searchParams.set("redirect", path);
+    // Only allow relative redirect paths to prevent open redirect
+    if (path.startsWith("/") && !path.startsWith("//") && !path.includes("://")) {
+      url.searchParams.set("redirect", path);
+    }
     return NextResponse.redirect(url);
   }
 
@@ -33,5 +30,7 @@ export async function proxy(request: NextRequest) {
 }
 
 export const config = {
-  matcher: ["/((?!_next/static|_next/image|favicon.ico|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)"],
+  matcher: [
+    "/((?!_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt|.*\\.(?:svg|png|jpg|jpeg|gif|webp)$).*)",
+  ],
 };

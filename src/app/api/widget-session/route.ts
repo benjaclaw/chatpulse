@@ -37,6 +37,10 @@ export async function GET(request: Request): Promise<Response> {
     return Response.json({ error: "Invalid params" }, { status: 400 });
   }
 
+  if (visitorId.length > 100) {
+    return Response.json({ error: "Invalid visitorId" }, { status: 400 });
+  }
+
   const service = createServiceClient();
 
   const { data: conv } = await service

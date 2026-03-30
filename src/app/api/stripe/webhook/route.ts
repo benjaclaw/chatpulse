@@ -1,6 +1,9 @@
 import { getStripe, STRIPE_PRICE_MAP } from "@/lib/stripe";
 import { createServiceClient } from "@/lib/supabase/service";
+import { isValidUUID } from "@/lib/utils";
 import type { PlanId } from "@/lib/plans";
+
+const VALID_PLAN_IDS = new Set<string>(["free", "basic", "startup", "pro"]);
 
 export const runtime = "nodejs";
 
@@ -36,7 +39,7 @@ export async function POST(request: Request): Promise<Response> {
       const workspaceId = session.metadata?.workspaceId;
       const planId = session.metadata?.planId;
 
-      if (workspaceId && planId) {
+      if (workspaceId && planId && isValidUUID(workspaceId) && VALID_PLAN_IDS.has(planId)) {
         await supabase
           .from("workspaces")
           .update({

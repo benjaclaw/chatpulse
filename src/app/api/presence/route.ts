@@ -5,12 +5,32 @@ import { isValidUUID } from "@/lib/utils";
 
 export const runtime = "nodejs";
 
+// --- In-memory rate limiting for PUT ---
+const putRateMap = new Map<string, { count: number; resetAt: number }>();
+const PUT_RATE_LIMIT = 20; // 20 status updates per minute per user
+const PUT_WINDOW_MS = 60_000;
+
+function checkPutRate(key: string): boolean {
+  const now = Date.now();
+  const bucket = putRateMap.get(key);
+  if (!bucket || now > bucket.resetAt) {
+    putRateMap.set(key, { count: 1, resetAt: now + PUT_WINDOW_MS });
+    return true;
+  }
+  bucket.count++;
+  return bucket.count <= PUT_RATE_LIMIT;
+}
+
 // PUT: Update agent status (authenticated)
 export async function PUT(request: Request): Promise<Response> {
   const { supabase, user } = await getAuthenticatedClient(request);
 
   if (!user || !supabase) {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
+  }
+
+  if (!checkPutRate(user.id)) {
+    return Response.json({ error: "Too many requests" }, { status: 429 });
   }
 
   let body: { workspaceId: string; status: string };
