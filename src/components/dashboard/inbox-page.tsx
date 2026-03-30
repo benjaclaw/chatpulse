@@ -28,6 +28,13 @@ export function InboxPageClient(): React.ReactNode {
     return () => { cancelled = true; };
   }, []);
 
+  // Request browser notification permission
+  useEffect(() => {
+    if (typeof Notification !== "undefined" && Notification.permission === "default") {
+      Notification.requestPermission();
+    }
+  }, []);
+
   const { conversations, setConversations, loading, hasMore, loadingMore, loadMore, loadConversations } =
     useConversations(workspace.id, filter);
 
@@ -61,12 +68,12 @@ export function InboxPageClient(): React.ReactNode {
     setConversations((prev) =>
       prev.map((c) => c.id === conversationId ? { ...c, status: "closed" } : c)
     );
+    if (selectedId === conversationId) setSelectedId(null);
     await fetch("/api/live-chat/close", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ conversationId }),
     });
-    if (selectedId === conversationId) setSelectedId(null);
     loadConversations();
   }
 

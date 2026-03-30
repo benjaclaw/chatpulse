@@ -195,7 +195,7 @@ export function ChatPanel({
             <ArrowLeft className="h-4 w-4" />
           </button>
           <span className="text-sm font-medium">
-            {selectedLeadInfo?.name || selectedLeadInfo?.email || selectedConv?.visitor_id?.slice(0, 8)}
+            {selectedLeadInfo?.name || selectedLeadInfo?.email || (selectedConv?.visitor_id ? `Besøkende #${selectedConv.visitor_id.slice(-4)}` : "")}
           </span>
         </div>
         <div className="flex items-center gap-1">

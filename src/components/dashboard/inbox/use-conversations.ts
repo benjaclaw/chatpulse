@@ -92,8 +92,14 @@ export function useConversations(workspaceId: string, filter: "waiting" | "human
           if (!notifiedConversationsRef.current.has(conv.id)) {
             notifiedConversationsRef.current.add(conv.id);
             playNotificationSound();
+            // Send browser notification when tab is hidden
+            if (typeof document !== "undefined" && document.hidden && typeof Notification !== "undefined" && Notification.permission === "granted") {
+              try { new Notification("Ny henvendelse", { body: "En ny samtale venter i innboksen", tag: `new-conv-${conv.id}` }); } catch { /* ignore */ }
+            }
           }
           loadConversations();
+          // Re-fetch after a delay to catch lead data created after the conversation INSERT
+          setTimeout(() => loadConversations(), 1500);
         } else if (payload.eventType === "UPDATE") {
           loadConversations();
         }
