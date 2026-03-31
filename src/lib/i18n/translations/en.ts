@@ -504,6 +504,12 @@ const en: Record<string, string> = {
   'invite.joining': 'Joining...',
   'invite.accept': 'Accept invite',
   'invite.token': 'Invite code',
+  'invite.loginRequired': 'Log in or create an account to join the workspace.',
+  'invite.loginToJoin': 'Log in to join',
+  'invite.signupToJoin': 'Create account to join',
+  'invite.successTitle': 'You\'re in!',
+  'invite.successDescription': 'You are now a member of {workspace}.',
+  'invite.goToDashboard': 'Go to dashboard',
 
   // Cookie banner
   'cookie.message': 'We use cookies to improve your experience.',

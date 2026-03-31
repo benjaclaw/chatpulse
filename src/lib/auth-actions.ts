@@ -4,9 +4,17 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
 
+function safeRedirect(url: string | null): string {
+  if (!url || !url.startsWith("/") || url.startsWith("//") || url.includes("://")) {
+    return "/dashboard";
+  }
+  return url;
+}
+
 export async function login(formData: FormData): Promise<ActionResult> {
   const email = (formData.get("email") as string)?.trim().slice(0, 254);
   const password = formData.get("password") as string;
+  const redirectTo = safeRedirect(formData.get("redirect") as string | null);
 
   if (!email || !password) {
     return { error: "Email and password are required" };
@@ -27,7 +35,7 @@ export async function login(formData: FormData): Promise<ActionResult> {
     return { error: error.message };
   }
 
-  redirect("/dashboard");
+  redirect(redirectTo);
 }
 
 export async function signup(formData: FormData): Promise<ActionResult> {
@@ -58,11 +66,15 @@ export async function signup(formData: FormData): Promise<ActionResult> {
 
   const supabase = await createClient();
 
+  const redirectTo = safeRedirect(formData.get("redirect") as string | null);
+  const siteUrl = process.env.NEXT_PUBLIC_SITE_URL || (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : "http://localhost:3000");
+
   const { error } = await supabase.auth.signUp({
     email,
     password,
     options: {
       data: { full_name: name },
+      emailRedirectTo: `${siteUrl}/auth/callback?next=${encodeURIComponent(redirectTo)}`,
     },
   });
 

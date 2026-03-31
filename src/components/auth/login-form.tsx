@@ -31,9 +31,16 @@ export function LoginForm(): React.ReactNode {
   });
   const t = createT(language);
 
+  const redirectParam = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('redirect')
+    : null;
+
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    if (redirectParam) {
+      formData.set("redirect", redirectParam);
+    }
     await handleSubmit(() => login(formData));
   }
 
@@ -44,7 +51,7 @@ export function LoginForm(): React.ReactNode {
         <CardDescription>{t('auth.login.description')}</CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <GoogleSignInButton />
+        <GoogleSignInButton redirectTo={redirectParam} />
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
@@ -109,7 +116,7 @@ export function LoginForm(): React.ReactNode {
           <p className="text-sm text-muted-foreground">
             {t('auth.login.noAccount')}{" "}
             <Link
-              href="/signup"
+              href={redirectParam ? `/signup?redirect=${encodeURIComponent(redirectParam)}` : "/signup"}
               className="font-medium text-primary underline-offset-4 transition-colors hover:underline"
             >
               {t('auth.login.signUp')}

@@ -504,6 +504,12 @@ const nb: Record<string, string> = {
   'invite.joining': 'Blir med...',
   'invite.accept': 'Godta invitasjon',
   'invite.token': 'Invitasjonskode',
+  'invite.loginRequired': 'Logg inn eller opprett en konto for å bli med i workspacen.',
+  'invite.loginToJoin': 'Logg inn for å bli med',
+  'invite.signupToJoin': 'Opprett konto for å bli med',
+  'invite.successTitle': 'Du er med!',
+  'invite.successDescription': 'Du er nå medlem av {workspace}.',
+  'invite.goToDashboard': 'Gå til dashboard',
 
   // Cookie banner
   'cookie.message': 'Vi bruker cookies for å forbedre opplevelsen.',

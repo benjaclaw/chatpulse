@@ -1,5 +1,6 @@
 import { AcceptInviteClient } from "@/components/invite/accept-invite";
 import { CenteredLayout } from "@/components/auth/centered-layout";
+import { createClient } from "@/lib/supabase/server";
 import { AlertTriangle } from "lucide-react";
 import Link from "next/link";
 
@@ -35,9 +36,14 @@ export default async function AcceptInvitePage(props: {
     );
   }
 
+  const supabase = await createClient();
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
   return (
     <CenteredLayout>
-      <AcceptInviteClient token={token} />
+      <AcceptInviteClient token={token} isAuthenticated={!!user} />
     </CenteredLayout>
   );
 }

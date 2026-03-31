@@ -7,6 +7,10 @@ export type ActionResult =
   | { error?: never; success: true }
   | void;
 
+export type AcceptInviteResult =
+  | { error: string; success?: never; workspaceName?: never }
+  | { error?: never; success: true; workspaceName: string };
+
 // --- Member roles ---
 
 export type MemberRole = "owner" | "admin" | "member";

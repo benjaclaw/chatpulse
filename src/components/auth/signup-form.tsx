@@ -40,9 +40,16 @@ export function SignupForm(): React.ReactNode {
   const passwordError = touched.password && password.length < 8 ? "Passord må være minst 8 tegn" : null;
   const isValid = EMAIL_RE.test(email) && password.length >= 8;
 
+  const redirectParam = typeof window !== 'undefined'
+    ? new URLSearchParams(window.location.search).get('redirect')
+    : null;
+
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();
     const formData = new FormData(e.currentTarget);
+    if (redirectParam) {
+      formData.set("redirect", redirectParam);
+    }
     await handleSubmit(() => signup(formData));
   }
 
@@ -55,7 +62,7 @@ export function SignupForm(): React.ReactNode {
         </CardDescription>
       </CardHeader>
       <CardContent className="space-y-4">
-        <GoogleSignInButton />
+        <GoogleSignInButton redirectTo={redirectParam} />
         <div className="relative">
           <div className="absolute inset-0 flex items-center">
             <span className="w-full border-t" />
@@ -139,7 +146,7 @@ export function SignupForm(): React.ReactNode {
           <p className="text-sm text-muted-foreground">
             {t('auth.signup.hasAccount')}{" "}
             <Link
-              href="/login"
+              href={redirectParam ? `/login?redirect=${encodeURIComponent(redirectParam)}` : "/login"}
               className="font-medium text-primary underline-offset-4 transition-colors hover:underline"
             >
               {t('auth.signup.signIn')}

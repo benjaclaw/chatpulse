@@ -1,8 +1,9 @@
 "use server";
 
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { redirect } from "next/navigation";
-import type { ActionResult, InviteRecord, MemberRecord } from "@/lib/types";
+import type { ActionResult, AcceptInviteResult, InviteRecord, MemberRecord } from "@/lib/types";
 import { isValidUUID } from "@/lib/utils";
 
 function isValidToken(value: string): boolean {
@@ -80,7 +81,7 @@ export async function sendInvite(workspaceId: string, formData: FormData): Promi
   return { success: true };
 }
 
-export async function acceptInvite(token: string): Promise<ActionResult> {
+export async function acceptInvite(token: string): Promise<AcceptInviteResult> {
   if (!isValidToken(token)) {
     return { error: "Invalid or expired invite" };
   }
@@ -92,13 +93,16 @@ export async function acceptInvite(token: string): Promise<ActionResult> {
   } = await supabase.auth.getUser();
 
   if (!user) {
-    redirect(`/login?redirect=/invite/accept?token=${token}`);
+    return { error: "Not authenticated" };
   }
 
+  // Use service client for DB operations to bypass RLS
+  const serviceClient = createServiceClient();
+
   // Find invite
-  const { data: invite, error: inviteError } = await supabase
+  const { data: invite, error: inviteError } = await serviceClient
     .from("invites")
-    .select("*")
+    .select("*, workspace:workspaces(name)")
     .eq("token", token)
     .is("accepted_at", null)
     .single();
@@ -117,8 +121,8 @@ export async function acceptInvite(token: string): Promise<ActionResult> {
     return { error: "This invite was sent to a different email address" };
   }
 
-  // Add as member
-  const { error: memberError } = await supabase.from("members").insert({
+  // Add as member (service client bypasses RLS)
+  const { error: memberError } = await serviceClient.from("members").insert({
     user_id: user.id,
     workspace_id: invite.workspace_id,
     role: invite.role,
@@ -131,8 +135,8 @@ export async function acceptInvite(token: string): Promise<ActionResult> {
     return { error: memberError.message };
   }
 
-  // Mark invite as accepted
-  const { error: updateError } = await supabase
+  // Mark invite as accepted (service client bypasses RLS)
+  const { error: updateError } = await serviceClient
     .from("invites")
     .update({ accepted_at: new Date().toISOString() })
     .eq("id", invite.id);
@@ -141,7 +145,9 @@ export async function acceptInvite(token: string): Promise<ActionResult> {
     return { error: updateError.message };
   }
 
-  redirect("/dashboard");
+  const workspaceName = (invite.workspace as { name: string } | null)?.name ?? "workspace";
+
+  return { success: true, workspaceName };
 }
 
 export async function getWorkspaceInvites(workspaceId: string): Promise<InviteRecord[]> {
