@@ -4,12 +4,13 @@ interface EmptyStateProps {
   icon: LucideIcon;
   title: string;
   description: string;
+  hint?: string;
   children?: React.ReactNode;
 }
 
-export function EmptyState({ icon: Icon, title, description, children }: EmptyStateProps): React.ReactNode {
+export function EmptyState({ icon: Icon, title, description, hint, children }: EmptyStateProps): React.ReactNode {
   return (
-    <div className="relative overflow-hidden rounded-xl border border-dashed bg-card/50 p-8 text-center transition-colors dark:bg-card/20 sm:p-12">
+    <div className="relative overflow-hidden rounded-xl border border-dashed bg-card/50 p-8 text-center transition-colors dark:bg-card/20 sm:p-12 animate-scroll-fade">
       {/* Decorative background circles */}
       <div className="pointer-events-none absolute -right-6 -top-6 h-24 w-24 rounded-full bg-primary/5 animate-pulse-glow dark:bg-primary/10" />
       <div className="pointer-events-none absolute -bottom-4 -left-4 h-16 w-16 rounded-full bg-accent/5 animate-pulse-glow dark:bg-accent/10" style={{ animationDelay: "1.5s" }} />
@@ -23,6 +24,11 @@ export function EmptyState({ icon: Icon, title, description, children }: EmptySt
         <p className="mx-auto mt-2 max-w-sm text-sm leading-relaxed text-muted-foreground">
           {description}
         </p>
+        {hint && (
+          <p className="mx-auto mt-3 max-w-xs text-xs text-muted-foreground/70 italic">
+            {hint}
+          </p>
+        )}
         {children && <div className="mt-6">{children}</div>}
       </div>
     </div>

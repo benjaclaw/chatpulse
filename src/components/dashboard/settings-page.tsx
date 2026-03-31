@@ -189,7 +189,7 @@ export function SettingsPageClient(): React.ReactNode {
               </code>
               <Button variant="outline" size="icon" onClick={() => copy(inviteCode)} disabled={inviteSaving}>
                 {copied ? (
-                  <Check className="h-4 w-4 text-green-600" />
+                  <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
                 ) : (
                   <Copy className="h-4 w-4" />
                 )}
@@ -528,13 +528,13 @@ function BusinessHoursCard({
         </div>
 
         {bh.enabled && (
-          <div className="space-y-2">
+          <div className="space-y-3 sm:space-y-2">
             {DAYS.map((day) => {
               const schedule = bh.schedule[day];
               const isClosed = schedule === null;
               return (
-                <div key={day} className="flex items-center gap-2">
-                  <span className="w-20 text-sm font-medium">
+                <div key={day} className="flex flex-col gap-2 rounded-lg border p-2.5 sm:flex-row sm:items-center sm:border-0 sm:p-0 sm:rounded-none">
+                  <span className="w-20 shrink-0 text-sm font-medium">
                     {t(`settings.businessHours.day.${day}`)}
                   </span>
                   <button
@@ -543,7 +543,7 @@ function BusinessHoursCard({
                       newSchedule[day] = isClosed ? { start: "09:00", end: "16:00" } : null;
                       setBh({ ...bh, schedule: newSchedule });
                     }}
-                    className={`rounded-md px-2.5 py-1 text-xs font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
+                    className={`shrink-0 self-start rounded-md px-2.5 py-1 text-xs font-medium transition-colors duration-200 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring ${
                       isClosed
                         ? "bg-red-100 text-red-700 hover:bg-red-200 dark:bg-red-900/30 dark:text-red-400 dark:hover:bg-red-900/50"
                         : "bg-green-100 text-green-700 hover:bg-green-200 dark:bg-green-900/30 dark:text-green-400 dark:hover:bg-green-900/50"
@@ -552,7 +552,7 @@ function BusinessHoursCard({
                     {isClosed ? t('settings.businessHours.closedLabel') : t('settings.businessHours.enabled')}
                   </button>
                   {!isClosed && (
-                    <>
+                    <div className="flex items-center gap-2">
                       <Input
                         type="time"
                         value={schedule.start}
@@ -574,7 +574,7 @@ function BusinessHoursCard({
                         }}
                         className="h-8 w-28 text-xs"
                       />
-                    </>
+                    </div>
                   )}
                 </div>
               );

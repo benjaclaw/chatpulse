@@ -201,6 +201,7 @@ export function AnalyticsPageClient(): React.ReactNode {
           icon={BarChart3}
           title={t("analytics.title")}
           description={t("analytics.emptyState")}
+          hint={t("hint.analytics")}
         />
       </div>
     );

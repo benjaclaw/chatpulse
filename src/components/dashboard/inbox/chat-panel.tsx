@@ -177,9 +177,12 @@ export function ChatPanel({
     return (
       <div className={cn("flex flex-1 flex-col", "hidden md:flex")}>
         <div className="flex flex-1 items-center justify-center text-muted-foreground">
-          <div className="text-center">
-            <MessageCircle className="mx-auto h-10 w-10 opacity-20" />
-            <p className="mt-2 text-sm">{t('inbox.selectConversation')}</p>
+          <div className="text-center animate-scroll-fade">
+            <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 dark:bg-primary/20">
+              <MessageCircle className="h-7 w-7 text-primary/50" />
+            </div>
+            <p className="mt-3 text-sm font-medium">{t('inbox.selectConversation')}</p>
+            <p className="mt-1 text-xs text-muted-foreground/60">{t('hint.inbox.waiting')}</p>
           </div>
         </div>
       </div>

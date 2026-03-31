@@ -323,6 +323,7 @@ export function LeadsPageClient(): React.ReactNode {
           icon={UserPlus}
           title={t('leads.empty')}
           description={t('leads.emptyDescription')}
+          hint={t('hint.leads')}
         />
       ) : (
         <>

@@ -754,6 +754,16 @@ const nb: Record<string, string> = {
   'settings.cannedResponses.contentPlaceholder': 'Hei! Hvordan kan jeg hjelpe deg?',
   'settings.cannedResponses.empty': 'Ingen hurtigsvar ennå',
 
+  // Empty state hints
+  'hint.conversations': 'Samtaler dukker opp automatisk etter at chatboten er satt opp og embedded.',
+  'hint.insights': 'Tips: Bruk filteret over for å se besvarte vs. ubesvarte spørsmål.',
+  'hint.analytics': 'Data samles automatisk fra chatbot-samtaler. Kom tilbake etter de første samtalene!',
+  'hint.inbox.waiting': 'Besøkende som ber om hjelp havner her. Slå deg online for å motta samtaler.',
+  'hint.inbox.active': 'Samtaler du har tatt over vises her.',
+  'hint.inbox.closed': 'Ferdige samtaler arkiveres her for referanse.',
+  'hint.leads': 'Leads fanges opp automatisk fra chatbot-samtaler der besøkende oppgir kontaktinfo.',
+  'hint.team.solo': 'Inviter kolleger for samarbeid i live chat og kunnskapsbase.',
+
   // Role labels
   'role.owner': 'Eier',
   'role.admin': 'Admin',

@@ -1,18 +1,18 @@
 export default function CompanyLoading(): React.ReactNode {
   return (
-    <div className="space-y-6">
+    <div className="space-y-6 animate-scroll-fade">
       <div>
-        <div className="h-9 w-44 animate-pulse rounded-lg bg-muted" />
-        <div className="mt-2 h-5 w-72 animate-pulse rounded-md bg-muted" />
+        <div className="h-9 w-44 rounded-lg bg-muted animate-shimmer" />
+        <div className="mt-2 h-5 w-72 rounded-md bg-muted animate-shimmer" style={{ animationDelay: "50ms" }} />
       </div>
       <div className="rounded-xl border bg-card p-6 shadow-sm space-y-4">
         {Array.from({ length: 5 }).map((_, i) => (
           <div key={i} className="space-y-2">
-            <div className="h-4 w-24 animate-pulse rounded bg-muted" />
-            <div className="h-10 w-full animate-pulse rounded-lg bg-muted" />
+            <div className="h-4 w-24 rounded bg-muted animate-shimmer" style={{ animationDelay: `${100 + i * 100}ms` }} />
+            <div className="h-10 w-full rounded-lg bg-muted animate-shimmer" style={{ animationDelay: `${125 + i * 100}ms` }} />
           </div>
         ))}
-        <div className="h-10 w-32 animate-pulse rounded-lg bg-muted" />
+        <div className="h-10 w-32 rounded-lg bg-muted animate-shimmer" style={{ animationDelay: "625ms" }} />
       </div>
     </div>
   );

@@ -95,12 +95,30 @@ export function TeamPageClient(): React.ReactNode {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 animate-scroll-fade">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t('team.title')}</h1>
           <p className="mt-1 text-muted-foreground">
             {t('team.description')}
           </p>
+        </div>
+        <div className="rounded-xl border bg-card shadow-sm">
+          <div className="p-6 space-y-1.5">
+            <div className="h-6 w-32 rounded bg-muted animate-shimmer" />
+            <div className="h-4 w-56 rounded bg-muted animate-shimmer" style={{ animationDelay: "50ms" }} />
+          </div>
+          <div className="px-6 pb-6 space-y-2">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center gap-4 rounded-lg border p-4">
+                <div className="h-10 w-10 shrink-0 rounded-full bg-muted animate-shimmer" style={{ animationDelay: `${100 + i * 100}ms` }} />
+                <div className="flex-1 space-y-1.5">
+                  <div className="h-4 w-32 rounded bg-muted animate-shimmer" style={{ animationDelay: `${125 + i * 100}ms` }} />
+                  <div className="h-3 w-48 rounded bg-muted animate-shimmer" style={{ animationDelay: `${150 + i * 100}ms` }} />
+                </div>
+                <div className="h-6 w-16 rounded-full bg-muted animate-shimmer" style={{ animationDelay: `${175 + i * 100}ms` }} />
+              </div>
+            ))}
+          </div>
         </div>
       </div>
     );
@@ -173,8 +191,8 @@ export function TeamPageClient(): React.ReactNode {
       )}
 
       {members.length === 1 && (
-        <p className="text-sm text-muted-foreground">
-          {t('team.onlyMember')}
+        <p className="text-sm text-muted-foreground italic">
+          {t('team.onlyMember')} {t('hint.team.solo')}
         </p>
       )}
 

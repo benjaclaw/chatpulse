@@ -264,7 +264,7 @@ export function ConversationsPageClient(): React.ReactNode {
       </div>
 
       {/* Search + Export */}
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 sm:flex-row">
         <div className="relative flex-1">
           <Search className="absolute left-3 top-1/2 h-4 w-4 -translate-y-1/2 text-muted-foreground" />
           <Input
@@ -277,6 +277,7 @@ export function ConversationsPageClient(): React.ReactNode {
         <Button
           variant="outline"
           size="default"
+          className="shrink-0"
           onClick={handleExportCsv}
           disabled={exporting}
         >
@@ -315,6 +316,7 @@ export function ConversationsPageClient(): React.ReactNode {
           icon={MessageSquare}
           title={t('conversations.empty')}
           description={t('conversations.emptyDescription')}
+          hint={t('hint.conversations')}
         />
       ) : (
         <div className="space-y-3">

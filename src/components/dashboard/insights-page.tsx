@@ -143,13 +143,25 @@ export function InsightsPageClient(): React.ReactNode {
 
   if (loading && questions.length === 0) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 animate-scroll-fade">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t('insights.title')}</h1>
           <p className="mt-1 text-muted-foreground">
             {t('insights.description')}
           </p>
         </div>
+        <div className="grid gap-4 sm:grid-cols-3">
+          {Array.from({ length: 3 }).map((_, i) => (
+            <div key={i} className="rounded-xl border bg-card p-5 shadow-sm">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-muted animate-shimmer" style={{ animationDelay: `${i * 75}ms` }} />
+                <div className="h-4 w-24 rounded bg-muted animate-shimmer" style={{ animationDelay: `${i * 75 + 25}ms` }} />
+              </div>
+              <div className="mt-2 h-8 w-12 rounded bg-muted animate-shimmer" style={{ animationDelay: `${i * 75 + 50}ms` }} />
+            </div>
+          ))}
+        </div>
+        <div className="h-64 rounded-xl border bg-muted/30 animate-shimmer" style={{ animationDelay: "250ms" }} />
       </div>
     );
   }
@@ -239,6 +251,7 @@ export function InsightsPageClient(): React.ReactNode {
           icon={HelpCircle}
           title={t('insights.empty')}
           description={t('insights.emptyDescription')}
+          hint={t('hint.insights')}
         />
       ) : (
         <div className="space-y-2">

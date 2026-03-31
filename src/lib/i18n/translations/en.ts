@@ -754,6 +754,16 @@ const en: Record<string, string> = {
   'settings.cannedResponses.contentPlaceholder': 'Hi! How can I help you?',
   'settings.cannedResponses.empty': 'No quick replies yet',
 
+  // Empty state hints
+  'hint.conversations': 'Conversations appear automatically once the chatbot is set up and embedded.',
+  'hint.insights': 'Tip: Use the filter above to view answered vs. unanswered questions.',
+  'hint.analytics': 'Data is collected automatically from chatbot conversations. Come back after the first chats!',
+  'hint.inbox.waiting': 'Visitors who ask for help will appear here. Go online to receive conversations.',
+  'hint.inbox.active': 'Conversations you have claimed will appear here.',
+  'hint.inbox.closed': 'Completed conversations are archived here for reference.',
+  'hint.leads': 'Leads are captured automatically from chatbot conversations where visitors provide contact info.',
+  'hint.team.solo': 'Invite colleagues to collaborate on live chat and knowledge base.',
+
   // Role labels
   'role.owner': 'Owner',
   'role.admin': 'Admin',
