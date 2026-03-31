@@ -217,10 +217,6 @@ export function PricingContent(): React.ReactNode {
       >
         <div className="mx-auto max-w-4xl">
           <div className="text-center">
-            <div className="mb-4 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-sm text-muted-foreground shadow-sm">
-              <Sparkles className="h-4 w-4 text-accent" />
-              {t("pricing.setupBadge")}
-            </div>
             <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
               {t("pricing.setupTitle")}
             </h2>
@@ -229,22 +225,7 @@ export function PricingContent(): React.ReactNode {
             </p>
           </div>
 
-          <div className="mt-12 rounded-xl border bg-card p-6 shadow-sm sm:p-8">
-            <h3 className="mb-6 text-lg font-semibold">
-              {t("pricing.setupIncluded")}
-            </h3>
-            <div className="grid gap-4 sm:grid-cols-2">
-              <SetupFeature icon={Upload} text={t("pricing.setupI1")} />
-              <SetupFeature icon={Sparkles} text={t("pricing.setupI2")} />
-              <SetupFeature icon={TestTube} text={t("pricing.setupI3")} />
-              <SetupFeature icon={Code2} text={t("pricing.setupI4")} />
-            </div>
-            <p className="mt-4 text-sm text-muted-foreground">
-              {t("pricing.setupIncludedInPro")}
-            </p>
-          </div>
-
-          <div className="mt-8 grid gap-6 sm:grid-cols-2">
+          <div className="mt-12 grid gap-6 sm:grid-cols-2">
             <div className="rounded-xl border bg-card p-6 shadow-sm">
               <h3 className="text-lg font-semibold">{t("pricing.diyTitle")}</h3>
               <p className="mt-1 text-2xl font-bold">{t("pricing.diyPrice")}</p>
@@ -276,18 +257,12 @@ export function PricingContent(): React.ReactNode {
               <h3 className="text-lg font-semibold">{t("pricing.rtgTitle")}</h3>
               <p className="mt-1 text-2xl font-bold">{t("pricing.rtgPrice")}</p>
               <ul className="mt-6 space-y-3">
-                <li className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  {t("pricing.rtgF1")}
-                </li>
-                <li className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  {t("pricing.rtgF2")}
-                </li>
-                <li className="flex items-start gap-2 text-sm">
-                  <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-                  {t("pricing.rtgF3")}
-                </li>
+                {(["rtgF1", "rtgF2", "rtgF3", "rtgF4", "rtgF5"] as const).map((key) => (
+                  <li key={key} className="flex items-start gap-2 text-sm">
+                    <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+                    {t(`pricing.${key}`)}
+                  </li>
+                ))}
               </ul>
               <a
                 href="mailto:post@chatpulse.no"
