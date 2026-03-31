@@ -47,6 +47,8 @@ export interface PlanDetail {
   id: PlanId;
   name: string;
   priceNok: number;
+  /** Price per month when billed annually (20% discount) */
+  priceNokAnnual: number;
   messageLimit: number;
   features: PlanFeature[];
   /** Hidden plans are not shown on public pricing pages */
@@ -58,6 +60,7 @@ export const PLAN_DETAILS: PlanDetail[] = [
     id: "free",
     name: "Free",
     priceNok: 0,
+    priceNokAnnual: 0,
     messageLimit: 100,
     features: PLAN_FEATURES.free,
     hidden: true,
@@ -66,6 +69,7 @@ export const PLAN_DETAILS: PlanDetail[] = [
     id: "basic",
     name: "Basic",
     priceNok: 499,
+    priceNokAnnual: 399,
     messageLimit: 1000,
     features: PLAN_FEATURES.basic,
   },
@@ -73,6 +77,7 @@ export const PLAN_DETAILS: PlanDetail[] = [
     id: "startup",
     name: "Starter",
     priceNok: 990,
+    priceNokAnnual: 790,
     messageLimit: 3000,
     features: PLAN_FEATURES.startup,
   },
@@ -80,6 +85,7 @@ export const PLAN_DETAILS: PlanDetail[] = [
     id: "pro",
     name: "Pro",
     priceNok: 4990,
+    priceNokAnnual: 3990,
     messageLimit: 15000,
     features: PLAN_FEATURES.pro,
   },

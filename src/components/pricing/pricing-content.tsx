@@ -59,11 +59,15 @@ export function PricingContent(): React.ReactNode {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId, workspaceId }),
+        body: JSON.stringify({
+          planId,
+          workspaceId,
+          billing: annual ? "annual" : "monthly",
+        }),
       });
       const data = await res.json();
       if (data.url) {
-        window.location.href = data.url;
+        window.open(data.url, "_blank");
       } else {
         setCheckoutError(data.error || "Noe gikk galt. Prøv igjen.");
       }

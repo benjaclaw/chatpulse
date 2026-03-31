@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getStripe, STRIPE_PRICE_MAP } from "@/lib/stripe";
+import { getStripe, STRIPE_PRICE_MAP, STRIPE_PRICE_MAP_ANNUAL } from "@/lib/stripe";
 import { isValidUUID } from "@/lib/utils";
 import type { PlanId } from "@/lib/plans";
 import { createRateLimiter } from "@/lib/rate-limit";
@@ -24,14 +24,18 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Too many requests" }, { status: 429 });
   }
 
-  let body: { planId: string; workspaceId: string };
+  let body: { planId: string; workspaceId: string; billing?: "monthly" | "annual" };
   try {
     body = await request.json();
   } catch {
     return Response.json({ error: "Invalid request" }, { status: 400 });
   }
 
-  const { planId, workspaceId } = body;
+  const { planId, workspaceId, billing = "monthly" } = body;
+
+  if (billing !== "monthly" && billing !== "annual") {
+    return Response.json({ error: "Invalid billing period" }, { status: 400 });
+  }
 
   if (!planId || !VALID_PLANS.includes(planId as Exclude<PlanId, "free">)) {
     return Response.json({ error: "Invalid planId" }, { status: 400 });
@@ -53,7 +57,8 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Not authorized to upgrade this workspace" }, { status: 403 });
   }
 
-  const priceId = STRIPE_PRICE_MAP[planId as Exclude<PlanId, "free">];
+  const priceMap = billing === "annual" ? STRIPE_PRICE_MAP_ANNUAL : STRIPE_PRICE_MAP;
+  const priceId = priceMap[planId as Exclude<PlanId, "free">];
   if (!priceId) {
     return Response.json(
       { error: "Price not configured for this plan" },
@@ -68,7 +73,7 @@ export async function POST(request: Request): Promise<Response> {
     line_items: [{ price: priceId, quantity: 1 }],
     success_url: `${appUrl}/dashboard/settings?upgrade=success`,
     cancel_url: `${appUrl}/dashboard/settings`,
-    metadata: { workspaceId, planId, userId: user.id },
+    metadata: { workspaceId, planId, userId: user.id, billing },
     customer_email: user.email ?? undefined,
   });
 
