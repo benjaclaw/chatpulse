@@ -290,12 +290,39 @@ export function LeadsPageClient(): React.ReactNode {
 
   if (loading) {
     return (
-      <div className="space-y-6">
+      <div className="space-y-6 animate-scroll-fade">
         <div>
           <h1 className="text-3xl font-bold tracking-tight">{t('leads.title')}</h1>
           <p className="mt-1 text-muted-foreground">
             {t('leads.description')}
           </p>
+        </div>
+        <div className="grid gap-4 sm:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-xl border bg-card p-5 shadow-sm">
+              <div className="flex items-center gap-2">
+                <div className="h-8 w-8 rounded-lg bg-muted animate-shimmer" style={{ animationDelay: `${i * 75}ms` }} />
+                <div className="h-4 w-20 rounded bg-muted animate-shimmer" style={{ animationDelay: `${i * 75 + 25}ms` }} />
+              </div>
+              <div className="mt-2 h-8 w-12 rounded bg-muted animate-shimmer" style={{ animationDelay: `${i * 75 + 50}ms` }} />
+            </div>
+          ))}
+        </div>
+        <div className="grid gap-4 md:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <div key={i} className="rounded-xl border-2 border-transparent bg-muted/30 p-4 min-h-[200px]">
+              <div className="flex items-center justify-between mb-3">
+                <div className="h-4 w-20 rounded bg-muted animate-shimmer" style={{ animationDelay: `${300 + i * 75}ms` }} />
+                <div className="h-5 w-5 rounded-full bg-muted animate-shimmer" style={{ animationDelay: `${325 + i * 75}ms` }} />
+              </div>
+              {Array.from({ length: 2 }).map((_, j) => (
+                <div key={j} className="mb-2 rounded-lg border bg-card p-3 shadow-sm">
+                  <div className="h-4 w-28 rounded bg-muted animate-shimmer" style={{ animationDelay: `${350 + i * 75 + j * 50}ms` }} />
+                  <div className="mt-1.5 h-3 w-16 rounded bg-muted animate-shimmer" style={{ animationDelay: `${375 + i * 75 + j * 50}ms` }} />
+                </div>
+              ))}
+            </div>
+          ))}
         </div>
       </div>
     );

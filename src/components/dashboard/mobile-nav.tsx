@@ -105,6 +105,9 @@ export function MobileNav({
                     }`}
                     aria-current={active ? "page" : undefined}
                   >
+                    {active && (
+                      <span className="absolute left-0 top-1.5 bottom-1.5 w-[3px] rounded-full bg-primary" />
+                    )}
                     <item.icon className="h-4 w-4 shrink-0" />
                     <span className="flex-1">{t(item.labelKey)}</span>
                     {locked && <Lock className="h-3 w-3 shrink-0 text-muted-foreground/40" />}

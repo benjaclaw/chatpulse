@@ -84,7 +84,7 @@ export function InboxPageClient(): React.ReactNode {
         <p className="mt-1 text-muted-foreground">{t('inbox.description')}</p>
       </div>
 
-      <div className="flex h-[calc(100vh-220px)] min-h-[400px] overflow-hidden rounded-xl border bg-card shadow-sm">
+      <div className="flex h-[calc(100vh-220px)] min-h-[400px] overflow-hidden rounded-xl border bg-card shadow-sm md:h-[calc(100vh-200px)]" style={{ height: "calc(100dvh - 220px)" }}>
         <ConversationList
           conversations={conversations}
           selectedId={selectedId}

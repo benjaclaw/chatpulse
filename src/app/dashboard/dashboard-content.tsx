@@ -115,7 +115,7 @@ export function DashboardContent({ stats }: { stats: DashboardStats }): React.Re
   }, [workspace.id]);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-scroll-fade">
       {/* Page header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>
@@ -187,9 +187,9 @@ export function DashboardContent({ stats }: { stats: DashboardStats }): React.Re
               <div className="space-y-3">
                 {Array.from({ length: 4 }).map((_, i) => (
                   <div key={i} className="flex items-center gap-3">
-                    <div className="h-6 w-6 shrink-0 animate-pulse rounded bg-muted" />
-                    <div className="h-4 flex-1 animate-pulse rounded bg-muted" />
-                    <div className="h-3 w-12 shrink-0 animate-pulse rounded bg-muted" />
+                    <div className="h-6 w-6 shrink-0 rounded bg-muted animate-shimmer" style={{ animationDelay: `${i * 100}ms` }} />
+                    <div className="h-4 flex-1 rounded bg-muted animate-shimmer" style={{ animationDelay: `${i * 100 + 25}ms` }} />
+                    <div className="h-3 w-12 shrink-0 rounded bg-muted animate-shimmer" style={{ animationDelay: `${i * 100 + 50}ms` }} />
                   </div>
                 ))}
               </div>
