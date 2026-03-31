@@ -108,21 +108,28 @@
     if (b && b.parentElement) { positionContainer(b.parentElement); }
   }
 
-  function fetchConfig() {
+  function fetchConfig(callback) {
     try {
       var xhr = new XMLHttpRequest();
       xhr.open("GET", base + "/api/widget-config?chatbotId=" + encodeURIComponent(id), true);
       xhr.onload = function () {
         if (xhr.status === 200) {
-          try { applyConfig(JSON.parse(xhr.responseText)); } catch (_) {}
+          try {
+            var cfg = JSON.parse(xhr.responseText);
+            if (cfg.primaryColor) { color = cfg.primaryColor; }
+            if (cfg.position === "left" || cfg.position === "right") { pos = cfg.position; }
+          } catch (_) {}
         }
+        callback();
       };
+      xhr.onerror = function () { callback(); };
+      xhr.timeout = 3000;
+      xhr.ontimeout = function () { callback(); };
       xhr.send();
-    } catch (_) {}
+    } catch (_) { callback(); }
   }
 
-  function init() {
-    try {
+  function buildUI() {
     if (document.getElementById("chatpulse-widget")) return;
 
     var c = document.createElement("div");
@@ -172,7 +179,11 @@
     c.appendChild(w);
     c.appendChild(b);
     document.body.appendChild(c);
-    fetchConfig();
+  }
+
+  function init() {
+    try {
+    fetchConfig(buildUI);
     } catch (err) { console.error("[ChatPulse] Widget init failed:", err); }
   }
 
