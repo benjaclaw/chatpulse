@@ -517,6 +517,7 @@ const en: Record<string, string> = {
   'plans.usage': '{used} / {limit} messages used this month',
   'plans.features': 'Features included',
   'plans.upgradePlan': 'Upgrade plan',
+  'plans.managePlan': 'Manage plan',
   'plans.free': 'Free',
   'plans.perMonth': '/mo',
   'plans.messageLimit': '{limit} messages/mo',

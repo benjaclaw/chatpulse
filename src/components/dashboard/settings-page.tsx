@@ -396,19 +396,58 @@ function PlanCard({
           </div>
         </div>
 
-        {/* Upgrade link */}
-        {workspace.plan_id !== "pro" && (
-          <Link
-            href="/dashboard/upgrade"
-            className={cn(buttonVariants({ variant: "outline" }), "w-full sm:w-auto")}
-          >
-            <Zap className="mr-2 h-4 w-4" />
-            {t('plans.upgradePlan')}
-            <ArrowRight className="ml-2 h-4 w-4" />
-          </Link>
-        )}
+        {/* Plan actions */}
+        <div className="flex flex-col gap-2 sm:flex-row">
+          {workspace.plan_id !== "pro" && (
+            <Link
+              href="/dashboard/upgrade"
+              className={cn(buttonVariants({ variant: "outline" }), "w-full sm:w-auto")}
+            >
+              <Zap className="mr-2 h-4 w-4" />
+              {t('plans.upgradePlan')}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Link>
+          )}
+          {workspace.plan_id !== "free" && (
+            <ManageSubscriptionButton workspaceId={workspace.id} t={t} />
+          )}
+        </div>
       </CardContent>
     </Card>
+  );
+}
+
+function ManageSubscriptionButton({
+  workspaceId,
+  t,
+}: {
+  workspaceId: string;
+  t: (key: string) => string;
+}): React.ReactNode {
+  const [loading, setLoading] = useState(false);
+
+  async function handleClick() {
+    setLoading(true);
+    try {
+      const res = await fetch("/api/stripe/portal", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.open(data.url, "_blank");
+      }
+    } finally {
+      setLoading(false);
+    }
+  }
+
+  return (
+    <Button variant="ghost" onClick={handleClick} disabled={loading} className="w-full sm:w-auto">
+      <CreditCard className="mr-2 h-4 w-4" />
+      {loading ? "..." : t('plans.managePlan')}
+    </Button>
   );
 }
 

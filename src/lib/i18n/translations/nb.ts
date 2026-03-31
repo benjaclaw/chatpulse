@@ -517,6 +517,7 @@ const nb: Record<string, string> = {
   'plans.usage': '{used} / {limit} meldinger brukt denne måneden',
   'plans.features': 'Funksjoner inkludert',
   'plans.upgradePlan': 'Oppgrader plan',
+  'plans.managePlan': 'Administrer plan',
   'plans.free': 'Gratis',
   'plans.perMonth': '/mnd',
   'plans.messageLimit': '{limit} meldinger/mnd',
