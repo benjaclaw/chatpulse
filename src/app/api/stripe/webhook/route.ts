@@ -1,4 +1,4 @@
-import { getStripe, STRIPE_PRICE_MAP } from "@/lib/stripe";
+import { getStripe, getStripePriceMap } from "@/lib/stripe";
 import { createServiceClient } from "@/lib/supabase/service";
 import { isValidUUID } from "@/lib/utils";
 import type { PlanId } from "@/lib/plans";
@@ -77,11 +77,15 @@ export async function POST(request: Request): Promise<Response> {
       const priceId = subscription.items.data[0]?.price.id;
       let newPlanId: PlanId = "free";
 
-      for (const [plan, id] of Object.entries(STRIPE_PRICE_MAP)) {
-        if (id === priceId) {
-          newPlanId = plan as PlanId;
-          break;
+      // Check both monthly and annual price maps
+      for (const billing of ["monthly", "annual"] as const) {
+        for (const [plan, id] of Object.entries(getStripePriceMap(billing))) {
+          if (id === priceId) {
+            newPlanId = plan as PlanId;
+            break;
+          }
         }
+        if (newPlanId !== "free") break;
       }
 
       await supabase

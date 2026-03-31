@@ -13,16 +13,18 @@ export function getStripe(): Stripe {
   return _stripe;
 }
 
-/** Map plan IDs to Stripe Price IDs — read from environment */
-export const STRIPE_PRICE_MAP: Record<Exclude<PlanId, "free">, string> = {
-  basic: process.env.STRIPE_PRICE_BASIC || "",
-  startup: process.env.STRIPE_PRICE_STARTUP || "",
-  pro: process.env.STRIPE_PRICE_PRO || "",
-};
-
-/** Annual price IDs — yearly subscriptions with 20% discount */
-export const STRIPE_PRICE_MAP_ANNUAL: Record<Exclude<PlanId, "free">, string> = {
-  basic: process.env.STRIPE_PRICE_BASIC_ANNUAL || "",
-  startup: process.env.STRIPE_PRICE_STARTUP_ANNUAL || "",
-  pro: process.env.STRIPE_PRICE_PRO_ANNUAL || "",
-};
+/** Map plan IDs to Stripe Price IDs — lazy read to ensure env vars are available */
+export function getStripePriceMap(billing: "monthly" | "annual" = "monthly"): Record<Exclude<PlanId, "free">, string> {
+  if (billing === "annual") {
+    return {
+      basic: process.env.STRIPE_PRICE_BASIC_ANNUAL || "",
+      startup: process.env.STRIPE_PRICE_STARTUP_ANNUAL || "",
+      pro: process.env.STRIPE_PRICE_PRO_ANNUAL || "",
+    };
+  }
+  return {
+    basic: process.env.STRIPE_PRICE_BASIC || "",
+    startup: process.env.STRIPE_PRICE_STARTUP || "",
+    pro: process.env.STRIPE_PRICE_PRO || "",
+  };
+}

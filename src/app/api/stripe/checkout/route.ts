@@ -1,5 +1,5 @@
 import { createClient } from "@/lib/supabase/server";
-import { getStripe, STRIPE_PRICE_MAP, STRIPE_PRICE_MAP_ANNUAL } from "@/lib/stripe";
+import { getStripe, getStripePriceMap } from "@/lib/stripe";
 import { isValidUUID } from "@/lib/utils";
 import type { PlanId } from "@/lib/plans";
 import { createRateLimiter } from "@/lib/rate-limit";
@@ -57,8 +57,7 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Not authorized to upgrade this workspace" }, { status: 403 });
   }
 
-  const priceMap = billing === "annual" ? STRIPE_PRICE_MAP_ANNUAL : STRIPE_PRICE_MAP;
-  const priceId = priceMap[planId as Exclude<PlanId, "free">];
+  const priceId = getStripePriceMap(billing)[planId as Exclude<PlanId, "free">];
   if (!priceId) {
     return Response.json(
       { error: "Price not configured for this plan" },
