@@ -55,6 +55,10 @@ export function PricingContent(): React.ReactNode {
     if (!workspaceId) return;
     setCheckoutLoading(planId);
     setCheckoutError(null);
+
+    // Open window immediately in click context to avoid popup blocker
+    const checkoutWindow = window.open("about:blank", "_blank");
+
     try {
       const res = await fetch("/api/stripe/checkout", {
         method: "POST",
@@ -67,11 +71,17 @@ export function PricingContent(): React.ReactNode {
       });
       const data = await res.json();
       if (data.url) {
-        window.open(data.url, "_blank");
+        if (checkoutWindow) {
+          checkoutWindow.location.href = data.url;
+        } else {
+          window.location.href = data.url;
+        }
       } else {
+        checkoutWindow?.close();
         setCheckoutError(data.error || "Noe gikk galt. Prøv igjen.");
       }
     } catch {
+      checkoutWindow?.close();
       setCheckoutError("Kunne ikke starte checkout. Sjekk tilkoblingen og prøv igjen.");
     } finally {
       setCheckoutLoading(null);
