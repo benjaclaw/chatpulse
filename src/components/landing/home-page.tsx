@@ -152,7 +152,7 @@ export function HomePage(): React.ReactNode {
 
             <div className="relative mt-12 grid gap-8 sm:grid-cols-3">
               {/* Connector line (desktop only) */}
-              <div className="pointer-events-none absolute left-0 right-0 top-7 hidden h-0.5 bg-gradient-to-r from-transparent via-primary/20 to-transparent sm:block" />
+              <div className="pointer-events-none absolute left-0 right-0 top-7 z-0 hidden h-0.5 bg-gradient-to-r from-transparent via-primary/20 to-transparent sm:block" />
 
               <StepCard
                 step={1}
@@ -300,7 +300,7 @@ function StepCard({
   description: string;
 }): React.ReactNode {
   return (
-    <div className="relative text-center">
+    <div className="relative z-10 text-center">
       <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-2xl bg-primary/10 text-primary">
         <Icon className="h-6 w-6" />
       </div>
