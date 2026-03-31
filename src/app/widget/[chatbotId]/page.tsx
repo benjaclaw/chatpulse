@@ -1,5 +1,5 @@
 import { ChatWidget } from "@/components/widget/chat-widget";
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { hasFeature } from "@/lib/plans";
 
 export const dynamic = "force-dynamic";
@@ -14,7 +14,7 @@ export default async function WidgetPage({
   const { chatbotId } = await params;
   const query = await searchParams;
 
-  const supabase = await createClient();
+  const supabase = createServiceClient();
   const { data: config } = await supabase
     .from("chatbot_config")
     .select("name, welcome_message, welcome_messages, widget_styling, logo_url, workspace:workspaces!workspace_id(plan_id)")

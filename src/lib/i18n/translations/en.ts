@@ -503,6 +503,7 @@ const en: Record<string, string> = {
   'invite.description': 'Click below to join the workspace and start collaborating.',
   'invite.joining': 'Joining...',
   'invite.accept': 'Accept invite',
+  'invite.token': 'Invite code',
 
   // Cookie banner
   'cookie.message': 'We use cookies to improve your experience.',

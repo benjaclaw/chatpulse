@@ -185,10 +185,10 @@ export function SettingsPageClient(): React.ReactNode {
         <CardContent>
           <div className="space-y-2">
             <div className="flex items-center gap-3">
-              <code className="flex h-10 items-center rounded-lg border bg-muted px-4 font-mono text-sm tracking-widest">
-                {inviteCode}
+              <code className="flex h-10 items-center rounded-lg border bg-muted px-4 font-mono text-sm tracking-widest overflow-x-auto max-w-xs">
+                {`https://chatpulse.no/invite/accept?token=${inviteCode}`}
               </code>
-              <Button variant="outline" size="icon" onClick={() => copy(inviteCode)} disabled={inviteSaving}>
+              <Button variant="outline" size="icon" onClick={() => copy(`https://chatpulse.no/invite/accept?token=${inviteCode}`)} disabled={inviteSaving}>
                 {copied ? (
                   <Check className="h-4 w-4 text-green-600 dark:text-green-400" />
                 ) : (

@@ -43,7 +43,10 @@ export function AcceptInviteClient({ token }: { token: string }): React.ReactNod
           {t('invite.description')}
         </CardDescription>
       </CardHeader>
-      <CardContent>
+      <CardContent className="space-y-3">
+        <p className="text-center text-sm text-muted-foreground break-all">
+          {t('invite.token')}: <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs">{token}</code>
+        </p>
         <FormError message={error} />
       </CardContent>
       <CardFooter>

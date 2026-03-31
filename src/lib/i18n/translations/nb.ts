@@ -503,6 +503,7 @@ const nb: Record<string, string> = {
   'invite.description': 'Klikk nedenfor for å bli med i workspacen og begynne å samarbeide.',
   'invite.joining': 'Blir med...',
   'invite.accept': 'Godta invitasjon',
+  'invite.token': 'Invitasjonskode',
 
   // Cookie banner
   'cookie.message': 'Vi bruker cookies for å forbedre opplevelsen.',

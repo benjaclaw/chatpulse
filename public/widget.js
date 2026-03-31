@@ -102,7 +102,7 @@
     if (cfg.primaryColor) { color = cfg.primaryColor; }
     if (cfg.position === "left" || cfg.position === "right") { pos = cfg.position; }
     if (b) {
-      b.style.background = color;
+      b.style.setProperty("background", color, "important");
       b.style.marginLeft = pos === "left" ? "" : "auto";
     }
     if (b && b.parentElement) { positionContainer(b.parentElement); }

@@ -5,6 +5,10 @@ import { redirect } from "next/navigation";
 import type { ActionResult, InviteRecord, MemberRecord } from "@/lib/types";
 import { isValidUUID } from "@/lib/utils";
 
+function isValidToken(value: string): boolean {
+  return typeof value === "string" && value.length > 0 && value.length <= 100;
+}
+
 export async function sendInvite(workspaceId: string, formData: FormData): Promise<ActionResult> {
   if (!isValidUUID(workspaceId)) {
     return { error: "Invalid workspaceId" };
@@ -77,7 +81,7 @@ export async function sendInvite(workspaceId: string, formData: FormData): Promi
 }
 
 export async function acceptInvite(token: string): Promise<ActionResult> {
-  if (!isValidUUID(token)) {
+  if (!isValidToken(token)) {
     return { error: "Invalid or expired invite" };
   }
 
