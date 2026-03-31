@@ -5,13 +5,13 @@
   var g = window.ChatPulseConfig || {};
   var id = (s && s.getAttribute("data-chatbot-id")) || g.chatbotId;
   if (!id) { console.error("[ChatPulse] Missing data-chatbot-id."); return; }
-  var color = (s && s.getAttribute("data-primary-color")) || g.primaryColor || "#6366f1";
-  var pos = (s && s.getAttribute("data-position")) || g.position || "right";
+  var color = "#6366f1";
+  var pos = "right";
   var lang = (s && s.getAttribute("data-language")) || g.language || document.documentElement.lang || "";
   if (lang) { lang = lang.split("-")[0].toLowerCase(); }
   var base = "https://chatpulse.no";
   if (s && s.src) { try { base = new URL(s.src).origin; } catch (_) {} }
-  var url = base + "/widget/" + encodeURIComponent(id) + "?color=" + encodeURIComponent(color) + "&position=" + encodeURIComponent(pos) + (lang ? "&lang=" + encodeURIComponent(lang) : "");
+  var url = base + "/widget/" + encodeURIComponent(id) + (lang ? "?lang=" + encodeURIComponent(lang) : "");
   var isOpen = false;
   var iframeLoaded = false;
   var unreadCount = 0;
@@ -98,6 +98,29 @@
     if (open) { unreadCount = 0; updateBadge(); }
   }
 
+  function applyConfig(cfg) {
+    if (cfg.primaryColor) { color = cfg.primaryColor; }
+    if (cfg.position === "left" || cfg.position === "right") { pos = cfg.position; }
+    if (b) {
+      b.style.background = color;
+      b.style.marginLeft = pos === "left" ? "" : "auto";
+    }
+    if (b && b.parentElement) { positionContainer(b.parentElement); }
+  }
+
+  function fetchConfig() {
+    try {
+      var xhr = new XMLHttpRequest();
+      xhr.open("GET", base + "/api/widget-config?chatbotId=" + encodeURIComponent(id), true);
+      xhr.onload = function () {
+        if (xhr.status === 200) {
+          try { applyConfig(JSON.parse(xhr.responseText)); } catch (_) {}
+        }
+      };
+      xhr.send();
+    } catch (_) {}
+  }
+
   function init() {
     try {
     if (document.getElementById("chatpulse-widget")) return;
@@ -149,6 +172,7 @@
     c.appendChild(w);
     c.appendChild(b);
     document.body.appendChild(c);
+    fetchConfig();
     } catch (err) { console.error("[ChatPulse] Widget init failed:", err); }
   }
 

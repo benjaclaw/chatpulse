@@ -27,7 +27,7 @@ export async function GET(request: Request): Promise<Response> {
 
   const { data: config } = await supabase
     .from("chatbot_config")
-    .select("workspace_id")
+    .select("workspace_id, widget_styling")
     .eq("id", chatbotId)
     .single();
 
@@ -45,10 +45,14 @@ export async function GET(request: Request): Promise<Response> {
     .in("status", ["online", "busy"])
     .limit(1); // Only need to know if ANY agent is online
 
+  const styling = config.widget_styling as { primary_color?: string; position?: string } | null;
+
   return Response.json(
     {
       workspaceId,
       agentsOnline: (agents?.length ?? 0) > 0,
+      primaryColor: styling?.primary_color ?? "#6366f1",
+      position: styling?.position ?? "right",
     },
     {
       headers: {

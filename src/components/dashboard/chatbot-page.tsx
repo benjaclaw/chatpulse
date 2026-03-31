@@ -49,7 +49,7 @@ export function ChatbotPageClient(): React.ReactNode {
 
   const widgetBase = "https://chatpulse.no";
   const directLink = config.id ? `${widgetBase}/widget/${config.id}` : "";
-  const scriptEmbed = config.id ? `<script async\n  src="${widgetBase}/widget.js"\n  data-chatbot-id="${config.id}"\n  data-primary-color="${config.widget_styling.primary_color}"\n  data-position="${config.widget_styling.position}">\n</script>` : "";
+  const scriptEmbed = config.id ? `<script async\n  src="${widgetBase}/widget.js"\n  data-chatbot-id="${config.id}">\n</script>` : "";
   const iframeEmbed = config.id ? `<iframe\n  src="${widgetBase}/widget/${config.id}"\n  style="width:400px;height:600px;border:none;border-radius:12px;"\n  title="ChatPulse"\n  allow="clipboard-write">\n</iframe>` : "";
   const { active: saved, trigger: triggerSaved } = useTemporaryFlag();
   const [uploading, setUploading] = useState(false);
