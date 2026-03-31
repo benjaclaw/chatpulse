@@ -267,76 +267,7 @@ export function AnalyticsPageClient(): React.ReactNode {
         </div>
       </div>
 
-      {/* Top questions */}
-      <div className="rounded-xl border bg-card p-6 shadow-sm">
-        <h3 className="text-base font-semibold mb-4">{t("analytics.topTopics")}</h3>
-        {questions.length === 0 ? (
-          <p className="text-sm text-muted-foreground">{t("analytics.noQuestions")}</p>
-        ) : (
-          <div className="space-y-2">
-            {questions.map((q, i) => (
-              <div
-                key={q.id}
-                className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
-              >
-                <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-full bg-primary/10 text-xs font-bold text-primary">
-                  {i + 1}
-                </div>
-                <p className="flex-1 min-w-0 truncate text-sm">{q.question}</p>
-                <div className="flex items-center gap-2 shrink-0">
-                  <span className="text-sm font-medium">{q.count}x</span>
-                  <Badge variant={q.answered ? "secondary" : "destructive"}>
-                    {q.answered ? (
-                      <>
-                        <CheckCircle2 className="mr-1 h-3 w-3" />
-                        {t("analytics.answered")}
-                      </>
-                    ) : (
-                      <>
-                        <XCircle className="mr-1 h-3 w-3" />
-                        {t("analytics.unanswered")}
-                      </>
-                    )}
-                  </Badge>
-                </div>
-              </div>
-            ))}
-          </div>
-        )}
-      </div>
 
-      {/* Value summary */}
-      <div className="rounded-xl border-2 border-primary/20 bg-primary/5 p-6 shadow-sm">
-        <div className="grid gap-6 sm:grid-cols-3">
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-              <Zap className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{totalMessages.toLocaleString()}</p>
-              <p className="text-sm text-muted-foreground">{t("analytics.messagesAnswered")}</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-              <Clock className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">~{hoursSaved}</p>
-              <p className="text-sm text-muted-foreground">{t("analytics.hoursSaved")}</p>
-            </div>
-          </div>
-          <div className="flex items-start gap-3">
-            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
-              <Target className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold">{totalLeads.toLocaleString()}</p>
-              <p className="text-sm text-muted-foreground">{t("analytics.leadsAutomatic")}</p>
-            </div>
-          </div>
-        </div>
-      </div>
     </div>
   );
 }

@@ -69,11 +69,6 @@ export function ConversationList({
           </div>
         ) : conversations.length === 0 ? (
           <div className="flex flex-col items-center gap-2 p-6 text-center">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-muted">
-              <span className="text-lg">
-                {filter === "waiting" ? "\u{23F3}" : filter === "human" ? "\u{1F4AC}" : "\u{2705}"}
-              </span>
-            </div>
             <p className="text-sm font-medium text-muted-foreground">
               {filter === "waiting"
                 ? t('inbox.emptyWaiting')
