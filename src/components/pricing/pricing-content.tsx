@@ -189,7 +189,6 @@ export function PricingContent(): React.ReactNode {
                 t("pricing.proF3"),
                 t("pricing.proF4"),
                 t("pricing.proF5"),
-                t("pricing.proF6"),
               ]}
               cta={t("pricing.proCta")}
               ctaHref="/signup"

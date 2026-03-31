@@ -601,7 +601,7 @@ const nb: Record<string, string> = {
   'pricing.proF3': 'Team-medlemmer og roller',
   'pricing.proF4': 'Ready-to-Go oppsett inkludert',
   'pricing.proF5': 'Dedikert support',
-  'pricing.proF6': 'API-tilgang (kommer)',
+  'pricing.proF6': 'Prioritert support',
   'pricing.proCta': 'Velg Pro',
   'pricing.setupBadge': 'Ferdig oppsett',
   'pricing.setupTitle': 'Ready-to-Go Oppsett — 2 990 kr',

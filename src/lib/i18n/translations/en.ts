@@ -601,7 +601,7 @@ const en: Record<string, string> = {
   'pricing.proF3': 'Team members and roles',
   'pricing.proF4': 'Ready-to-Go setup included',
   'pricing.proF5': 'Dedicated support',
-  'pricing.proF6': 'API access (coming soon)',
+  'pricing.proF6': 'Priority support',
   'pricing.proCta': 'Choose Pro',
   'pricing.setupBadge': 'Done-for-you setup',
   'pricing.setupTitle': 'Ready-to-Go Setup — 2,990 kr',
