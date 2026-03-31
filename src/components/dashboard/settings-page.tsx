@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 import { useRouter, useSearchParams } from "next/navigation";
+import Link from "next/link";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
 import { useClipboard } from "@/hooks/use-clipboard";
 import { useTemporaryFlag } from "@/hooks/use-temporary-flag";
 import { useLanguage } from "@/lib/i18n/context";
 import type { Language } from "@/lib/i18n";
-import { Button } from "@/components/ui/button";
+import { Button, buttonVariants } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
@@ -39,10 +40,10 @@ import {
   Zap,
   Clock,
   Smartphone,
+  ArrowRight,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { getPlanDetail, getPlanLimit, VISIBLE_PLAN_DETAILS } from "@/lib/plans";
-import type { PlanId, PlanFeature } from "@/lib/plans";
+import { getPlanDetail, getPlanLimit } from "@/lib/plans";
 
 type DaySchedule = { start: string; end: string } | null;
 type BusinessHours = {
@@ -370,26 +371,6 @@ function PlanCard({
   const limit = getPlanLimit(workspace.plan_id);
   const used = workspace.message_count;
   const pct = Math.min((used / limit) * 100, 100);
-  const [upgrading, setUpgrading] = useState<string | null>(null);
-  const [showPlans, setShowPlans] = useState(false);
-
-  async function handleUpgrade(planId: Exclude<PlanId, "free">) {
-    setUpgrading(planId);
-    try {
-      const res = await fetch("/api/stripe/checkout", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ planId, workspaceId: workspace.id }),
-      });
-      const data = await res.json();
-      if (data.url) {
-        window.location.href = data.url;
-      }
-    } finally {
-      setUpgrading(null);
-    }
-  }
-
   return (
     <Card>
       <CardHeader>
@@ -415,45 +396,16 @@ function PlanCard({
           </div>
         </div>
 
-        {/* Upgrade button */}
+        {/* Upgrade link */}
         {workspace.plan_id !== "pro" && (
-          <Button variant="outline" className="w-full sm:w-auto" onClick={() => setShowPlans(!showPlans)}>
+          <Link
+            href="/dashboard/upgrade"
+            className={cn(buttonVariants({ variant: "outline" }), "w-full sm:w-auto")}
+          >
             <Zap className="mr-2 h-4 w-4" />
             {t('plans.upgradePlan')}
-          </Button>
-        )}
-
-        {/* Plan selector */}
-        {showPlans && (
-          <div className="grid gap-3 sm:grid-cols-3 pt-2">
-            {VISIBLE_PLAN_DETAILS.map((p) => (
-              <div
-                key={p.id}
-                className={cn(
-                  "rounded-lg border p-4 text-center",
-                  workspace.plan_id === p.id && "border-primary bg-primary/5"
-                )}
-              >
-                <p className="font-semibold">{p.name}</p>
-                <p className="text-lg font-bold">{p.priceNok} kr<span className="text-xs font-normal text-muted-foreground">/mnd</span></p>
-                <p className="mt-1 text-xs text-muted-foreground">{p.messageLimit} meldinger</p>
-                {workspace.plan_id === p.id ? (
-                  <Button variant="outline" size="sm" className="mt-3 w-full" disabled>
-                    {t('plans.currentPlan')}
-                  </Button>
-                ) : (
-                  <Button
-                    size="sm"
-                    className="mt-3 w-full"
-                    disabled={!!upgrading}
-                    onClick={() => handleUpgrade(p.id as Exclude<PlanId, "free">)}
-                  >
-                    {upgrading === p.id ? "..." : t('plans.upgradePlan')}
-                  </Button>
-                )}
-              </div>
-            ))}
-          </div>
+            <ArrowRight className="ml-2 h-4 w-4" />
+          </Link>
         )}
       </CardContent>
     </Card>
