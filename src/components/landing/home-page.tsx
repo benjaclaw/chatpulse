@@ -54,11 +54,6 @@ export function HomePage(): React.ReactNode {
           </div>
 
           <div className="relative z-10 mx-auto max-w-4xl">
-            <div className="mb-6 inline-flex items-center gap-2 rounded-full border bg-card px-4 py-1.5 text-sm text-muted-foreground shadow-sm">
-              <Sparkles className="h-4 w-4 text-accent" />
-              {t("landing.hero.badge")}
-            </div>
-
             <h1 className="font-heading text-4xl font-bold tracking-tight sm:text-5xl lg:text-6xl">
               {t("landing.hero.title")}
               <br />
