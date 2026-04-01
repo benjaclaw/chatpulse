@@ -77,6 +77,18 @@ export function InboxPageClient(): React.ReactNode {
     loadConversations();
   }
 
+  // Delete a conversation
+  async function handleDelete(conversationId: string) {
+    setConversations((prev) => prev.filter((c) => c.id !== conversationId));
+    if (selectedId === conversationId) setSelectedId(null);
+    const res = await fetch("/api/conversations", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ conversationId }),
+    });
+    if (!res.ok) loadConversations(); // Revert on failure
+  }
+
   return (
     <div className="space-y-4">
       <div>
@@ -89,6 +101,7 @@ export function InboxPageClient(): React.ReactNode {
           conversations={conversations}
           selectedId={selectedId}
           onSelect={setSelectedId}
+          onDelete={handleDelete}
           filter={filter}
           onFilterChange={(f) => { setFilter(f); setSelectedId(null); }}
           loading={loading}

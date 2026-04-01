@@ -1,3 +1,5 @@
+import { useState } from "react";
+import { Trash2 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { InboxConversation } from "./use-conversations";
 
@@ -5,6 +7,7 @@ interface ConversationListProps {
   conversations: InboxConversation[];
   selectedId: string | null;
   onSelect: (id: string) => void;
+  onDelete?: (id: string) => Promise<void>;
   filter: "waiting" | "human" | "closed";
   onFilterChange: (f: "waiting" | "human" | "closed") => void;
   loading: boolean;
@@ -18,6 +21,7 @@ export function ConversationList({
   conversations,
   selectedId,
   onSelect,
+  onDelete,
   filter,
   onFilterChange,
   loading,
@@ -26,6 +30,8 @@ export function ConversationList({
   onLoadMore,
   t,
 }: ConversationListProps): React.ReactNode {
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
   return (
     <div
       className={cn(
@@ -87,39 +93,78 @@ export function ConversationList({
         ) : (
           <>
             {conversations.map((conv) => (
-              <button
+              <div
                 key={conv.id}
-                onClick={() => onSelect(conv.id)}
                 className={cn(
-                  "flex w-full items-start gap-3 border-b p-3 text-left transition-all duration-150 hover:bg-muted/50",
+                  "group relative flex w-full items-start gap-3 border-b p-3 text-left transition-all duration-150 hover:bg-muted/50",
                   selectedId === conv.id && "bg-primary/5 border-l-2 border-l-primary dark:bg-primary/10"
                 )}
               >
-                <div className="flex-1 min-w-0">
-                  <div className="flex items-center gap-2">
-                    {conv.status === "waiting" && (
-                      <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
-                    )}
-                    <span className="text-xs font-medium truncate">
-                      {conv.lead_name || conv.lead_email || t('inbox.visitor')}
-                    </span>
-                    <span className={cn(
-                      "ml-auto text-[10px] px-1.5 py-0.5 rounded-full font-medium",
-                      conv.status === "waiting" && "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-                      conv.status === "human" && "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
-                      conv.status === "closed" && "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
-                    )}>
-                      {conv.status === "waiting" ? t('inbox.waiting') : conv.status === "human" ? t('inbox.active') : t('inbox.closed')}
-                    </span>
+                {confirmDeleteId === conv.id ? (
+                  <div className="flex w-full items-center justify-between gap-2">
+                    <p className="text-xs text-muted-foreground">{t('inbox.confirmDelete')}</p>
+                    <div className="flex gap-1.5">
+                      <button
+                        onClick={async (e) => {
+                          e.stopPropagation();
+                          if (!onDelete) return;
+                          setDeleting(true);
+                          await onDelete(conv.id);
+                          setDeleting(false);
+                          setConfirmDeleteId(null);
+                        }}
+                        disabled={deleting}
+                        className="rounded-md bg-red-500 px-2.5 py-1 text-xs font-medium text-white hover:bg-red-600 disabled:opacity-50"
+                      >
+                        {deleting ? t('common.loading') : t('common.delete')}
+                      </button>
+                      <button
+                        onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(null); }}
+                        className="rounded-md border px-2.5 py-1 text-xs font-medium hover:bg-muted"
+                      >
+                        {t('common.cancel')}
+                      </button>
+                    </div>
                   </div>
-                  <p className="mt-1 text-xs text-muted-foreground truncate">
-                    {conv.first_message || t('inbox.noPreview')}
-                  </p>
-                  <p className="mt-0.5 text-[10px] text-muted-foreground/60">
-                    {new Date(conv.started_at).toLocaleString()}
-                  </p>
-                </div>
-              </button>
+                ) : (
+                  <button
+                    onClick={() => onSelect(conv.id)}
+                    className="flex-1 min-w-0 text-left"
+                  >
+                    <div className="flex items-center gap-2">
+                      {conv.status === "waiting" && (
+                        <span className="h-2 w-2 rounded-full bg-orange-500 animate-pulse" />
+                      )}
+                      <span className="text-xs font-medium truncate">
+                        {conv.lead_name || conv.lead_email || t('inbox.visitor')}
+                      </span>
+                      <span className={cn(
+                        "ml-auto text-[10px] px-1.5 py-0.5 rounded-full font-medium",
+                        conv.status === "waiting" && "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+                        conv.status === "human" && "bg-green-100 text-green-700 dark:bg-green-900/30 dark:text-green-400",
+                        conv.status === "closed" && "bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400"
+                      )}>
+                        {conv.status === "waiting" ? t('inbox.waiting') : conv.status === "human" ? t('inbox.active') : t('inbox.closed')}
+                      </span>
+                    </div>
+                    <p className="mt-1 text-xs text-muted-foreground truncate">
+                      {conv.first_message || t('inbox.noPreview')}
+                    </p>
+                    <p className="mt-0.5 text-[10px] text-muted-foreground/60">
+                      {new Date(conv.started_at).toLocaleString()}
+                    </p>
+                  </button>
+                )}
+                {onDelete && confirmDeleteId !== conv.id && (
+                  <button
+                    onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(conv.id); }}
+                    className="absolute right-2 top-2 rounded-md p-1 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-100 dark:hover:bg-red-900/30"
+                    aria-label={t('common.delete')}
+                  >
+                    <Trash2 className="h-3.5 w-3.5 text-red-500" />
+                  </button>
+                )}
+              </div>
             ))}
             {hasMore && (
               <button
