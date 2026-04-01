@@ -1,7 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isValidUUID } from "@/lib/utils";
 import { createRateLimiter } from "@/lib/rate-limit";
-import { checkRateLimit } from "@/lib/api-helpers";
+import { checkRateLimit, requireWorkspaceMember } from "@/lib/api-helpers";
 
 const rateLimiter = createRateLimiter(10); // 10 uploads per minute per user
 
@@ -114,17 +114,8 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  // Verify workspace membership
-  const { data: membership } = await supabase
-    .from("members")
-    .select("role")
-    .eq("workspace_id", workspaceId)
-    .eq("user_id", user.id)
-    .single();
-
-  if (!membership) {
-    return Response.json({ error: "Not a workspace member" }, { status: 403 });
-  }
+  const memberCheck = await requireWorkspaceMember(supabase, user.id, workspaceId);
+  if (memberCheck) return memberCheck;
 
   try {
     const buffer = Buffer.from(await file.arrayBuffer());

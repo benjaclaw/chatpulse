@@ -262,7 +262,7 @@ export function ChatWidget({
     }
   }, []);
 
-  async function handleSend(overrideText?: string) {
+  const handleSend = useCallback(async (overrideText?: string): Promise<void> => {
     const text = overrideText?.trim() || input.trim();
     if (!text || isTyping || limitReached) return;
     setHasInteracted(true);
@@ -323,9 +323,9 @@ export function ChatWidget({
         setIsTyping(false);
       }, 1000 + Math.random() * 500);
     }
-  }
+  }, [input, isTyping, limitReached, liveChatMode, chatbotId, language, handoffTriggered, t, subscribeToRealtime, fetchQueuePosition]);
 
-  async function handleHandoffSubmit(email: string, name: string) {
+  const handleHandoffSubmit = useCallback(async (email: string, name: string): Promise<void> => {
     if (!email.trim() || !name.trim()) return;
     setHandoffSubmitted(true);
 
@@ -382,7 +382,7 @@ export function ChatWidget({
       ]);
       setHandoffSubmitted(false);
     }
-  }
+  }, [chatbotId, t, subscribeToRealtime, fetchQueuePosition]);
 
   // Show choice buttons only if: agents are online, not in live chat, and user hasn't sent a message in THIS conversation (welc + 0 user msgs = show)
   const userMessagesInThisSession = messages.filter((m) => m.role === "user").length;
@@ -400,7 +400,7 @@ export function ChatWidget({
 
   const headerSubtext = liveChatMode ? "Live chat" : agentsOnline ? t('widget.supportOnline') : t('widget.aiAssistant');
 
-  async function handleRating(rating: "good" | "ok" | "bad") {
+  const handleRating = useCallback(async (rating: "good" | "ok" | "bad"): Promise<void> => {
     if (!closedConversationId) return;
     setRatingSubmitted(true);
     try {
@@ -412,7 +412,7 @@ export function ChatWidget({
     } catch {
       // Best-effort, don't block the UI
     }
-  }
+  }, [closedConversationId]);
 
   const csatWidget = chatEnded && closedConversationId && !ratingSubmitted ? (
     <div className="flex flex-col items-center gap-2 py-3 px-2">
@@ -436,7 +436,7 @@ export function ChatWidget({
     <p className="py-2 text-center text-sm text-muted-foreground px-2">{t('widget.csatThanks')}</p>
   ) : null;
 
-  const resetChat = async () => {
+  const resetChat = useCallback(async (): Promise<void> => {
     // Close conversation if it exists and is still waiting
     const convId = conversationIdRef.current;
     if (convId) {
@@ -454,9 +454,9 @@ export function ChatWidget({
     setLiveChatMode(false); conversationIdRef.current = null; setHasInteracted(false); setChatEnded(false); setHandoffTriggered(false); setHandoffSubmitted(false); pendingLiveChatRef.current = null; setClosedConversationId(null); setRatingSubmitted(false);
     try { sessionStorage.removeItem('chatpulse_live_chat_mode'); sessionStorage.removeItem('chatpulse_conversation_id'); sessionStorage.removeItem('chatpulse_workspace_id'); sessionStorage.removeItem('chatpulse_messages'); } catch { /* sessionStorage may be unavailable in embedded widget iframes */ }
     setMessages([{ id: 'welcome', role: 'assistant' as const, content: welcomeMessage || t('widget.defaultWelcome') }]);
-  };
+  }, [welcomeMessage, t]);
 
-  const handleRestartChat = async () => {
+  const handleRestartChat = useCallback(async (): Promise<void> => {
     // Close conversation if it exists
     const convId = conversationIdRef.current;
     if (convId) {
@@ -478,7 +478,7 @@ export function ChatWidget({
     conversationIdRef.current = null;
     setMessages([{ id: "welcome", role: "assistant", content: welcomeMessage || t('widget.defaultWelcome') }]);
     try { sessionStorage.removeItem("chatpulse_messages"); sessionStorage.removeItem('chatpulse_conversation_id'); } catch { /* sessionStorage may be unavailable */ }
-  };
+  }, [welcomeMessage, t]);
 
   const restartButton = chatEnded ? (
     <div className="flex justify-center py-2">

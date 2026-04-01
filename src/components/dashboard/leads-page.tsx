@@ -34,7 +34,6 @@ import { useSortable } from "@dnd-kit/sortable";
 import { CSS } from "@dnd-kit/utilities";
 import {
   UserPlus,
-  Mail,
   Clock,
   Trash2,
   MessageSquare,
@@ -44,10 +43,9 @@ import {
   Check,
   Users,
   CheckCircle2,
-  Archive,
   GripVertical,
 } from "lucide-react";
-import { cn } from "@/lib/utils";
+import { cn, formatDateTime } from "@/lib/utils";
 import type { TranslateFunction } from "@/lib/i18n";
 
 const PAGE_SIZE = 50;
@@ -89,15 +87,6 @@ function timeAgo(dateStr: string, t: TranslateFunction): string {
   return months === 1 ? t('leads.time.monthAgo', { n: months }) : t('leads.time.monthsAgo', { n: months });
 }
 
-function formatDate(dateStr: string, locale: string): string {
-  return new Date(dateStr).toLocaleDateString(locale, {
-    year: "numeric",
-    month: "long",
-    day: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  });
-}
 
 export function LeadsPageClient(): React.ReactNode {
   const workspace = useWorkspace();
@@ -461,7 +450,7 @@ export function LeadsPageClient(): React.ReactNode {
               {/* Created date */}
               <div className="flex items-center gap-2 text-xs text-muted-foreground">
                 <Clock className="h-3.5 w-3.5" />
-                {t('leads.created')} {formatDate(selectedLead.created_at, dateLocale)}
+                {t('leads.created')} {formatDateTime(selectedLead.created_at, dateLocale)}
               </div>
 
               {/* Notes */}
@@ -568,7 +557,7 @@ export function LeadsPageClient(): React.ReactNode {
 
 /* ───── Kanban column ───── */
 
-function KanbanColumn({
+const KanbanColumn = memo(function KanbanColumn({
   status,
   leads,
   onClickLead,
@@ -624,7 +613,7 @@ function KanbanColumn({
       </div>
     </div>
   );
-}
+});
 
 /* ───── Draggable lead card ───── */
 

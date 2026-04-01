@@ -3,7 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { logError } from "@/lib/logger";
 import { isValidUUID } from "@/lib/utils";
 import { createRateLimiter } from "@/lib/rate-limit";
-import { parseJsonBody, checkRateLimit, checkIpRateLimit } from "@/lib/api-helpers";
+import { parseJsonBody, checkRateLimit, checkIpRateLimit, requireWorkspaceMember } from "@/lib/api-helpers";
 
 export const runtime = "nodejs";
 
@@ -34,17 +34,8 @@ export async function PUT(request: Request): Promise<Response> {
     return Response.json({ error: "Invalid workspaceId" }, { status: 400 });
   }
 
-  // Verify user is a member of the workspace
-  const { data: member } = await supabase
-    .from("members")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .eq("workspace_id", workspaceId)
-    .single();
-
-  if (!member) {
-    return Response.json({ error: "Not a member of this workspace" }, { status: 403 });
-  }
+  const memberCheck = await requireWorkspaceMember(supabase, user.id, workspaceId);
+  if (memberCheck) return memberCheck;
 
   const serviceClient = createServiceClient();
   const { error } = await serviceClient

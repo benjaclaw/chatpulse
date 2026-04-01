@@ -1,5 +1,6 @@
-import { useState, useEffect, useRef, useMemo } from "react";
+import { useState, useEffect, useRef, useMemo, type Dispatch, type SetStateAction, type RefObject } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { playNotificationSound } from "@/lib/notification-sound";
 
 export interface InboxMessage {
   id: string;
@@ -9,26 +10,18 @@ export interface InboxMessage {
   metadata?: { internal_note?: boolean } | null;
 }
 
-// Generate a simple notification tone using Web Audio API
-function playNotificationSound(): void {
-  try {
-    const ctx = new AudioContext();
-    const osc = ctx.createOscillator();
-    const gain = ctx.createGain();
-    osc.connect(gain);
-    gain.connect(ctx.destination);
-    osc.frequency.setValueAtTime(880, ctx.currentTime);
-    osc.frequency.setValueAtTime(660, ctx.currentTime + 0.1);
-    gain.gain.setValueAtTime(0.08, ctx.currentTime);
-    gain.gain.exponentialRampToValueAtTime(0.001, ctx.currentTime + 0.3);
-    osc.start(ctx.currentTime);
-    osc.stop(ctx.currentTime + 0.3);
-  } catch {
-    // Audio not supported
-  }
+interface UseMessagesReturn {
+  messages: InboxMessage[];
+  setMessages: Dispatch<SetStateAction<InboxMessage[]>>;
+  visibleMessages: InboxMessage[];
+  visitorTyping: boolean;
+  showNotes: boolean;
+  setShowNotes: Dispatch<SetStateAction<boolean>>;
+  selectedLeadInfo: { name?: string; email?: string } | null;
+  messagesEndRef: RefObject<HTMLDivElement | null>;
 }
 
-export function useMessages(selectedId: string | null) {
+export function useMessages(selectedId: string | null): UseMessagesReturn {
   const supabase = createClient();
   const [messages, setMessages] = useState<InboxMessage[]>([]);
   const [visitorTyping, setVisitorTyping] = useState(false);

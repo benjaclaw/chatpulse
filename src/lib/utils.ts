@@ -34,6 +34,17 @@ export function sanitizeName(value: string): string {
   return value.trim().slice(0, 200);
 }
 
+/** Format a date string with locale-aware date+time. */
+export function formatDateTime(dateStr: string, locale: string): string {
+  return new Date(dateStr).toLocaleDateString(locale, {
+    year: "numeric",
+    month: "long",
+    day: "numeric",
+    hour: "2-digit",
+    minute: "2-digit",
+  });
+}
+
 /** Extract 1-2 character initials from a name or email. */
 export function getInitials(name?: string, email?: string): string {
   if (name) {

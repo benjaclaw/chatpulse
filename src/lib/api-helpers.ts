@@ -1,3 +1,4 @@
+import type { SupabaseClient } from "@supabase/supabase-js";
 import type { RateLimiter } from "./rate-limit";
 
 /**
@@ -33,4 +34,26 @@ export function checkRateLimit(rateLimiter: RateLimiter, key: string): Response 
  */
 export function checkIpRateLimit(request: Request, rateLimiter: RateLimiter): Response | null {
   return checkRateLimit(rateLimiter, getClientIp(request));
+}
+
+/**
+ * Verify that a user is a member of a workspace.
+ * Returns a 403 Response if not a member, or null if membership is confirmed.
+ */
+export async function requireWorkspaceMember(
+  supabase: SupabaseClient,
+  userId: string,
+  workspaceId: string,
+): Promise<Response | null> {
+  const { data: member } = await supabase
+    .from("members")
+    .select("user_id")
+    .eq("user_id", userId)
+    .eq("workspace_id", workspaceId)
+    .single();
+
+  if (!member) {
+    return Response.json({ error: "Not a member of this workspace" }, { status: 403 });
+  }
+  return null;
 }

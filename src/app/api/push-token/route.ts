@@ -2,7 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { isValidUUID } from "@/lib/utils";
 import { createRateLimiter } from "@/lib/rate-limit";
-import { parseJsonBody, checkRateLimit } from "@/lib/api-helpers";
+import { parseJsonBody, checkRateLimit, requireWorkspaceMember } from "@/lib/api-helpers";
 
 export const runtime = "nodejs";
 
@@ -34,17 +34,8 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Invalid field length" }, { status: 400 });
   }
 
-  // Verify workspace membership
-  const { data: member } = await supabase
-    .from("members")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .eq("workspace_id", workspace_id)
-    .single();
-
-  if (!member) {
-    return Response.json({ error: "Not a member of this workspace" }, { status: 403 });
-  }
+  const memberCheck = await requireWorkspaceMember(supabase, user.id, workspace_id);
+  if (memberCheck) return memberCheck;
 
   const serviceClient = createServiceClient();
   const { error } = await serviceClient.from("push_tokens").upsert(
