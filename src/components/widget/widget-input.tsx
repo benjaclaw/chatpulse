@@ -64,6 +64,12 @@ export const WidgetInput = ({
           value={value}
           onChange={(e) => onChange(e.target.value)}
           onKeyDown={handleKeyDown}
+          onFocus={() => {
+            /* Scroll input into view when mobile keyboard opens */
+            setTimeout(() => {
+              ref.current?.scrollIntoView({ behavior: "smooth", block: "end" });
+            }, 300);
+          }}
           placeholder={placeholderText || (liveChatMode ? 'Skriv til medarbeideren…' : agentsOnline ? 'Skriv en melding til kundeservice…' : 'Spør meg om noe…')}
           disabled={disabled}
           rows={1}
