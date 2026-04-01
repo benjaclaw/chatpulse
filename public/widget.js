@@ -12,8 +12,8 @@
   var pos = (s && s.getAttribute("data-position")) || (cached && cached.p) || "right";
   var lang = (s && s.getAttribute("data-language")) || g.language || document.documentElement.lang || "";
   if (lang) { lang = lang.split("-")[0].toLowerCase(); }
-  var base = "https://chatpulse.no";
-  if (s && s.src) { try { base = new URL(s.src).origin; } catch (_) {} }
+  var base = "https://www.chatpulse.no";
+  if (s && s.src) { try { var srcOrigin = new URL(s.src).origin; if (srcOrigin.indexOf("chatpulse") > -1) { base = "https://www.chatpulse.no"; } else { base = srcOrigin; } } catch (_) {} }
   var url = base + "/widget/" + encodeURIComponent(id) + (lang ? "?lang=" + encodeURIComponent(lang) : "");
   var isOpen = false;
   var iframeLoaded = false;
