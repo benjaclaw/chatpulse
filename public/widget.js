@@ -27,10 +27,8 @@
   function applySize() {
     if (!w) return;
     if (isMobile()) {
-      w.style.width = "100vw";
-      /* Use visualViewport height when available (accounts for on-screen keyboard) */
-      var vh = (window.visualViewport ? window.visualViewport.height : window.innerHeight) + "px";
-      w.style.height = vh;
+      w.style.width = "100%";
+      w.style.height = "100%";
       w.style.maxHeight = "none";
       w.style.borderRadius = "0";
       w.style.marginBottom = "0";
@@ -57,21 +55,26 @@
 
   function positionContainer(c) {
     if (isMobile() && isOpen) {
-      /* Fullscreen when open on mobile */
-      c.style.bottom = "0";
-      c.style.top = "0";
+      /* Fullscreen when open on mobile — use visualViewport to avoid keyboard overlap */
+      var vvh = window.visualViewport ? window.visualViewport.height : window.innerHeight;
+      var vvTop = window.visualViewport ? window.visualViewport.offsetTop : 0;
+      c.style.top = vvTop + "px";
       c.style.left = "0";
       c.style.right = "0";
+      c.style.bottom = "auto";
+      c.style.height = vvh + "px";
     } else if (isMobile()) {
       /* FAB position on mobile — 16px from edges */
       c.style.top = "";
       c.style.bottom = "16px";
+      c.style.height = "auto";
       c.style.left = pos === "left" ? "16px" : "";
       c.style.right = pos === "left" ? "" : "16px";
     } else {
       /* Desktop — 20px from edges */
       c.style.top = "";
       c.style.bottom = "20px";
+      c.style.height = "auto";
       c.style.left = pos === "left" ? "20px" : "";
       c.style.right = pos === "left" ? "" : "20px";
     }
@@ -146,8 +149,7 @@
     positionContainer(c);
 
     w = document.createElement("div");
-    var initH = isMobile() ? ((window.visualViewport ? window.visualViewport.height : window.innerHeight) + "px") : "500px";
-    w.style.cssText = "position:relative;" + (isMobile() ? "width:100vw;height:" + initH + ";max-height:none;margin-bottom:0;border-radius:0;" : "width:370px;height:500px;margin-bottom:16px;border-radius:16px;") + "overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s cubic-bezier(.4,0,.2,1);transform:translateY(20px);opacity:0;pointer-events:none;background:#fff;";
+    w.style.cssText = "position:relative;" + (isMobile() ? "width:100%;height:100%;max-height:none;margin-bottom:0;border-radius:0;" : "width:370px;height:500px;margin-bottom:16px;border-radius:16px;") + "overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s cubic-bezier(.4,0,.2,1);transform:translateY(20px);opacity:0;pointer-events:none;background:#fff;";
 
     closeBtn = document.createElement("button");
     closeBtn.setAttribute("aria-label", "Lukk chat");
