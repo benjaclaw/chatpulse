@@ -50,11 +50,12 @@ export async function GET(request: Request): Promise<Response> {
 
   // If styling is missing/null, update it in DB for consistency
   if (!config.widget_styling) {
-    await supabase
-      .from("chatbot_config")
-      .update({ widget_styling: { primary_color: primaryColor, position } })
-      .eq("id", chatbotId)
-      .catch(() => {}); // Silently fail if update fails
+    try {
+      await supabase
+        .from("chatbot_config")
+        .update({ widget_styling: { primary_color: primaryColor, position } })
+        .eq("id", chatbotId);
+    } catch { /* Silently fail */ }
   }
 
   return Response.json(
