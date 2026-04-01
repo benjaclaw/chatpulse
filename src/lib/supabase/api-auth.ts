@@ -8,7 +8,13 @@ import { createClient as createSupabaseClient } from "@supabase/supabase-js";
  *
  * Returns { supabase, user } or { supabase: null, user: null } if unauthenticated.
  */
-export async function getAuthenticatedClient(request: Request) {
+import type { SupabaseClient, User } from "@supabase/supabase-js";
+
+type AuthResult =
+  | { supabase: SupabaseClient; user: User }
+  | { supabase: null; user: null };
+
+export async function getAuthenticatedClient(request: Request): Promise<AuthResult> {
   // First try cookie-based auth (web)
   const cookieClient = await createClient();
   const { data: { user: cookieUser } } = await cookieClient.auth.getUser();

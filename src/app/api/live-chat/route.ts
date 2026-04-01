@@ -5,6 +5,7 @@ import { logError } from "@/lib/logger";
 import { isValidUUID } from "@/lib/utils";
 import { notifyNewMessage } from "@/lib/push";
 import { createRateLimiter } from "@/lib/rate-limit";
+import { parseJsonBody, checkRateLimit } from "@/lib/api-helpers";
 
 export const runtime = "nodejs";
 
@@ -18,12 +19,9 @@ interface LiveChatRequest {
 const rateLimiter = createRateLimiter(30); // 30 messages per minute per conversation
 
 export async function POST(request: Request): Promise<Response> {
-  let body: LiveChatRequest;
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request" }, { status: 400 });
-  }
+  const result = await parseJsonBody<LiveChatRequest>(request);
+  if (result instanceof Response) return result;
+  const body = result;
 
   const { conversationId, content, role, visitorId } = body;
   if (!conversationId || !content?.trim() || !role) {
@@ -38,12 +36,8 @@ export async function POST(request: Request): Promise<Response> {
   const sanitizedContent = content.trim().slice(0, 5000);
 
   // Rate limit per conversation
-  if (!rateLimiter.check(conversationId)) {
-    return Response.json(
-      { error: "Too many messages. Please wait before sending more." },
-      { status: 429 }
-    );
-  }
+  const rateLimited = checkRateLimit(rateLimiter, conversationId);
+  if (rateLimited) return rateLimited;
 
   if (role === "agent") {
     // Agent messages require authentication + assignment check

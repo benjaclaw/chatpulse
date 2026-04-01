@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, memo } from "react";
 import {
   BookOpen,
   MessageSquare,
@@ -46,14 +46,15 @@ function relativeTime(date: Date, t: (key: string) => string): string {
 export function DashboardContent({ stats }: { stats: DashboardStats }): React.ReactNode {
   const { t } = useLanguage();
   const workspace = useWorkspace();
-  const supabase = createClient();
   const [hasKnowledge, setHasKnowledge] = useState<boolean | null>(null);
   const [activities, setActivities] = useState<ActivityItem[]>([]);
   const [loadingActivity, setLoadingActivity] = useState(true);
 
   useEffect(() => {
+    const sb = createClient();
+
     // Check if workspace has knowledge items
-    supabase
+    sb
       .from("knowledge")
       .select("id", { count: "exact", head: true })
       .eq("workspace_id", workspace.id)
@@ -65,7 +66,7 @@ export function DashboardContent({ stats }: { stats: DashboardStats }): React.Re
     async function fetchActivity() {
       const items: ActivityItem[] = [];
 
-      const { data: convs } = await supabase
+      const { data: convs } = await sb
         .from("conversations")
         .select("id, status, created_at, visitor_id, leads(name, email)")
         .eq("workspace_id", workspace.id)
@@ -112,7 +113,7 @@ export function DashboardContent({ stats }: { stats: DashboardStats }): React.Re
     }
 
     fetchActivity();
-  }, [workspace.id]);
+  }, [workspace.id, t]);
 
   return (
     <div className="space-y-8 animate-scroll-fade">
@@ -249,7 +250,7 @@ export function DashboardContent({ stats }: { stats: DashboardStats }): React.Re
   );
 }
 
-function StatCard({
+const StatCard = memo(function StatCard({
   icon: Icon,
   title,
   value,
@@ -276,9 +277,9 @@ function StatCard({
     return <Link href={href}>{content}</Link>;
   }
   return content;
-}
+});
 
-function QuickAction({
+const QuickAction = memo(function QuickAction({
   icon: Icon,
   title,
   description,
@@ -303,4 +304,4 @@ function QuickAction({
       </div>
     </Link>
   );
-}
+});

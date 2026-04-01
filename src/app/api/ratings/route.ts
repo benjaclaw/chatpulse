@@ -2,6 +2,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { logError } from "@/lib/logger";
 import { isValidUUID } from "@/lib/utils";
 import { createRateLimiter } from "@/lib/rate-limit";
+import { parseJsonBody, checkIpRateLimit } from "@/lib/api-helpers";
 
 export const runtime = "nodejs";
 
@@ -9,17 +10,12 @@ const rateLimiter = createRateLimiter(5); // 5 ratings per minute per IP
 
 export async function POST(request: Request): Promise<Response> {
   // Rate limit by IP
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (!rateLimiter.check(ip)) {
-    return Response.json({ error: "Too many requests" }, { status: 429 });
-  }
+  const rateLimited = checkIpRateLimit(request, rateLimiter);
+  if (rateLimited) return rateLimited;
 
-  let body: { conversationId: string; rating: string; visitorId?: string };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request" }, { status: 400 });
-  }
+  const result = await parseJsonBody<{ conversationId: string; rating: string; visitorId?: string }>(request);
+  if (result instanceof Response) return result;
+  const body = result;
 
   const { conversationId, rating, visitorId } = body;
 

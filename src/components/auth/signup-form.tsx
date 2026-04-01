@@ -17,10 +17,9 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2, Eye, EyeOff } from "lucide-react";
-import { createT, type Language } from "@/lib/i18n";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+import { isValidEmail } from "@/lib/utils";
+import { useAuthLanguage } from "@/hooks/use-auth-language";
 
 export function SignupForm(): React.ReactNode {
   const { error, pending, handleSubmit } = useFormAction();
@@ -28,21 +27,11 @@ export function SignupForm(): React.ReactNode {
   const [password, setPassword] = useState("");
   const [showPassword, setShowPassword] = useState(false);
   const [touched, setTouched] = useState<{ email?: boolean; password?: boolean }>({});
-  const [language] = useState<Language>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('chatpulse_lang') as Language) || 'nb';
-    }
-    return 'nb';
-  });
-  const t = createT(language);
+  const { t, redirectParam } = useAuthLanguage();
 
-  const emailError = touched.email && !EMAIL_RE.test(email) ? "Ugyldig e-postadresse" : null;
+  const emailError = touched.email && !isValidEmail(email) ? "Ugyldig e-postadresse" : null;
   const passwordError = touched.password && password.length < 8 ? "Passord må være minst 8 tegn" : null;
-  const isValid = EMAIL_RE.test(email) && password.length >= 8;
-
-  const redirectParam = typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search).get('redirect')
-    : null;
+  const isValid = isValidEmail(email) && password.length >= 8;
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();

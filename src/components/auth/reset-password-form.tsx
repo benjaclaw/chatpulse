@@ -17,18 +17,12 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2, ArrowLeft, KeyRound } from "lucide-react";
-import { createT, type Language } from "@/lib/i18n";
+import { useAuthLanguage } from "@/hooks/use-auth-language";
 
 export function ResetPasswordForm(): React.ReactNode {
   const { error, pending, handleSubmit } = useFormAction();
   const [clientError, setClientError] = useState<string | null>(null);
-  const [language] = useState<Language>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('chatpulse_lang') as Language) || 'nb';
-    }
-    return 'nb';
-  });
-  const t = createT(language);
+  const { t } = useAuthLanguage();
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();

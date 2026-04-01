@@ -3,6 +3,7 @@ import { getStripe, getStripePriceMap } from "@/lib/stripe";
 import { isValidUUID } from "@/lib/utils";
 import type { PlanId } from "@/lib/plans";
 import { createRateLimiter } from "@/lib/rate-limit";
+import { parseJsonBody, checkRateLimit } from "@/lib/api-helpers";
 
 export const runtime = "nodejs";
 
@@ -20,16 +21,12 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!rateLimiter.check(user.id)) {
-    return Response.json({ error: "Too many requests" }, { status: 429 });
-  }
+  const rateLimited = checkRateLimit(rateLimiter, user.id);
+  if (rateLimited) return rateLimited;
 
-  let body: { planId: string; workspaceId: string; billing?: "monthly" | "annual" };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request" }, { status: 400 });
-  }
+  const result = await parseJsonBody<{ planId: string; workspaceId: string; billing?: "monthly" | "annual" }>(request);
+  if (result instanceof Response) return result;
+  const body = result;
 
   const { planId, workspaceId, billing = "monthly" } = body;
 

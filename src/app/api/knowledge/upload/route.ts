@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { isValidUUID } from "@/lib/utils";
 import { createRateLimiter } from "@/lib/rate-limit";
+import { checkRateLimit } from "@/lib/api-helpers";
 
 const rateLimiter = createRateLimiter(10); // 10 uploads per minute per user
 
@@ -66,9 +67,8 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // Rate limit per user
-  if (!rateLimiter.check(user.id)) {
-    return Response.json({ error: "Too many uploads. Please wait before uploading again." }, { status: 429 });
-  }
+  const rateLimited = checkRateLimit(rateLimiter, user.id);
+  if (rateLimited) return rateLimited;
 
   const formData = await request.formData();
   const file = formData.get("file") as File | null;

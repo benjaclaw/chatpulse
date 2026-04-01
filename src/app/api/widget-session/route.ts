@@ -1,16 +1,15 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { isValidUUID } from "@/lib/utils";
 import { createRateLimiter } from "@/lib/rate-limit";
+import { checkIpRateLimit } from "@/lib/api-helpers";
 
 export const runtime = "nodejs";
 
 const rateLimiter = createRateLimiter(30); // 30 per minute per IP
 
 export async function GET(request: Request): Promise<Response> {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (!rateLimiter.check(ip)) {
-    return Response.json({ error: "Too many requests" }, { status: 429 });
-  }
+  const rateLimited = checkIpRateLimit(request, rateLimiter);
+  if (rateLimited) return rateLimited;
 
   const { searchParams } = new URL(request.url);
   const conversationId = searchParams.get("conversationId");

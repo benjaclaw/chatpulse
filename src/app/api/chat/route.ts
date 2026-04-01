@@ -3,6 +3,7 @@ import { getPlanLimit } from "@/lib/plans";
 import { logError } from "@/lib/logger";
 import { isValidUUID } from "@/lib/utils";
 import { createRateLimiter } from "@/lib/rate-limit";
+import { parseJsonBody, checkRateLimit } from "@/lib/api-helpers";
 
 export const runtime = "nodejs";
 
@@ -26,12 +27,9 @@ export async function POST(request: Request): Promise<Response> {
     );
   }
 
-  let body: ChatRequest;
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Ugyldig forespørsel" }, { status: 400 });
-  }
+  const result = await parseJsonBody<ChatRequest>(request);
+  if (result instanceof Response) return result;
+  const body = result;
 
   const { chatbotId, conversationId, message: rawMessage, visitorId, language: detectedLanguage } = body;
   // FIX 2: Limit content length
@@ -57,20 +55,12 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // Rate limit per visitor
-  if (!visitorRateLimiter.check(visitorId)) {
-    return Response.json(
-      { error: "Du sender for mange meldinger. Vennligst vent litt før du prøver igjen." },
-      { status: 429 }
-    );
-  }
+  const visitorLimited = checkRateLimit(visitorRateLimiter, visitorId);
+  if (visitorLimited) return visitorLimited;
 
   // Rate limit per chatbot
-  if (!chatbotRateLimiter.check(chatbotId)) {
-    return Response.json(
-      { error: "Denne chatboten mottar for mange forespørsler akkurat nå. Prøv igjen om litt." },
-      { status: 429 }
-    );
-  }
+  const chatbotLimited = checkRateLimit(chatbotRateLimiter, chatbotId);
+  if (chatbotLimited) return chatbotLimited;
 
   const supabase = createServiceClient();
 

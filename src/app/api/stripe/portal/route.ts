@@ -1,6 +1,7 @@
 import { createClient } from "@/lib/supabase/server";
 import { getStripe } from "@/lib/stripe";
 import { isValidUUID } from "@/lib/utils";
+import { parseJsonBody } from "@/lib/api-helpers";
 
 export const runtime = "nodejs";
 
@@ -16,12 +17,9 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  let body: { workspaceId: string };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request" }, { status: 400 });
-  }
+  const result = await parseJsonBody<{ workspaceId: string }>(request);
+  if (result instanceof Response) return result;
+  const body = result;
 
   const { workspaceId } = body;
 
@@ -44,7 +42,7 @@ export async function POST(request: Request): Promise<Response> {
   // Find Stripe customer for this user
   const stripe = getStripe();
   const customers = await stripe.customers.list({
-    email: user.email!,
+    email: user.email ?? undefined,
     limit: 1,
   });
 

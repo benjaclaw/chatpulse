@@ -2,6 +2,7 @@ import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { isValidUUID } from "@/lib/utils";
 import { createRateLimiter } from "@/lib/rate-limit";
+import { parseJsonBody, checkRateLimit } from "@/lib/api-helpers";
 
 export const runtime = "nodejs";
 
@@ -12,16 +13,12 @@ export async function POST(request: Request): Promise<Response> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (!rateLimiter.check(user.id)) {
-    return Response.json({ error: "Too many requests" }, { status: 429 });
-  }
+  const postLimited = checkRateLimit(rateLimiter, user.id);
+  if (postLimited) return postLimited;
 
-  let body: { expo_push_token: string; device_id: string; workspace_id: string };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request" }, { status: 400 });
-  }
+  const result = await parseJsonBody<{ expo_push_token: string; device_id: string; workspace_id: string }>(request);
+  if (result instanceof Response) return result;
+  const body = result;
 
   const { expo_push_token, device_id, workspace_id } = body;
   if (!expo_push_token || !device_id || !workspace_id) {
@@ -64,17 +61,12 @@ export async function DELETE(request: Request): Promise<Response> {
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) return Response.json({ error: "Unauthorized" }, { status: 401 });
 
-  if (!rateLimiter.check(user.id)) {
-    return Response.json({ error: "Too many requests" }, { status: 429 });
-  }
+  const deleteLimited = checkRateLimit(rateLimiter, user.id);
+  if (deleteLimited) return deleteLimited;
 
-  let body: { device_id: string };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request" }, { status: 400 });
-  }
-  const { device_id } = body;
+  const deleteResult = await parseJsonBody<{ device_id: string }>(request);
+  if (deleteResult instanceof Response) return deleteResult;
+  const { device_id } = deleteResult;
   if (!device_id) return Response.json({ error: "Missing device_id" }, { status: 400 });
 
   if (device_id.length > 200) {

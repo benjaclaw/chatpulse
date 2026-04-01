@@ -1,24 +1,20 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { logError } from "@/lib/logger";
-import { isValidUUID } from "@/lib/utils";
+import { isValidUUID, isValidEmail, sanitizeEmail, sanitizeName } from "@/lib/utils";
 import { createRateLimiter } from "@/lib/rate-limit";
+import { parseJsonBody, checkIpRateLimit } from "@/lib/api-helpers";
 
 export const runtime = "nodejs";
 
 const rateLimiter = createRateLimiter(10); // 10 leads per minute per IP
 
 export async function POST(request: Request): Promise<Response> {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (!rateLimiter.check(ip)) {
-    return Response.json({ error: "Too many requests" }, { status: 429 });
-  }
+  const rateLimited = checkIpRateLimit(request, rateLimiter);
+  if (rateLimited) return rateLimited;
 
-  let body: { email: string; name?: string; workspaceId: string; conversationId: string | null };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Ugyldig forespørsel" }, { status: 400 });
-  }
+  const result = await parseJsonBody<{ email: string; name?: string; workspaceId: string; conversationId: string | null }>(request);
+  if (result instanceof Response) return result;
+  const body = result;
 
   const { email, name, workspaceId, conversationId } = body;
 
@@ -38,8 +34,7 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // Validate email format
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email.trim())) {
+  if (!isValidEmail(email.trim())) {
     return Response.json({ error: "Ugyldig e-postadresse" }, { status: 400 });
   }
 
@@ -80,8 +75,8 @@ export async function POST(request: Request): Promise<Response> {
     .insert({
       workspace_id: workspaceId,
       conversation_id: conversationId || null,
-      email: email.trim().slice(0, 254).toLowerCase(),
-      name: name?.trim().slice(0, 200) || null,
+      email: sanitizeEmail(email),
+      name: name ? sanitizeName(name) : null,
       status: leadStatus,
     })
     .select()

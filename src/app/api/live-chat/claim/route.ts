@@ -4,6 +4,7 @@ import { sendBroadcast } from "@/lib/supabase/broadcast";
 import { logError } from "@/lib/logger";
 import { isValidUUID } from "@/lib/utils";
 import { createRateLimiter } from "@/lib/rate-limit";
+import { parseJsonBody, checkRateLimit } from "@/lib/api-helpers";
 
 export const runtime = "nodejs";
 
@@ -16,18 +17,14 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!rateLimiter.check(user.id)) {
-    return Response.json({ error: "Too many requests" }, { status: 429 });
-  }
+  const rateLimited = checkRateLimit(rateLimiter, user.id);
+  if (rateLimited) return rateLimited;
 
-  let body: { conversationId: string; workspaceId?: string };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request" }, { status: 400 });
-  }
+  const result = await parseJsonBody<{ conversationId: string; workspaceId?: string }>(request);
+  if (result instanceof Response) return result;
+  const body = result;
 
-  const { conversationId, workspaceId } = body;
+  const { conversationId } = body;
   if (!conversationId) {
     return Response.json({ error: "Missing conversationId" }, { status: 400 });
   }
@@ -80,22 +77,17 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Conversation already claimed or not in waiting state" }, { status: 409 });
   }
 
-  // Create assignment record (if user is authenticated)
-  if (user) {
-    await serviceClient
-      .from("agent_assignments")
-      .insert({
-        conversation_id: conversationId,
-        agent_id: user.id,
-      });
-  }
+  // Create assignment record
+  await serviceClient
+    .from("agent_assignments")
+    .insert({
+      conversation_id: conversationId,
+      agent_id: user.id,
+    });
 
   // Get agent name for widget notification
-  let agentName: string | null = null;
-  if (user) {
-    const { data: { user: fullUser } } = await supabase.auth.getUser();
-    agentName = fullUser?.user_metadata?.full_name || fullUser?.user_metadata?.name || null;
-  }
+  const { data: { user: fullUser } } = await supabase.auth.getUser();
+  const agentName: string | null = fullUser?.user_metadata?.full_name || fullUser?.user_metadata?.name || null;
 
   // Broadcast status change to widget with agent name
   await sendBroadcast(`conv-status-${conversationId}`, "status-change", {

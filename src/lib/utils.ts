@@ -16,6 +16,24 @@ export function isValidUUID(value: string): boolean {
   return UUID_RE.test(value);
 }
 
+/** Shared email validation regex. */
+export const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+
+/** Validate email format. */
+export function isValidEmail(value: string): boolean {
+  return EMAIL_RE.test(value);
+}
+
+/** Sanitize and limit an email string. */
+export function sanitizeEmail(value: string): string {
+  return value.trim().slice(0, 254).toLowerCase();
+}
+
+/** Sanitize and limit a name string. */
+export function sanitizeName(value: string): string {
+  return value.trim().slice(0, 200);
+}
+
 /** Extract 1-2 character initials from a name or email. */
 export function getInitials(name?: string, email?: string): string {
   if (name) {

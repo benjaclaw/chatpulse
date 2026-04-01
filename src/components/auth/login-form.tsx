@@ -17,23 +17,13 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Loader2, Eye, EyeOff } from "lucide-react";
-import { createT, type Language } from "@/lib/i18n";
 import { GoogleSignInButton } from "@/components/auth/google-sign-in-button";
+import { useAuthLanguage } from "@/hooks/use-auth-language";
 
 export function LoginForm(): React.ReactNode {
   const { error, pending, handleSubmit } = useFormAction();
   const [showPassword, setShowPassword] = useState(false);
-  const [language] = useState<Language>(() => {
-    if (typeof window !== 'undefined') {
-      return (localStorage.getItem('chatpulse_lang') as Language) || 'nb';
-    }
-    return 'nb';
-  });
-  const t = createT(language);
-
-  const redirectParam = typeof window !== 'undefined'
-    ? new URLSearchParams(window.location.search).get('redirect')
-    : null;
+  const { t, redirectParam } = useAuthLanguage();
 
   async function onSubmit(e: React.FormEvent<HTMLFormElement>): Promise<void> {
     e.preventDefault();

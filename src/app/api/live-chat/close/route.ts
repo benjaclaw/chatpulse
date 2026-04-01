@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { sendBroadcast } from "@/lib/supabase/broadcast";
 import { isValidUUID } from "@/lib/utils";
 import { createRateLimiter } from "@/lib/rate-limit";
+import { parseJsonBody, checkRateLimit } from "@/lib/api-helpers";
 
 export const runtime = "nodejs";
 
@@ -15,18 +16,14 @@ export async function POST(request: Request): Promise<Response> {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!rateLimiter.check(user.id)) {
-    return Response.json({ error: "Too many requests" }, { status: 429 });
-  }
+  const rateLimited = checkRateLimit(rateLimiter, user.id);
+  if (rateLimited) return rateLimited;
 
-  let body: { conversationId: string; workspaceId?: string };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request" }, { status: 400 });
-  }
+  const result = await parseJsonBody<{ conversationId: string; workspaceId?: string }>(request);
+  if (result instanceof Response) return result;
+  const body = result;
 
-  const { conversationId, workspaceId } = body;
+  const { conversationId } = body;
   if (!conversationId) {
     return Response.json({ error: "Missing conversationId" }, { status: 400 });
   }

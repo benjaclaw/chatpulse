@@ -3,6 +3,7 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
+import { isValidEmail } from "@/lib/utils";
 
 function safeRedirect(url: string | null): string {
   if (!url || !url.startsWith("/") || url.startsWith("//") || url.includes("://")) {
@@ -59,8 +60,7 @@ export async function signup(formData: FormData): Promise<ActionResult> {
     return { error: "Name is too long" };
   }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email)) {
+  if (!isValidEmail(email)) {
     return { error: "Invalid email address" };
   }
 
@@ -90,8 +90,7 @@ export async function forgotPassword(email: string): Promise<ActionResult> {
     return { error: "Email is required" };
   }
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(email.trim())) {
+  if (!isValidEmail(email.trim())) {
     return { error: "Invalid email address" };
   }
 

@@ -1,33 +1,30 @@
 import { createServiceClient } from "@/lib/supabase/service";
 import { logError } from "@/lib/logger";
-import { isValidUUID } from "@/lib/utils";
+import { isValidUUID, isValidEmail, sanitizeEmail, sanitizeName } from "@/lib/utils";
 import { notifyNewConversation } from "@/lib/push";
 import { createRateLimiter } from "@/lib/rate-limit";
+import { parseJsonBody, checkIpRateLimit } from "@/lib/api-helpers";
 
 export const runtime = "nodejs";
 
 const rateLimiter = createRateLimiter(5); // 5 handoffs per minute per IP
 
 export async function POST(request: Request): Promise<Response> {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (!rateLimiter.check(ip)) {
-    return Response.json({ error: "Too many requests" }, { status: 429 });
-  }
+  const rateLimited = checkIpRateLimit(request, rateLimiter);
+  if (rateLimited) return rateLimited;
 
-  let body: {
+  interface HandoffBody {
     email: string;
     name: string;
     botId?: string;
     workspaceId?: string;
     visitorId: string;
     conversationId?: string;
-  };
-
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request" }, { status: 400 });
   }
+
+  const result = await parseJsonBody<HandoffBody>(request);
+  if (result instanceof Response) return result;
+  const body = result;
 
   const { email, name, botId, visitorId, conversationId: existingConvId } = body;
 
@@ -37,11 +34,10 @@ export async function POST(request: Request): Promise<Response> {
   }
 
   // Sanitize & limit field lengths
-  const safeEmail = email.trim().slice(0, 254).toLowerCase();
-  const safeName = name.trim().slice(0, 200);
+  const safeEmail = sanitizeEmail(email);
+  const safeName = sanitizeName(name);
 
-  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
-  if (!emailRegex.test(safeEmail)) {
+  if (!isValidEmail(safeEmail)) {
     return Response.json({ error: "Invalid email" }, { status: 400 });
   }
 
@@ -57,7 +53,7 @@ export async function POST(request: Request): Promise<Response> {
 
   try {
     let workspaceId: string = "";
-    let conversation: any;
+    let conversation: { id: string; workspace_id: string; visitor_id: string } | null = null;
 
     // If conversation already exists (from AI chat), use it and update status
     if (existingConvId) {
@@ -126,12 +122,15 @@ export async function POST(request: Request): Promise<Response> {
       conversation = newConv;
     }
 
+    // At this point conversation is guaranteed non-null (created or fetched above)
+    const activeConversation = conversation!;
+
     // 3. Create lead
-    const { data: lead, error: leadError } = await supabase
+    const { error: leadError } = await supabase
       .from("leads")
       .insert({
         workspace_id: workspaceId,
-        conversation_id: conversation.id,
+        conversation_id: activeConversation.id,
         email: safeEmail,
         name: safeName,
         status: "new",
@@ -145,13 +144,13 @@ export async function POST(request: Request): Promise<Response> {
     }
 
     // 4. Send push notification to workspace agents (fire-and-forget)
-    notifyNewConversation(workspaceId, conversation.id, `${safeName}: ny henvendelse`).catch(() => {});
+    notifyNewConversation(workspaceId, activeConversation.id, `${safeName}: ny henvendelse`).catch(() => {});
 
     // 5. Return success with all needed data
     return Response.json(
       {
         ok: true,
-        conversationId: conversation.id,
+        conversationId: activeConversation.id,
         workspaceId,
         queuePosition: 1, // Placeholder — real position fetched separately
       },

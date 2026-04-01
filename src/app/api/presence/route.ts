@@ -3,6 +3,7 @@ import { createServiceClient } from "@/lib/supabase/service";
 import { logError } from "@/lib/logger";
 import { isValidUUID } from "@/lib/utils";
 import { createRateLimiter } from "@/lib/rate-limit";
+import { parseJsonBody, checkRateLimit, checkIpRateLimit } from "@/lib/api-helpers";
 
 export const runtime = "nodejs";
 
@@ -16,16 +17,12 @@ export async function PUT(request: Request): Promise<Response> {
     return Response.json({ error: "Unauthorized" }, { status: 401 });
   }
 
-  if (!putRateLimiter.check(user.id)) {
-    return Response.json({ error: "Too many requests" }, { status: 429 });
-  }
+  const rateLimited = checkRateLimit(putRateLimiter, user.id);
+  if (rateLimited) return rateLimited;
 
-  let body: { workspaceId: string; status: string };
-  try {
-    body = await request.json();
-  } catch {
-    return Response.json({ error: "Invalid request" }, { status: 400 });
-  }
+  const result = await parseJsonBody<{ workspaceId: string; status: string }>(request);
+  if (result instanceof Response) return result;
+  const body = result;
 
   const { workspaceId, status } = body;
   const validStatuses = ["online", "busy", "away", "offline"];
@@ -71,10 +68,8 @@ const getRateLimiter = createRateLimiter(30); // 30 checks per minute per IP
 
 // GET: Check if any agents are online for a workspace (public, uses service client)
 export async function GET(request: Request): Promise<Response> {
-  const ip = request.headers.get("x-forwarded-for")?.split(",")[0]?.trim() || "unknown";
-  if (!getRateLimiter.check(ip)) {
-    return Response.json({ error: "Too many requests" }, { status: 429 });
-  }
+  const getRateLimited = checkIpRateLimit(request, getRateLimiter);
+  if (getRateLimited) return getRateLimited;
 
   const { searchParams } = new URL(request.url);
   const workspaceId = searchParams.get("workspaceId");
