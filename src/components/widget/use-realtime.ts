@@ -21,7 +21,7 @@ export function useRealtimeSubscription(
   realtimeChannelRef: React.MutableRefObject<ReturnType<ReturnType<typeof createClient>["channel"]> | null>,
   typingChannelRef: React.MutableRefObject<ReturnType<ReturnType<typeof createClient>["channel"]> | null>,
   setClosedConversationId?: (id: string | null) => void
-) {
+): (conversationId: string) => (() => void) {
   const subscribeToRealtime = useCallback((conversationId: string) => {
     const supabase = createClient();
     const t = createT(i18nLang);

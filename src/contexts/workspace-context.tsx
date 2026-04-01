@@ -11,7 +11,7 @@ export function WorkspaceProvider({
 }: {
   workspace: Workspace;
   children: React.ReactNode;
-}) {
+}): React.ReactNode {
   return (
     <WorkspaceContext.Provider value={workspace}>
       {children}

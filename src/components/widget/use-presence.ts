@@ -3,7 +3,7 @@ import { useCallback } from "react";
 export function usePresenceCheck(
   setAgentsOnline: (v: boolean) => void,
   workspaceIdRef: React.MutableRefObject<string | null>
-) {
+): (chatbotId: string) => Promise<void> {
   const checkPresence = useCallback(async (chatbotId: string) => {
     try {
       const res = await fetch(`/api/widget-config?chatbotId=${encodeURIComponent(chatbotId)}`);
