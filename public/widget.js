@@ -28,7 +28,7 @@
     if (!w) return;
     if (isMobile()) {
       w.style.width = "100vw";
-      w.style.height = "100vh";
+      w.style.height = "calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px))";
       w.style.maxHeight = "none";
       w.style.borderRadius = "0";
       w.style.marginBottom = "0";
@@ -144,7 +144,7 @@
     positionContainer(c);
 
     w = document.createElement("div");
-    w.style.cssText = "position:relative;" + (isMobile() ? "width:100vw;height:100vh;max-height:none;margin-bottom:0;border-radius:0;" : "width:370px;height:500px;margin-bottom:16px;border-radius:16px;") + "overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s cubic-bezier(.4,0,.2,1);transform:translateY(20px);opacity:0;pointer-events:none;background:#fff;";
+    w.style.cssText = "position:relative;" + (isMobile() ? "width:100vw;height:calc(100dvh - env(safe-area-inset-top, 0px) - env(safe-area-inset-bottom, 0px));max-height:none;margin-bottom:0;border-radius:0;" : "width:370px;height:500px;margin-bottom:16px;border-radius:16px;") + "overflow:hidden;box-shadow:0 8px 32px rgba(0,0,0,.15);transition:transform .3s cubic-bezier(.4,0,.2,1),opacity .3s cubic-bezier(.4,0,.2,1);transform:translateY(20px);opacity:0;pointer-events:none;background:#fff;";
 
     closeBtn = document.createElement("button");
     closeBtn.setAttribute("aria-label", "Lukk chat");
