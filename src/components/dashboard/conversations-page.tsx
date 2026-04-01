@@ -19,6 +19,7 @@ import {
   ChevronUp,
   Search,
   Download,
+  Trash2,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
 import type { ChatMessage } from "@/lib/types";
@@ -84,6 +85,8 @@ export function ConversationsPageClient(): React.ReactNode {
   const [expandedMessages, setExpandedMessages] = useState<ChatMessage[]>([]);
   const [messagesLoading, setMessagesLoading] = useState(false);
   const [exporting, setExporting] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
+  const [deleting, setDeleting] = useState(false);
 
   // Debounce search
   useEffect(() => {
@@ -256,6 +259,22 @@ export function ConversationsPageClient(): React.ReactNode {
     }
   }, [workspaceId, supabase, dateRange, dateLocale, language]);
 
+  const handleDelete = useCallback(async (id: string) => {
+    setDeleting(true);
+    const res = await fetch("/api/conversations", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ conversationId: id }),
+    });
+    if (res.ok) {
+      setConversations((prev) => prev.filter((c) => c.id !== id));
+      setTotalCount((prev) => prev - 1);
+      if (expandedId === id) setExpandedId(null);
+    }
+    setDeleting(false);
+    setConfirmDeleteId(null);
+  }, [expandedId]);
+
   const totalPages = useMemo(() => Math.ceil(totalCount / PAGE_SIZE), [totalCount]);
 
   return (
@@ -326,7 +345,30 @@ export function ConversationsPageClient(): React.ReactNode {
       ) : (
         <div className="space-y-3">
           {conversations.map((conv) => (
-            <div key={conv.id}>
+            <div key={conv.id} className="group relative">
+              {confirmDeleteId === conv.id ? (
+                <div className="flex items-center justify-between rounded-xl border bg-card p-4 shadow-sm">
+                  <p className="text-sm text-muted-foreground">{t('inbox.confirmDelete')}</p>
+                  <div className="flex gap-2">
+                    <Button
+                      size="sm"
+                      variant="destructive"
+                      disabled={deleting}
+                      onClick={() => handleDelete(conv.id)}
+                    >
+                      {deleting ? t('common.loading') : t('common.delete')}
+                    </Button>
+                    <Button
+                      size="sm"
+                      variant="outline"
+                      onClick={() => setConfirmDeleteId(null)}
+                    >
+                      {t('common.cancel')}
+                    </Button>
+                  </div>
+                </div>
+              ) : (
+              <>
               <button
                 onClick={() => handleExpand(conv.id)}
                 className="flex w-full items-center gap-4 rounded-xl border bg-card p-4 text-left shadow-sm transition-all duration-200 hover:shadow-md hover:bg-muted/30"
@@ -368,6 +410,15 @@ export function ConversationsPageClient(): React.ReactNode {
                   <ChevronDown className="h-5 w-5 shrink-0 text-muted-foreground" />
                 )}
               </button>
+              <button
+                onClick={(e) => { e.stopPropagation(); setConfirmDeleteId(conv.id); }}
+                className="absolute right-12 top-4 rounded-md p-1.5 opacity-0 transition-opacity group-hover:opacity-100 hover:bg-red-100 dark:hover:bg-red-900/30"
+                aria-label={t('common.delete')}
+              >
+                <Trash2 className="h-4 w-4 text-red-500" />
+              </button>
+              </>
+              )}
 
               {/* Expanded messages */}
               {expandedId === conv.id && (
