@@ -54,10 +54,7 @@ export async function POST(request: Request): Promise<Response> {
 
     case "customer.subscription.deleted": {
       const subscription = event.data.object;
-      const customerId =
-        typeof subscription.customer === "string"
-          ? subscription.customer
-          : subscription.customer;
+      const customerId = String(subscription.customer);
 
       await supabase
         .from("workspaces")
@@ -68,10 +65,7 @@ export async function POST(request: Request): Promise<Response> {
 
     case "customer.subscription.updated": {
       const subscription = event.data.object;
-      const customerId =
-        typeof subscription.customer === "string"
-          ? subscription.customer
-          : subscription.customer;
+      const customerId = String(subscription.customer);
 
       // Determine the plan from the subscription's price
       const priceId = subscription.items.data[0]?.price.id;
