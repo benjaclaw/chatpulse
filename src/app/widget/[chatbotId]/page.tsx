@@ -48,6 +48,10 @@ export default async function WidgetPage({
 
   return (
     <div className="flex h-dvh w-full flex-col">
+      {/* CSS-based swap: loader hides when ChatWidget mounts and removes #widget-loader */}
+      <style dangerouslySetInnerHTML={{ __html: `
+        #widget-loader + .chatpulse-widget-root { display: none; }
+      ` }} />
       {/* Inline loading state — visible until React hydrates and mounts ChatWidget */}
       <div
         id="widget-loader"
@@ -61,7 +65,7 @@ export default async function WidgetPage({
           <div className="flex items-center gap-2">
             <div className="flex h-8 w-8 items-center justify-center rounded-full bg-white/20 animate-pulse" />
             <div>
-              <p className="text-sm font-semibold text-white">ChatPulse</p>
+              <p className="text-sm font-semibold text-white">{botName}</p>
               <p className="flex items-center gap-1.5 text-xs text-white/70">AI-assistent</p>
             </div>
           </div>
@@ -85,17 +89,19 @@ export default async function WidgetPage({
           </div>
         </div>
       </div>
-      <ChatWidget
-        inline
-        chatbotId={chatbotId}
-        botName={botName}
-        welcomeMessage={welcomeMessage}
-        primaryColor={primaryColor}
-        logoUrl={logoUrl}
-        language={lang}
-        hideWatermark={hideWatermark}
-        className="h-full w-full !rounded-none border-0 shadow-none"
-      />
+      <div className="chatpulse-widget-root flex h-full w-full flex-col">
+        <ChatWidget
+          inline
+          chatbotId={chatbotId}
+          botName={botName}
+          welcomeMessage={welcomeMessage}
+          primaryColor={primaryColor}
+          logoUrl={logoUrl}
+          language={lang}
+          hideWatermark={hideWatermark}
+          className="h-full w-full !rounded-none border-0 shadow-none"
+        />
+      </div>
     </div>
   );
 }
