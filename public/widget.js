@@ -102,14 +102,17 @@
   }
 
   function applyConfig(cfg) {
-    if (cfg.primaryColor) { color = cfg.primaryColor; }
-    if (cfg.position === "left" || cfg.position === "right") { pos = cfg.position; }
-    try { localStorage.setItem(cacheKey, JSON.stringify({ c: color, p: pos })); } catch (_) {}
-    if (b) {
-      b.style.setProperty("background", color, "important");
-      b.style.marginLeft = pos === "left" ? "" : "auto";
+    var changed = false;
+    if (cfg.primaryColor && cfg.primaryColor !== color) { color = cfg.primaryColor; changed = true; }
+    if (cfg.position && cfg.position !== pos) { pos = cfg.position; changed = true; }
+    if (changed) {
+      try { localStorage.setItem(cacheKey, JSON.stringify({ c: color, p: pos })); } catch (_) {}
+      if (b) {
+        b.style.backgroundColor = color;
+        b.style.marginLeft = pos === "left" ? "" : "auto";
+      }
+      if (b && b.parentElement) { positionContainer(b.parentElement); }
     }
-    if (b && b.parentElement) { positionContainer(b.parentElement); }
   }
 
   function fetchConfig(callback) {
@@ -152,12 +155,23 @@
 
     b = document.createElement("button");
     b.setAttribute("aria-label", "Åpne chat");
-    b.style.cssText = "width:56px;height:56px;border-radius:50%;border:none;cursor:pointer;background:" + color + ";box-shadow:0 4px 12px rgba(0,0,0,.2);display:flex;align-items:center;justify-content:center;transition:transform .15s ease,box-shadow .15s ease;" + (pos === "left" ? "" : "margin-left:auto;");
+    b.style.width = "56px";
+    b.style.height = "56px";
+    b.style.borderRadius = "50%";
+    b.style.border = "none";
+    b.style.cursor = "pointer";
+    b.style.backgroundColor = color;
+    b.style.boxShadow = "0 4px 12px rgba(0,0,0,.2)";
+    b.style.display = "flex";
+    b.style.alignItems = "center";
+    b.style.justifyContent = "center";
+    b.style.transition = "transform .15s ease,box-shadow .15s ease";
+    b.style.position = "relative";
+    if (pos !== "left") b.style.marginLeft = "auto";
     b.innerHTML = openIcon;
     b.onmouseenter = function () { b.style.transform = "scale(1.08)"; b.style.boxShadow = "0 6px 20px rgba(0,0,0,.25)"; };
     b.onmouseleave = function () { b.style.transform = "scale(1)"; b.style.boxShadow = "0 4px 12px rgba(0,0,0,.2)"; };
     b.onclick = function () { toggle(b, !isOpen); };
-    b.style.position = "relative";
 
     badge = document.createElement("span");
     badge.style.cssText = "display:none;position:absolute;top:-4px;right:-4px;min-width:20px;height:20px;border-radius:10px;background:#ef4444;color:#fff;font-size:12px;font-weight:600;align-items:center;justify-content:center;padding:0 5px;box-shadow:0 2px 4px rgba(0,0,0,.2);pointer-events:none;font-family:system-ui,sans-serif;";

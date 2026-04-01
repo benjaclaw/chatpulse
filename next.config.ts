@@ -44,6 +44,13 @@ const nextConfig: NextConfig = {
       headers: securityHeaders,
     },
     {
+      // Widget embed script — short cache so updates propagate quickly
+      source: "/widget.js",
+      headers: [
+        { key: "Cache-Control", value: "public, max-age=300, s-maxage=300" },
+      ],
+    },
+    {
       // Widget is embedded in iframes — allow embedding, relax frame-ancestors
       source: "/widget/:path*",
       headers: [
