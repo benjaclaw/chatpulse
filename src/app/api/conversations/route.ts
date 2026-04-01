@@ -39,7 +39,7 @@ export async function DELETE(request: Request): Promise<Response> {
   }
 
   const { data: membership } = await serviceClient
-    .from("workspace_members")
+    .from("members")
     .select("id")
     .eq("workspace_id", conv.workspace_id)
     .eq("user_id", user.id)

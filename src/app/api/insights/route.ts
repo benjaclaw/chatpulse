@@ -29,7 +29,7 @@ export async function DELETE(request: Request): Promise<Response> {
 
     // Verify membership
     const { data: membership } = await serviceClient
-      .from("workspace_members")
+      .from("members")
       .select("id")
       .eq("workspace_id", workspaceId)
       .eq("user_id", user.id)
@@ -56,7 +56,7 @@ export async function DELETE(request: Request): Promise<Response> {
     if (!question) return Response.json({ error: "Not found" }, { status: 404 });
 
     const { data: membership } = await serviceClient
-      .from("workspace_members")
+      .from("members")
       .select("id")
       .eq("workspace_id", question.workspace_id)
       .eq("user_id", user.id)
