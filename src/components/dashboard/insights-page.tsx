@@ -110,18 +110,30 @@ export function InsightsPageClient(): React.ReactNode {
   }, [fetchQuestions]);
 
   const handleDelete = useCallback(async (id: string) => {
-    await supabase.from("questions").delete().eq("id", id);
-    setQuestions((prev) => prev.filter((q) => q.id !== id));
-    setTotalCount((prev) => prev - 1);
-  }, [supabase]);
+    const res = await fetch("/api/insights", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ id }),
+    });
+    if (res.ok) {
+      setQuestions((prev) => prev.filter((q) => q.id !== id));
+      setTotalCount((prev) => prev - 1);
+    }
+  }, []);
 
   async function handleClearAll() {
     if (!confirm(t('insights.confirmClear'))) return;
-    await supabase.from("questions").delete().eq("workspace_id", workspaceId);
-    setQuestions([]);
-    setTotalCount(0);
-    setTotalAnswered(0);
-    setTotalUnanswered(0);
+    const res = await fetch("/api/insights", {
+      method: "DELETE",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ workspaceId, clearAll: true }),
+    });
+    if (res.ok) {
+      setQuestions([]);
+      setTotalCount(0);
+      setTotalAnswered(0);
+      setTotalUnanswered(0);
+    }
   }
 
   const totalPages = useMemo(() => Math.ceil(totalCount / PAGE_SIZE), [totalCount]);
