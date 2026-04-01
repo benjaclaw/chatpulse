@@ -20,7 +20,6 @@ const PLAN_FEATURES: Record<PlanId, PlanFeature[]> = {
     "insights",
     "leads",
     "logo",
-    "white_label",
     "document_upload",
   ],
   pro: [
@@ -29,7 +28,6 @@ const PLAN_FEATURES: Record<PlanId, PlanFeature[]> = {
     "insights",
     "leads",
     "logo",
-    "white_label",
     "document_upload",
     "priority_support",
     "team_members",
