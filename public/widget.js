@@ -5,8 +5,11 @@
   var g = window.ChatPulseConfig || {};
   var id = (s && s.getAttribute("data-chatbot-id")) || g.chatbotId;
   if (!id) { console.error("[ChatPulse] Missing data-chatbot-id."); return; }
-  var color = "#6366f1";
-  var pos = "right";
+  var cacheKey = "chatpulse_cfg_" + id;
+  var cached = null;
+  try { cached = JSON.parse(localStorage.getItem(cacheKey)); } catch (_) {}
+  var color = (s && s.getAttribute("data-color")) || (cached && cached.c) || "#6366f1";
+  var pos = (s && s.getAttribute("data-position")) || (cached && cached.p) || "right";
   var lang = (s && s.getAttribute("data-language")) || g.language || document.documentElement.lang || "";
   if (lang) { lang = lang.split("-")[0].toLowerCase(); }
   var base = "https://chatpulse.no";
@@ -101,6 +104,7 @@
   function applyConfig(cfg) {
     if (cfg.primaryColor) { color = cfg.primaryColor; }
     if (cfg.position === "left" || cfg.position === "right") { pos = cfg.position; }
+    try { localStorage.setItem(cacheKey, JSON.stringify({ c: color, p: pos })); } catch (_) {}
     if (b) {
       b.style.setProperty("background", color, "important");
       b.style.marginLeft = pos === "left" ? "" : "auto";
@@ -116,8 +120,7 @@
         if (xhr.status === 200) {
           try {
             var cfg = JSON.parse(xhr.responseText);
-            if (cfg.primaryColor) { color = cfg.primaryColor; }
-            if (cfg.position === "left" || cfg.position === "right") { pos = cfg.position; }
+            applyConfig(cfg);
           } catch (_) {}
         }
         callback();
