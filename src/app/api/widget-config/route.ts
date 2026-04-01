@@ -45,13 +45,24 @@ export async function GET(request: Request): Promise<Response> {
     .limit(1); // Only need to know if ANY agent is online
 
   const styling = config.widget_styling as { primary_color?: string; position?: string } | null;
+  const primaryColor = styling?.primary_color ?? "#6366f1";
+  const position = styling?.position ?? "right";
+
+  // If styling is missing/null, update it in DB for consistency
+  if (!config.widget_styling) {
+    await supabase
+      .from("chatbot_config")
+      .update({ widget_styling: { primary_color: primaryColor, position } })
+      .eq("id", chatbotId)
+      .catch(() => {}); // Silently fail if update fails
+  }
 
   return Response.json(
     {
       workspaceId,
       agentsOnline: (agents?.length ?? 0) > 0,
-      primaryColor: styling?.primary_color ?? "#6366f1",
-      position: styling?.position ?? "right",
+      primaryColor,
+      position,
     },
     {
       headers: {
