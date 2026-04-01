@@ -85,6 +85,7 @@ export async function notifyNewMessage(
     .from("conversations")
     .select("assigned_to, workspace_id")
     .eq("id", conversationId)
+    .is("deleted_at", null)
     .single();
 
   if (!conv?.assigned_to) return;

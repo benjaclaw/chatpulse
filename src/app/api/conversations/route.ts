@@ -31,6 +31,7 @@ export async function DELETE(request: Request): Promise<Response> {
     .from("conversations")
     .select("workspace_id")
     .eq("id", conversationId)
+    .is("deleted_at", null)
     .single();
 
   if (!conv) {
@@ -48,10 +49,10 @@ export async function DELETE(request: Request): Promise<Response> {
     return Response.json({ error: "Forbidden" }, { status: 403 });
   }
 
-  // Delete messages first (FK constraint), then leads, then conversation
-  await serviceClient.from("messages").delete().eq("conversation_id", conversationId);
-  await serviceClient.from("leads").delete().eq("conversation_id", conversationId);
-  await serviceClient.from("conversations").delete().eq("id", conversationId);
+  // Soft-delete messages and conversation
+  const now = new Date().toISOString();
+  await serviceClient.from("messages").update({ deleted_at: now }).eq("conversation_id", conversationId);
+  await serviceClient.from("conversations").update({ deleted_at: now }).eq("id", conversationId);
 
   return Response.json({ ok: true });
 }

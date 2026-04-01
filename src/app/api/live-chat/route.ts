@@ -53,6 +53,7 @@ export async function POST(request: Request): Promise<Response> {
       .from("conversations")
       .select("id, assigned_to, workspace_id")
       .eq("id", conversationId)
+      .is("deleted_at", null)
       .single();
 
     if (!conversation) {
@@ -102,6 +103,7 @@ export async function POST(request: Request): Promise<Response> {
       .from("conversations")
       .select("id, status, visitor_id")
       .eq("id", conversationId)
+      .is("deleted_at", null)
       .single();
 
     if (!conversation) {

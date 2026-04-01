@@ -33,6 +33,7 @@ export async function GET(request: Request): Promise<Response> {
     .from("conversations")
     .select("id, status, visitor_id")
     .eq("id", conversationId)
+    .is("deleted_at", null)
     .single();
 
   if (!conv || conv.visitor_id !== visitorId) {
@@ -43,6 +44,7 @@ export async function GET(request: Request): Promise<Response> {
     .from("messages")
     .select("id, role, content")
     .eq("conversation_id", conversationId)
+    .is("deleted_at", null)
     .order("created_at", { ascending: true });
 
   return Response.json({

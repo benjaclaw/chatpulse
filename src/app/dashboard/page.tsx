@@ -12,8 +12,8 @@ export default async function DashboardPage(): Promise<React.ReactNode> {
 
   // Get real counts from Supabase
   const [convResult, msgResult, qResult, memberResult] = await Promise.all([
-    supabase.from("conversations").select("id", { count: "exact", head: true }),
-    supabase.from("messages").select("id", { count: "exact", head: true }).gte("created_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
+    supabase.from("conversations").select("id", { count: "exact", head: true }).is("deleted_at", null),
+    supabase.from("messages").select("id", { count: "exact", head: true }).is("deleted_at", null).gte("created_at", new Date(new Date().setHours(0, 0, 0, 0)).toISOString()),
     supabase.from("questions").select("id", { count: "exact", head: true }).eq("answered", false),
     supabase.from("members").select("id", { count: "exact", head: true }),
   ]);

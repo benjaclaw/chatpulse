@@ -112,7 +112,8 @@ export function ConversationsPageClient(): React.ReactNode {
       const { data: matchingConvos } = await supabase
         .from("messages")
         .select("conversation_id")
-        .ilike("content", `%${searchDebounced}%`);
+        .ilike("content", `%${searchDebounced}%`)
+        .is("deleted_at", null);
       searchConvIds = [...new Set((matchingConvos ?? []).map((m: { conversation_id: string }) => m.conversation_id))];
       if (searchConvIds.length === 0) {
         setConversations([]);
@@ -126,7 +127,8 @@ export function ConversationsPageClient(): React.ReactNode {
     let countQuery = supabase
       .from("conversations")
       .select("id", { count: "exact", head: true })
-      .eq("workspace_id", workspaceId);
+      .eq("workspace_id", workspaceId)
+      .is("deleted_at", null);
 
     if (dateFrom) countQuery = countQuery.gte("started_at", dateFrom);
     if (searchConvIds) countQuery = countQuery.in("id", searchConvIds);
@@ -136,6 +138,7 @@ export function ConversationsPageClient(): React.ReactNode {
       .from("conversations")
       .select("id, visitor_id, started_at, messages(id, content, role, created_at)")
       .eq("workspace_id", workspaceId)
+      .is("deleted_at", null)
       .order("started_at", { ascending: false })
       .range(from, to);
 
@@ -188,6 +191,7 @@ export function ConversationsPageClient(): React.ReactNode {
       .from("messages")
       .select("id, role, content, created_at")
       .eq("conversation_id", id)
+      .is("deleted_at", null)
       .order("created_at", { ascending: true });
     setExpandedMessages((data as ChatMessage[]) ?? []);
     setMessagesLoading(false);
@@ -201,6 +205,7 @@ export function ConversationsPageClient(): React.ReactNode {
         .from("conversations")
         .select("id, visitor_id, status, started_at, messages(id, content, role, created_at)")
         .eq("workspace_id", workspaceId)
+        .is("deleted_at", null)
         .order("started_at", { ascending: false });
 
       if (dateFrom) query = query.gte("started_at", dateFrom);

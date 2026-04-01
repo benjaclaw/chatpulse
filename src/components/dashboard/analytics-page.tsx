@@ -60,18 +60,21 @@ export function AnalyticsPageClient(): React.ReactNode {
           supabase
             .from("messages")
             .select("id, conversation:conversations!inner(workspace_id)", { count: "exact", head: true })
-            .eq("conversations.workspace_id", workspaceId),
+            .eq("conversations.workspace_id", workspaceId)
+            .is("deleted_at", null),
           // Conversations this month
           supabase
             .from("conversations")
             .select("id", { count: "exact", head: true })
             .eq("workspace_id", workspaceId)
+            .is("deleted_at", null)
             .gte("started_at", monthStart.toISOString()),
           // Total conversations
           supabase
             .from("conversations")
             .select("id", { count: "exact", head: true })
-            .eq("workspace_id", workspaceId),
+            .eq("workspace_id", workspaceId)
+            .is("deleted_at", null),
           // Total leads
           supabase
             .from("leads")
@@ -82,6 +85,7 @@ export function AnalyticsPageClient(): React.ReactNode {
             .from("messages")
             .select("created_at, conversation:conversations!inner(id)")
             .eq("conversations.workspace_id", workspaceId)
+            .is("deleted_at", null)
             .gte("created_at", thirtyDaysAgo.toISOString()),
           // Top questions
           supabase
@@ -97,6 +101,7 @@ export function AnalyticsPageClient(): React.ReactNode {
         .from("conversations")
         .select("rating")
         .eq("workspace_id", workspaceId)
+        .is("deleted_at", null)
         .not("rating", "is", null);
 
       if (cancelled) return;

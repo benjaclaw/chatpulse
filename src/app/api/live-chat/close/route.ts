@@ -39,6 +39,7 @@ export async function POST(request: Request): Promise<Response> {
     .from("conversations")
     .select("id, workspace_id")
     .eq("id", conversationId)
+    .is("deleted_at", null)
     .single();
 
   if (checkError || !conv) {

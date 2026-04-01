@@ -58,6 +58,7 @@ export async function POST(request: Request): Promise<Response> {
       .from("conversations")
       .select("status, workspace_id")
       .eq("id", conversationId)
+      .is("deleted_at", null)
       .single();
 
     // Verify conversation belongs to the specified workspace

@@ -38,6 +38,7 @@ export async function POST(request: Request): Promise<Response> {
     .from("conversations")
     .select("id, visitor_id, rating")
     .eq("id", conversationId)
+    .is("deleted_at", null)
     .single();
 
   if (!conv) {

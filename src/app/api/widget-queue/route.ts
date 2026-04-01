@@ -34,6 +34,7 @@ export async function GET(request: Request): Promise<Response> {
     .from("conversations")
     .select("id, workspace_id, visitor_id")
     .eq("id", conversationId)
+    .is("deleted_at", null)
     .single();
 
   if (!conv || conv.visitor_id !== visitorId) {
@@ -44,6 +45,7 @@ export async function GET(request: Request): Promise<Response> {
     .from("conversations")
     .select("id, started_at")
     .eq("workspace_id", conv.workspace_id)
+    .is("deleted_at", null)
     .eq("status", "waiting")
     .order("started_at", { ascending: true });
 

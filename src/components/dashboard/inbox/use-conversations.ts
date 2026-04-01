@@ -34,7 +34,7 @@ async function enrichConversations(
   const [msgResult, leadResult] = await Promise.all([
     supabase.from("messages").select("conversation_id, content")
       .in("conversation_id", safeIds)
-      .eq("role", "user").order("created_at", { ascending: true }),
+      .eq("role", "user").is("deleted_at", null).order("created_at", { ascending: true }),
     supabase.from("leads").select("conversation_id, name, email")
       .in("conversation_id", safeIds),
   ]);
@@ -72,6 +72,7 @@ export function useConversations(workspaceId: string, filter: "waiting" | "human
       .from("conversations")
       .select("id, visitor_id, status, started_at, assigned_to")
       .eq("workspace_id", workspaceId)
+      .is("deleted_at", null)
       .in("status", filter === "waiting" ? ["waiting"] : filter === "human" ? ["human"] : ["closed"])
       .order("started_at", { ascending: false })
       .limit(50);
@@ -117,6 +118,7 @@ export function useConversations(workspaceId: string, filter: "waiting" | "human
       .from("conversations")
       .select("id, visitor_id, status, started_at, assigned_to")
       .eq("workspace_id", workspaceId)
+      .is("deleted_at", null)
       .in("status", filter === "waiting" ? ["waiting"] : filter === "human" ? ["human"] : ["closed"])
       .order("started_at", { ascending: false })
       .range(conversations.length, conversations.length + 49);

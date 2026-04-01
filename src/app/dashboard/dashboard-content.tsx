@@ -70,6 +70,7 @@ export function DashboardContent({ stats }: { stats: DashboardStats }): React.Re
         .from("conversations")
         .select("id, status, created_at, visitor_id, leads(name, email)")
         .eq("workspace_id", workspace.id)
+        .is("deleted_at", null)
         .order("created_at", { ascending: false })
         .limit(10);
 

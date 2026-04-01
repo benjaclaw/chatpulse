@@ -40,8 +40,8 @@ export default async function AdminDashboardPage(): Promise<React.ReactNode> {
   const [profilesResult, wsResult, convResult, msgResult] = await Promise.all([
     supabase.from("profiles").select("id", { count: "exact", head: true }),
     supabase.from("workspaces").select("id", { count: "exact", head: true }),
-    supabase.from("conversations").select("id", { count: "exact", head: true }),
-    supabase.from("messages").select("id", { count: "exact", head: true }),
+    supabase.from("conversations").select("id", { count: "exact", head: true }).is("deleted_at", null),
+    supabase.from("messages").select("id", { count: "exact", head: true }).is("deleted_at", null),
   ]);
 
   const stats = {

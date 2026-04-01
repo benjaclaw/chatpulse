@@ -174,6 +174,7 @@ export function Sidebar({
         .from("conversations")
         .select("id", { count: "exact", head: true })
         .eq("workspace_id", activeWorkspace.id)
+        .is("deleted_at", null)
         .eq("status", "waiting");
       setWaitingCount(count ?? 0);
     }

@@ -61,6 +61,7 @@ export async function POST(request: Request): Promise<Response> {
         .from("conversations")
         .select("id, workspace_id, visitor_id")
         .eq("id", existingConvId)
+        .is("deleted_at", null)
         .single();
 
       if (existingConv) {

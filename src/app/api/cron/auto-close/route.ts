@@ -23,6 +23,7 @@ export async function GET(request: Request): Promise<Response> {
     .from("conversations")
     .select("id")
     .eq("status", "human")
+    .is("deleted_at", null)
     .limit(200);
 
   if (!staleConvs || staleConvs.length === 0) {
@@ -76,6 +77,7 @@ export async function GET(request: Request): Promise<Response> {
     .from("conversations")
     .select("id, workspace_id")
     .eq("status", "waiting")
+    .is("deleted_at", null)
     .lt("started_at", fifteenMinAgo);
 
   let revertedToAi = 0;

@@ -139,6 +139,7 @@ export async function POST(request: Request): Promise<Response> {
         .from("messages")
         .select("role, content")
         .eq("conversation_id", conversationId)
+        .is("deleted_at", null)
         .order("created_at", { ascending: true })
         .limit(10)
     : Promise.resolve({ data: null });
