@@ -101,41 +101,34 @@ export function PricingContent(): React.ReactNode {
               {t("pricing.subtitle")}
             </p>
 
-            {/* Annual / Monthly toggle */}
+            {/* Annual / Monthly pill toggle */}
             <div className="mt-8 flex items-center justify-center gap-3">
-              <span
-                className={cn(
-                  "text-sm font-medium",
-                  !annual ? "text-foreground" : "text-muted-foreground"
-                )}
-              >
-                {t("pricing.monthly")}
-              </span>
-              <button
-                type="button"
-                role="switch"
-                aria-checked={annual}
-                onClick={() => setAnnual(!annual)}
-                className={cn(
-                  "relative inline-flex h-6 w-11 shrink-0 cursor-pointer rounded-full border-2 border-transparent transition-colors",
-                  annual ? "bg-primary" : "bg-muted"
-                )}
-              >
-                <span
+              <div className="inline-flex rounded-full border bg-muted p-1">
+                <button
+                  type="button"
+                  onClick={() => setAnnual(false)}
                   className={cn(
-                    "pointer-events-none inline-block h-5 w-5 rounded-full bg-white shadow-sm ring-0 transition-transform",
-                    annual ? "translate-x-5" : "translate-x-0"
+                    "rounded-full px-4 py-1.5 text-sm font-medium transition-all",
+                    !annual
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
                   )}
-                />
-              </button>
-              <span
-                className={cn(
-                  "text-sm font-medium",
-                  annual ? "text-foreground" : "text-muted-foreground"
-                )}
-              >
-                {t("pricing.annual")}
-              </span>
+                >
+                  {t("pricing.monthly")}
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setAnnual(true)}
+                  className={cn(
+                    "rounded-full px-4 py-1.5 text-sm font-medium transition-all",
+                    annual
+                      ? "bg-background text-foreground shadow-sm"
+                      : "text-muted-foreground hover:text-foreground"
+                  )}
+                >
+                  {t("pricing.annual")}
+                </button>
+              </div>
               {annual && (
                 <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
                   {t("pricing.save20")}
