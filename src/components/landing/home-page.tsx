@@ -151,8 +151,6 @@ export function HomePage(): React.ReactNode {
             </p>
 
             <div className="relative mt-12 grid gap-8 sm:grid-cols-3">
-              {/* Connector line (desktop only) */}
-              <div className="pointer-events-none absolute left-0 right-0 top-7 z-0 hidden h-0.5 bg-gradient-to-r from-transparent via-primary/20 to-transparent sm:block" />
 
               <StepCard
                 step={1}
