@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 import { ConversationsPageClient } from "@/components/dashboard/conversations-page";
 
-export const dynamic = "force-dynamic";
-
 export const metadata = {
   title: "Samtaler",
 };

@@ -1,6 +1,8 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import dynamic from "next/dynamic";
+import Image from "next/image";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
 import { useClipboard } from "@/hooks/use-clipboard";
@@ -10,8 +12,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import { ChatWidget } from "@/components/widget/chat-widget";
 import { Bot, Eye, Code2, Copy, Check, Upload, Trash2, Globe, Plus, X, MessageSquare } from "lucide-react";
+
+const ChatWidget = dynamic(
+  () => import("@/components/widget/chat-widget").then((m) => m.ChatWidget),
+  { ssr: false }
+);
 import type { ChatbotConfig } from "@/lib/types";
 import { hasFeature } from "@/lib/plans";
 import { UpgradeBanner } from "./upgrade-banner";
@@ -231,9 +237,11 @@ export function ChatbotPageClient(): React.ReactNode {
                 {hasFeature(workspace.plan_id, "logo") ? (
                   <div className="flex items-center gap-3">
                     {config.logo_url && (
-                      <img
+                      <Image
                         src={config.logo_url}
                         alt="Logo"
+                        width={40}
+                        height={40}
                         className="h-10 w-10 rounded-full object-cover border"
                       />
                     )}
@@ -556,7 +564,7 @@ function CannedResponsesCard({
   useEffect(() => {
     supabase
       .from("canned_responses")
-      .select("*")
+      .select("id, shortcut, title, content")
       .eq("workspace_id", workspaceId)
       .order("created_at", { ascending: true })
       .then(({ data }) => {

@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 import { InsightsPageClient } from "@/components/dashboard/insights-page";
 
-export const dynamic = "force-dynamic";
-
 export const metadata = {
   title: "Innsikt",
 };

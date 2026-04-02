@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 import { TeamPageClient } from "@/components/dashboard/team-page";
 
-export const dynamic = "force-dynamic";
-
 export const metadata = {
   title: "Team — ChatPulse",
 };

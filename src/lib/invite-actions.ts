@@ -157,7 +157,7 @@ export async function getWorkspaceInvites(workspaceId: string): Promise<InviteRe
 
   const { data } = await supabase
     .from("invites")
-    .select("*")
+    .select("id, workspace_id, email, role, invited_by, accepted_at, created_at")
     .eq("workspace_id", workspaceId)
     .is("accepted_at", null)
     .order("created_at", { ascending: false });

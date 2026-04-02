@@ -54,7 +54,7 @@ export function AnalyticsPageClient(): React.ReactNode {
       thirtyDaysAgo.setDate(thirtyDaysAgo.getDate() - 30);
       const monthStart = new Date(now.getFullYear(), now.getMonth(), 1);
 
-      const [msgResult, convMonthResult, convTotalResult, leadsResult, msgDatesResult, questionsResult] =
+      const [msgResult, convMonthResult, convTotalResult, leadsResult, msgDatesResult, questionsResult, csatGood, csatOk, csatBad] =
         await Promise.all([
           // Total messages via conversations
           supabase
@@ -94,27 +94,34 @@ export function AnalyticsPageClient(): React.ReactNode {
             .eq("workspace_id", workspaceId)
             .order("count", { ascending: false })
             .limit(10),
+          // CSAT ratings — use count queries instead of fetching all rows
+          supabase
+            .from("conversations")
+            .select("id", { count: "exact", head: true })
+            .eq("workspace_id", workspaceId)
+            .is("deleted_at", null)
+            .eq("rating", "good"),
+          supabase
+            .from("conversations")
+            .select("id", { count: "exact", head: true })
+            .eq("workspace_id", workspaceId)
+            .is("deleted_at", null)
+            .eq("rating", "ok"),
+          supabase
+            .from("conversations")
+            .select("id", { count: "exact", head: true })
+            .eq("workspace_id", workspaceId)
+            .is("deleted_at", null)
+            .eq("rating", "bad"),
         ]);
-
-      // Fetch CSAT ratings — column may not exist yet, so handle errors gracefully
-      const ratingResult = await supabase
-        .from("conversations")
-        .select("rating")
-        .eq("workspace_id", workspaceId)
-        .is("deleted_at", null)
-        .not("rating", "is", null);
 
       if (cancelled) return;
 
-      if (!ratingResult.error && ratingResult.data && ratingResult.data.length > 0) {
-        const counts = { good: 0, ok: 0, bad: 0 };
-        for (const row of ratingResult.data) {
-          const r = (row as { rating: string }).rating;
-          if (r === "good" || r === "ok" || r === "bad") counts[r]++;
-        }
-        if (counts.good + counts.ok + counts.bad > 0) {
-          setCsatCounts(counts);
-        }
+      const good = csatGood.count ?? 0;
+      const ok = csatOk.count ?? 0;
+      const bad = csatBad.count ?? 0;
+      if (good + ok + bad > 0) {
+        setCsatCounts({ good, ok, bad });
       }
 
       setTotalMessages(msgResult.count ?? 0);

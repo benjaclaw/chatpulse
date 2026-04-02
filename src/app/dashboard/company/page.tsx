@@ -1,8 +1,6 @@
 import { Suspense } from "react";
 import { CompanyPageClient } from "@/components/dashboard/company-page";
 
-export const dynamic = "force-dynamic";
-
 export const metadata = {
   title: "Bedriftsinfo — ChatPulse",
 };
