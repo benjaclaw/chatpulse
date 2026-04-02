@@ -408,7 +408,7 @@ const en: Record<string, string> = {
   'landing.footer.cookies': 'Cookies',
   'landing.demo.clickToTry': 'Click to try the chatbot',
   'landing.cta.title': 'Ready to improve your customer service?',
-  'landing.cta.description': 'Create an AI chatbot for your business today. Free to start, no credit card required.',
+  'landing.cta.description': 'Create an AI chatbot for your business today. Get started in minutes.',
   'landing.cta.button': 'Get started for free',
   'landing.widget.botName': 'ChatPulse Bot',
   'landing.widget.greeting': 'Hi! How can I help?',
