@@ -639,7 +639,7 @@ const nb: Record<string, string> = {
   'pricing.faq1Q': 'Kan jeg bytte plan?',
   'pricing.faq1A': 'Ja, oppgrader eller nedgrader når som helst.',
   'pricing.faq2Q': 'Hva skjer når meldingsgrensen er nådd?',
-  'pricing.faq2A': 'Chatboten pauser til neste måned, eller du kan oppgradere.',
+  'pricing.faq2A': 'Chatboten svarer med kontaktinformasjonen din i stedet, slik at du ikke mister kunder. Kvoten nullstilles automatisk hver måned, eller du kan oppgradere for flere meldinger.',
   'pricing.faq3Q': 'Tilbyr dere årlig betaling?',
   'pricing.faq3A': 'Ja! Velg årlig betaling og spar opptil 20% — tilsvarer 2 måneder gratis.',
   'pricing.faq4Q': 'Er det bindingstid?',

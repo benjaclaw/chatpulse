@@ -639,7 +639,7 @@ const en: Record<string, string> = {
   'pricing.faq1Q': 'Can I switch plans?',
   'pricing.faq1A': 'Yes, upgrade or downgrade at any time.',
   'pricing.faq2Q': 'What happens when the message limit is reached?',
-  'pricing.faq2A': 'The chatbot pauses until next month, or you can upgrade.',
+  'pricing.faq2A': 'The chatbot responds with your contact info instead, so you never lose customers. Your quota resets automatically each month, or you can upgrade for more messages.',
   'pricing.faq3Q': 'Do you offer annual billing?',
   'pricing.faq3A': 'Yes! Choose annual billing and save up to 20% — equivalent to 2 months free.',
   'pricing.faq4Q': 'Is there a commitment period?',
