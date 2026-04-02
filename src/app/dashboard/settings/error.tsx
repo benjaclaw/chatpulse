@@ -4,10 +4,10 @@ import { RouteError } from "@/components/dashboard/route-error";
 
 export default function Error({
   error,
-  reset,
+  unstable_retry,
 }: {
   error: Error & { digest?: string };
-  reset: () => void;
+  unstable_retry: () => void;
 }): React.ReactNode {
-  return <RouteError error={error} reset={reset} />;
+  return <RouteError error={error} reset={unstable_retry} />;
 }

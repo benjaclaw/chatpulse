@@ -94,12 +94,14 @@ export async function GET(request: Request): Promise<Response> {
     if (revertConvs && revertConvs.length > 0) {
       revertedToAi = revertConvs.length;
       
-      // Broadcast status change to widget and innboks
-      for (const conv of revertConvs) {
-        await sendBroadcast(`conv-status-${conv.id}`, "status-change", {
-          status: "ai",
-        });
-      }
+      // Broadcast status change to widget and innboks (parallel)
+      await Promise.all(
+        revertConvs.map((conv) =>
+          sendBroadcast(`conv-status-${conv.id}`, "status-change", {
+            status: "ai",
+          })
+        )
+      );
     }
   }
 
