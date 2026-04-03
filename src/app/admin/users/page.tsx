@@ -10,7 +10,8 @@ export default async function AdminUsersPage(): Promise<React.ReactNode> {
   // Fetch separately to avoid nested join issues with service client
   const { data: members } = await supabase
     .from("members")
-    .select("id, user_id, workspace_id, role, created_at");
+    .select("id, user_id, workspace_id, role, created_at")
+    .order("created_at", { ascending: false });
 
   const { data: profiles } = await supabase
     .from("profiles")
