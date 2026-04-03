@@ -2,6 +2,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { createServiceClient } from "@/lib/supabase/service";
 import { AdminShell } from "@/components/admin/admin-shell";
+import { LanguageProvider } from "@/lib/i18n/context";
 
 export const dynamic = "force-dynamic";
 
@@ -32,5 +33,9 @@ export default async function AdminLayout({
     redirect("/dashboard");
   }
 
-  return <AdminShell>{children}</AdminShell>;
+  return (
+    <LanguageProvider initialLanguage="nb">
+      <AdminShell>{children}</AdminShell>
+    </LanguageProvider>
+  );
 }
