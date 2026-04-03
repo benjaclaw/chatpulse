@@ -1,9 +1,11 @@
 "use server";
 
 import { redirect } from "next/navigation";
+import { headers } from "next/headers";
 import { createClient } from "@/lib/supabase/server";
 import type { ActionResult } from "@/lib/types";
 import { isValidEmail } from "@/lib/utils";
+import { sendConversionEvent } from "@/lib/meta-conversions";
 
 function safeRedirect(url: string | null): string {
   if (!url || !url.startsWith("/") || url.startsWith("//") || url.includes("://")) {
@@ -80,6 +82,23 @@ export async function signup(formData: FormData): Promise<ActionResult> {
 
   if (error) {
     return { error: error.message };
+  }
+
+  // Meta Conversions API — CompleteRegistration
+  try {
+    const hdrs = await headers();
+    const clientIp = hdrs.get("x-forwarded-for")?.split(",")[0]?.trim() || undefined;
+    const clientUa = hdrs.get("user-agent") || undefined;
+
+    sendConversionEvent({
+      eventName: "CompleteRegistration",
+      email,
+      sourceUrl: `${siteUrl}/signup`,
+      clientIpAddress: clientIp,
+      clientUserAgent: clientUa,
+    });
+  } catch {
+    // Non-blocking — don't fail signup if tracking fails
   }
 
   redirect("/check-email");
