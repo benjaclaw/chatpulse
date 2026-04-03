@@ -1,11 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { UsersTable } from "./users-table";
 import type { AdminUser, MemberRole } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminUsersPage(): Promise<React.ReactNode> {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: members } = await supabase
     .from("members")

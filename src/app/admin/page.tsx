@@ -1,6 +1,7 @@
 import { Users, Building2, MessageSquare, MessagesSquare } from "lucide-react";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { createT } from "@/lib/i18n";
 
 export const dynamic = "force-dynamic";
@@ -35,13 +36,13 @@ const statConfig = [
 ];
 
 export default async function AdminDashboardPage(): Promise<React.ReactNode> {
-  const supabase = await createClient();
+  const sb = createServiceClient();
 
   const [profilesResult, wsResult, convResult, msgResult] = await Promise.all([
-    supabase.from("profiles").select("id", { count: "exact", head: true }),
-    supabase.from("workspaces").select("id", { count: "exact", head: true }),
-    supabase.from("conversations").select("id", { count: "exact", head: true }).is("deleted_at", null),
-    supabase.from("messages").select("id", { count: "exact", head: true }).is("deleted_at", null),
+    sb.from("profiles").select("id", { count: "exact", head: true }),
+    sb.from("workspaces").select("id", { count: "exact", head: true }),
+    sb.from("conversations").select("id", { count: "exact", head: true }).is("deleted_at", null),
+    sb.from("messages").select("id", { count: "exact", head: true }).is("deleted_at", null),
   ]);
 
   const stats = {

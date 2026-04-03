@@ -1,11 +1,11 @@
-import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { WorkspacesTable } from "./workspaces-table";
 import type { AdminWorkspace } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
 
 export default async function AdminWorkspacesPage(): Promise<React.ReactNode> {
-  const supabase = await createClient();
+  const supabase = createServiceClient();
 
   const { data: workspacesData } = await supabase
     .from("workspaces")
