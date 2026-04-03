@@ -16,6 +16,7 @@ import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import { createT, type Language } from "@/lib/i18n";
 import { createClient } from "@/lib/supabase/client";
+import { trackBeginCheckout, trackViewPricing } from "@/lib/analytics-events";
 
 export function PricingContent(): React.ReactNode {
   const router = useRouter();
@@ -33,6 +34,7 @@ export function PricingContent(): React.ReactNode {
   const [annual, setAnnual] = useState(true);
 
   useEffect(() => {
+    trackViewPricing();
     const supabase = createClient();
     supabase.auth.getUser().then(({ data }) => {
       if (data.user) {
@@ -55,6 +57,8 @@ export function PricingContent(): React.ReactNode {
     if (!workspaceId) return;
     setCheckoutLoading(planId);
     setCheckoutError(null);
+
+    trackBeginCheckout(planId);
 
     // Open window immediately in click context to avoid popup blocker
     const checkoutWindow = window.open("about:blank", "_blank");

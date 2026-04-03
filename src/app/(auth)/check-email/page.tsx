@@ -1,9 +1,13 @@
 import { Mail } from "lucide-react";
 import Link from "next/link";
+import Script from "next/script";
 
 export default function CheckEmailPage(): React.ReactNode {
   return (
     <div className="rounded-xl border bg-card p-8 text-center shadow-sm">
+      <Script id="track-signup" strategy="afterInteractive">
+        {`window.dataLayer = window.dataLayer || []; window.dataLayer.push({ event: "sign_up", method: "email" });`}
+      </Script>
       <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-xl bg-primary/10 text-primary">
         <Mail className="h-7 w-7" />
       </div>

@@ -1,6 +1,8 @@
+import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { DashboardShell } from "@/components/dashboard/shell";
+import { AnalyticsTracker } from "@/components/analytics-tracker";
 import type { MemberRole, WorkspaceMembership } from "@/lib/types";
 
 export const dynamic = "force-dynamic";
@@ -40,6 +42,9 @@ export default async function DashboardLayout({
       user={{ id: user.id, email: user.email!, name: user.user_metadata?.full_name }}
       workspaces={workspaces}
     >
+      <Suspense>
+        <AnalyticsTracker />
+      </Suspense>
       {children}
     </DashboardShell>
   );

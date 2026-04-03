@@ -1,6 +1,7 @@
 import { getStripe, getStripePriceMap } from "@/lib/stripe";
 import { createServiceClient } from "@/lib/supabase/service";
 import { isValidUUID } from "@/lib/utils";
+import { sendConversionEvent } from "@/lib/meta-conversions";
 import type { PlanId } from "@/lib/plans";
 
 const VALID_PLAN_IDS = new Set<string>(["free", "basic", "startup", "pro"]);
@@ -48,6 +49,15 @@ export async function POST(request: Request): Promise<Response> {
             stripe_subscription_id: session.subscription as string,
           })
           .eq("id", workspaceId);
+
+        // Meta CAPI — Purchase event
+        const email = session.customer_details?.email ?? undefined;
+        const amount = session.amount_total ? session.amount_total / 100 : undefined;
+        sendConversionEvent({
+          eventName: "Purchase",
+          email,
+          sourceUrl: `${process.env.NEXT_PUBLIC_SITE_URL || "https://chatpulse-ten.vercel.app"}/pricing`,
+        });
       }
       break;
     }

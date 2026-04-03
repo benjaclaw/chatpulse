@@ -40,6 +40,10 @@ export async function GET(request: Request): Promise<Response> {
         } catch {
           // Non-blocking
         }
+
+        // Append new_signup param so dashboard can fire GTM event
+        const separator = next.includes("?") ? "&" : "?";
+        return NextResponse.redirect(`${origin}${next}${separator}new_signup=google`);
       }
 
       return NextResponse.redirect(`${origin}${next}`);
