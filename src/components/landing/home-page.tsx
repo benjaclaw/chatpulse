@@ -11,7 +11,6 @@ import {
   ArrowRight,
   Check,
   Plus,
-  Zap,
   Puzzle,
   Building2,
 } from "lucide-react";
@@ -158,7 +157,7 @@ export function HomePage(): React.ReactNode {
               />
               <StepCard
                 step={2}
-                icon={Zap}
+                icon={BookOpen}
                 title={t("landing.steps.customizeTitle")}
                 description={t("landing.steps.customizeDesc")}
               />
