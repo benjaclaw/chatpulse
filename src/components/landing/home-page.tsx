@@ -13,14 +13,7 @@ import {
   Plus,
   Zap,
   Puzzle,
-  MessageSquare,
-
-  Users,
   Building2,
-  Globe,
-  ShieldCheck,
-  Server,
-  Headphones,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -28,7 +21,6 @@ import { createT, type Language } from "@/lib/i18n";
 import { LandingHeader } from "./header";
 import { LandingFooter } from "./footer";
 import { GoogleHeroButton } from "@/components/auth/google-sign-in-button";
-import { PricingContent } from "@/components/pricing/pricing-content";
 
 export function HomePage(): React.ReactNode {
   const [language] = useState<Language>(() => {
@@ -81,14 +73,21 @@ export function HomePage(): React.ReactNode {
                 {t("landing.hero.cta")}
                 <ArrowRight className="ml-2 h-4 w-4" />
               </Link>
-              
+              <Link
+                href="#how-it-works"
+                className={cn(
+                  buttonVariants({ variant: "outline", size: "lg" }),
+                  "w-full sm:w-auto"
+                )}
+              >
+                {t("landing.hero.demo")}
+              </Link>
             </div>
 
             <div className="mt-4">
               <GoogleHeroButton />
             </div>
-
-            </div>
+          </div>
 
           {/* Animated widget mockup */}
           <div className="relative z-10 mx-auto mt-16 w-full max-w-sm animate-fade-in-up">
@@ -151,7 +150,6 @@ export function HomePage(): React.ReactNode {
             </p>
 
             <div className="relative mt-12 grid gap-8 sm:grid-cols-3">
-
               <StepCard
                 step={1}
                 icon={Plus}
@@ -177,9 +175,130 @@ export function HomePage(): React.ReactNode {
         {/* ─── Pricing ─── */}
         <section
           id="pricing"
-          className="scroll-mt-16 border-t bg-card/50 dark:bg-card/20"
+          className="scroll-mt-16 border-t bg-card/50 px-4 py-16 dark:bg-card/20 sm:px-6 sm:py-24"
         >
-          <PricingContent />
+          <div className="mx-auto max-w-5xl">
+            <h2 className="font-heading text-center text-2xl font-bold tracking-tight sm:text-3xl">
+              {t("landing.pricing.title")}
+            </h2>
+            <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
+              {t("landing.pricing.description")}
+            </p>
+
+            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
+              {/* Free */}
+              <div className="flex flex-col rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md">
+                <h3 className="text-lg font-semibold">
+                  {t("landing.pricing.free")}
+                </h3>
+                <div className="mt-2 flex items-baseline gap-1">
+                  <span className="text-3xl font-bold tracking-tight">
+                    {t("landing.pricing.freePrice")}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {t("landing.pricing.perMonth")}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {t("landing.pricing.freeDesc")}
+                </p>
+                <ul className="mt-6 flex-1 space-y-2.5">
+                  <PricingFeature text={t("landing.pricing.freeF1")} />
+                  <PricingFeature text={t("landing.pricing.freeF2")} />
+                  <PricingFeature text={t("landing.pricing.freeF3")} />
+                </ul>
+                <Link
+                  href="/signup"
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "lg" }),
+                    "mt-8 w-full"
+                  )}
+                >
+                  {t("landing.pricing.freeCta")}
+                </Link>
+              </div>
+
+              {/* Pro */}
+              <div
+                className="relative flex flex-col rounded-xl border-0 bg-card p-6 shadow-lg transition-all duration-200"
+                style={{
+                  backgroundImage:
+                    "linear-gradient(var(--card), var(--card)), linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.4), hsl(var(--primary)))",
+                  backgroundOrigin: "border-box",
+                  backgroundClip: "padding-box, border-box",
+                  border: "2px solid transparent",
+                }}
+              >
+                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-white shadow-md">
+                  {t("landing.pricing.popular")}
+                </div>
+                <h3 className="text-lg font-semibold">
+                  {t("landing.pricing.pro")}
+                </h3>
+                <div className="mt-2 flex items-baseline gap-1">
+                  <span className="text-3xl font-bold tracking-tight">
+                    {t("landing.pricing.proPrice")}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {t("landing.pricing.perMonth")}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {t("landing.pricing.proDesc")}
+                </p>
+                <ul className="mt-6 flex-1 space-y-2.5">
+                  <PricingFeature text={t("landing.pricing.proF1")} />
+                  <PricingFeature text={t("landing.pricing.proF2")} />
+                  <PricingFeature text={t("landing.pricing.proF3")} />
+                </ul>
+                <Link
+                  href="/signup"
+                  className={cn(
+                    buttonVariants({ size: "lg" }),
+                    "mt-8 w-full"
+                  )}
+                >
+                  {t("landing.pricing.proCta")}
+                  <ArrowRight className="ml-2 h-4 w-4" />
+                </Link>
+              </div>
+
+              {/* Enterprise */}
+              <div className="flex flex-col rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md">
+                <h3 className="text-lg font-semibold">
+                  {t("landing.pricing.enterprise")}
+                </h3>
+                <div className="mt-2 flex items-baseline gap-1">
+                  <span className="text-3xl font-bold tracking-tight">
+                    {t("landing.pricing.enterprisePrice")}
+                  </span>
+                </div>
+                <p className="mt-2 text-sm text-muted-foreground">
+                  {t("landing.pricing.enterpriseDesc")}
+                </p>
+                <ul className="mt-6 flex-1 space-y-2.5">
+                  <PricingFeature text={t("landing.pricing.enterpriseF1")} />
+                  <PricingFeature text={t("landing.pricing.enterpriseF2")} />
+                  <PricingFeature text={t("landing.pricing.enterpriseF3")} />
+                </ul>
+                <a
+                  href="mailto:post@chatpulse.no"
+                  className={cn(
+                    buttonVariants({ variant: "outline", size: "lg" }),
+                    "mt-8 w-full"
+                  )}
+                >
+                  {t("landing.pricing.enterpriseCta")}
+                </a>
+              </div>
+            </div>
+
+            <p className="mt-6 text-center text-sm text-muted-foreground">
+              <Link href="/pricing" className="text-primary hover:underline">
+                {t("landing.pricing.viewAll")}
+              </Link>
+            </p>
+          </div>
         </section>
 
         {/* ─── Final CTA ─── */}
@@ -311,4 +430,11 @@ function StepCard({
   );
 }
 
-
+function PricingFeature({ text }: { text: string }): React.ReactNode {
+  return (
+    <li className="flex items-start gap-2 text-sm">
+      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
+      {text}
+    </li>
+  );
+}

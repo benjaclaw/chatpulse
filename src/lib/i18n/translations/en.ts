@@ -344,7 +344,7 @@ const en: Record<string, string> = {
   'landing.hero.titleGradient': '— ready in minutes',
   'landing.hero.description': 'AI chatbot that answers your customers 24/7 — based on YOUR knowledge base',
   'landing.hero.stats': 'Answers in seconds • Norwegian support • GDPR compliant',
-  'landing.hero.cta': 'Create account now',
+  'landing.hero.cta': 'Get started free',
   'landing.hero.demo': 'See demo',
   'landing.hero.trustGdpr': 'GDPR compliant',
   'landing.hero.trustEu': 'Data stored in EU',
