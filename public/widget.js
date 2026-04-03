@@ -97,6 +97,12 @@
     w.style.transform = open ? "translateY(0)" : "translateY(20px)";
     w.style.opacity = open ? "1" : "0";
     w.style.pointerEvents = open ? "auto" : "none";
+    /* On mobile fullscreen, allow container to capture events; otherwise keep passthrough */
+    if (isMobile() && open) {
+      btn.parentElement.style.pointerEvents = "auto";
+    } else {
+      btn.parentElement.style.pointerEvents = "none";
+    }
     btn.innerHTML = open ? closeIcon : openIcon;
     btn.setAttribute("aria-label", open ? "Lukk chat" : "Åpne chat");
     if (isMobile()) {
@@ -145,7 +151,7 @@
 
     var c = document.createElement("div");
     c.id = "chatpulse-widget";
-    c.style.cssText = "position:fixed;z-index:2147483647;";
+    c.style.cssText = "position:fixed;z-index:2147483647;pointer-events:none;";
     positionContainer(c);
 
     w = document.createElement("div");
@@ -172,6 +178,7 @@
     b.style.justifyContent = "center";
     b.style.transition = "transform .15s ease,box-shadow .15s ease";
     b.style.position = "relative";
+    b.style.pointerEvents = "auto";
     if (pos !== "left") b.style.marginLeft = "auto";
     b.innerHTML = openIcon;
     b.onmouseenter = function () { b.style.transform = "scale(1.08)"; b.style.boxShadow = "0 6px 20px rgba(0,0,0,.25)"; };
