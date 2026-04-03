@@ -9,7 +9,7 @@ export default async function AdminWorkspacesPage(): Promise<React.ReactNode> {
 
   const { data: workspacesData } = await supabase
     .from("workspaces")
-    .select("id, name, slug, created_at, members(id, user_id, role, profiles(email))")
+    .select("id, name, slug, plan_id, message_count, created_at, members(id, user_id, role, profiles(email))")
     .order("created_at", { ascending: false });
 
   const workspaces: AdminWorkspace[] = (workspacesData ?? []).map((ws: Record<string, unknown>) => {
@@ -18,6 +18,8 @@ export default async function AdminWorkspacesPage(): Promise<React.ReactNode> {
       id: ws.id as string,
       name: ws.name as string,
       slug: ws.slug as string,
+      plan_id: (ws.plan_id as string) || "free",
+      message_count: (ws.message_count as number) || 0,
       member_count: members.length,
       created_at: ws.created_at as string,
       members: members.map((m) => {

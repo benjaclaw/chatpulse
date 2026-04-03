@@ -152,6 +152,8 @@ export type AdminWorkspace = {
   id: string;
   name: string;
   slug: string;
+  plan_id: string;
+  message_count: number;
   member_count: number;
   created_at: string;
   members: { id: string; name: string; email: string; role: string }[];

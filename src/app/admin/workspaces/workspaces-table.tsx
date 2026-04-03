@@ -42,7 +42,8 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspace[] }
             <TableRow>
               <TableHead className="w-8" />
               <TableHead>{t('admin.workspaces.name')}</TableHead>
-              <TableHead>{t('admin.workspaces.slug')}</TableHead>
+              <TableHead>Plan</TableHead>
+              <TableHead>Meldinger</TableHead>
               <TableHead>{t('admin.workspaces.members')}</TableHead>
               <TableHead>{t('admin.workspaces.created')}</TableHead>
             </TableRow>
@@ -50,7 +51,7 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspace[] }
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={5} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
                   {t('admin.workspaces.noWorkspaces')}
                 </TableCell>
               </TableRow>
@@ -59,7 +60,7 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspace[] }
                 const isExpanded = expandedId === ws.id;
                 return (
                   <TableRow key={ws.id} className="group">
-                    <TableCell colSpan={5} className="p-0">
+                    <TableCell colSpan={7} className="p-0">
                       <button
                         onClick={() => setExpandedId(isExpanded ? null : ws.id)}
                         className="flex w-full items-center gap-0 text-left transition-colors hover:bg-muted/50"
@@ -72,8 +73,16 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspace[] }
                           )}
                         </div>
                         <div className="flex-1 p-2 font-medium">{ws.name}</div>
+                        <div className="flex-1 p-2">
+                          <Badge
+                            variant={ws.plan_id === "free" ? "outline" : ws.plan_id === "pro" ? "default" : "secondary"}
+                            className="text-xs uppercase"
+                          >
+                            {ws.plan_id}
+                          </Badge>
+                        </div>
                         <div className="flex-1 p-2 text-sm text-muted-foreground">
-                          {ws.slug}
+                          {ws.message_count.toLocaleString("nb-NO")}
                         </div>
                         <div className="flex-1 p-2">
                           <Badge variant="secondary" className="gap-1">
