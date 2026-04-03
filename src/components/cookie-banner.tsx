@@ -36,8 +36,15 @@ export function CookieBanner(): React.ReactNode {
   useEffect(() => {
     // Don't show cookie banner in widget iframe
     if (window.location.pathname.startsWith("/widget")) return;
-    if (!getStoredConsent()) {
+
+    const stored = getStoredConsent();
+    if (!stored) {
       setVisible(true);
+    } else if (stored === "all") {
+      // Restore consent for returning users who already accepted
+      if (typeof window.gtag === "function") {
+        window.gtag("consent", "update", { analytics_storage: "granted", ad_storage: "granted" });
+      }
     }
     setLang(detectLanguage());
   }, []);
@@ -47,8 +54,20 @@ export function CookieBanner(): React.ReactNode {
   function accept(consent: CookieConsent) {
     localStorage.setItem(CONSENT_KEY, consent);
     setVisible(false);
+
+    // Push consent update to GTM dataLayer
+    window.dataLayer = window.dataLayer || [];
     if (consent === "all") {
+      window.dataLayer.push({ event: "consent_update", analytics_storage: "granted", ad_storage: "granted" } as Record<string, unknown>);
+      // Also call gtag consent update if gtag is available
+      if (typeof window.gtag === "function") {
+        window.gtag("consent", "update", { analytics_storage: "granted", ad_storage: "granted" });
+      }
       window.location.reload();
+    } else {
+      if (typeof window.gtag === "function") {
+        window.gtag("consent", "update", { analytics_storage: "denied", ad_storage: "denied" });
+      }
     }
   }
 
