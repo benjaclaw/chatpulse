@@ -790,8 +790,8 @@ const en: Record<string, string> = {
   'landing.faq.a2': 'You can have a working chatbot on your website in under 10 minutes. Create a workspace, add knowledge, and paste the embed code.',
   'landing.faq.q3': 'Is my data safe?',
   'landing.faq.a3': 'Yes. All data is stored in the EU, and we comply with GDPR. You have full control over your data and can delete it at any time.',
-  'landing.faq.q4': 'Can I try it for free?',
-  'landing.faq.a4': 'Absolutely! The Free plan gives you 100 messages per month — completely free, no credit card required.',
+  'landing.faq.q4': 'Is there a commitment period?',
+  'landing.faq.a4': 'No, there is no commitment period. You can upgrade, downgrade, or cancel your subscription at any time.',
   'landing.faq.q5': 'Can I customize the chatbot\'s appearance?',
   'landing.faq.a5': 'Yes, you can change colors, welcome message, chatbot name, and more. On the Starter plan, you can also add your own logo and remove ChatPulse branding.',
 

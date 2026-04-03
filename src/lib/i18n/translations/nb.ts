@@ -790,8 +790,8 @@ const nb: Record<string, string> = {
   'landing.faq.a2': 'Du kan ha en fungerende chatbot på nettsiden din på under 10 minutter. Opprett workspace, legg til kunnskap, og lim inn embed-koden.',
   'landing.faq.q3': 'Er dataene mine trygge?',
   'landing.faq.a3': 'Ja. All data lagres i EU, og vi følger GDPR. Du har full kontroll over dataene dine og kan slette dem når som helst.',
-  'landing.faq.q4': 'Kan jeg prøve gratis?',
-  'landing.faq.a4': 'Absolutt! Free-planen gir deg 100 meldinger i måneden — helt gratis, uten kredittkort.',
+  'landing.faq.q4': 'Er det bindingstid?',
+  'landing.faq.a4': 'Nei, det er ingen bindingstid. Du kan oppgradere, nedgradere eller avslutte abonnementet når som helst.',
   'landing.faq.q5': 'Kan jeg tilpasse chatbotens utseende?',
   'landing.faq.a5': 'Ja, du kan endre farger, velkomstmelding, chatbot-navn og mer. På Starter-planen kan du også legge til egen logo og fjerne ChatPulse-branding.',
 
