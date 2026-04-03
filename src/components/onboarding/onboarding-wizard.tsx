@@ -193,8 +193,9 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
   const [chatbotName, setChatbotName] = useState("");
   const [welcomeMessage, setWelcomeMessage] = useState("");
   const [systemPrompt, setSystemPrompt] = useState("");
-  const [logoFile, setLogoFile] = useState<File | null>(null);
-  const [logoPreview, setLogoPreview] = useState<string | null>(null);
+  const [primaryColor, setPrimaryColor] = useState("#6366f1");
+  const [showEmbedModal, setShowEmbedModal] = useState(false);
+  const [createdWorkspaceId, setCreatedWorkspaceId] = useState<string | null>(null);
 
   // Step 4: Knowledge
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
@@ -239,16 +240,6 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
   const handleBack = () => {
     setError("");
     setStep((s) => Math.max(s - 1, 0));
-  };
-
-  // Logo handling
-  const handleLogoSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
-    setLogoFile(file);
-    const url = URL.createObjectURL(file);
-    setLogoPreview(url);
-    e.target.value = "";
   };
 
   // File upload for knowledge
@@ -324,23 +315,7 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
         });
       }
 
-      // 3. Upload logo if present
-      let logoUrl: string | null = null;
-      if (logoFile) {
-        const ext = logoFile.name.split(".").pop() ?? "png";
-        const path = `${workspaceId}/${crypto.randomUUID()}.${ext}`;
-        const { error: uploadError } = await supabase.storage
-          .from("logos")
-          .upload(path, logoFile);
-        if (!uploadError) {
-          const { data: urlData } = supabase.storage
-            .from("logos")
-            .getPublicUrl(path);
-          logoUrl = urlData.publicUrl;
-        }
-      }
-
-      // 4. Insert chatbot_config
+      // 3. Insert chatbot_config
       const effectiveName = chatbotName || workspaceName.trim() + " Bot";
       const effectiveDefaults = getIndustryDefaults(
         (industry as Industry) || "other"
@@ -356,8 +331,8 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
         welcome_messages: { nb: effectiveWelcome },
         fallback_response:
           "Beklager, jeg fant ikke svaret på det. Vil du snakke med en av våre medarbeidere?",
-        logo_url: logoUrl,
-        widget_styling: { primary_color: "#6366f1", position: "right" },
+        logo_url: null,
+        widget_styling: { primary_color: primaryColor, position: "right" },
       });
 
       // 5. Insert FAQ knowledge items
@@ -383,8 +358,10 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
         });
       }
 
-      // 7. Redirect to dashboard
-      router.push("/dashboard");
+      // 7. Show embed code modal before redirecting
+      setCreatedWorkspaceId(workspaceId);
+      setShowEmbedModal(true);
+      setSubmitting(false);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Something went wrong";
@@ -638,40 +615,22 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
               </div>
 
               <div className="space-y-2">
-                <Label>{t("onboarding.logo")}</Label>
+                <Label htmlFor="primary-color">
+                  {t("onboarding.primaryColor")}
+                </Label>
                 <div className="flex items-center gap-3">
-                  {logoPreview && (
-                    <img
-                      src={logoPreview}
-                      alt="Logo"
-                      className="h-10 w-10 rounded-full border object-cover"
-                    />
-                  )}
-                  <label className="cursor-pointer">
-                    <input
-                      type="file"
-                      accept="image/png,image/jpeg,image/svg+xml,image/webp"
-                      className="hidden"
-                      onChange={handleLogoSelect}
-                    />
-                    <span className="inline-flex items-center gap-1.5 rounded-md border px-3 py-2 text-sm font-medium hover:bg-accent transition-colors">
-                      <Upload className="h-4 w-4" />
-                      {t("onboarding.logoUpload")}
-                    </span>
-                  </label>
-                  {logoPreview && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => {
-                        setLogoFile(null);
-                        setLogoPreview(null);
-                      }}
-                    >
-                      <X className="h-4 w-4 text-muted-foreground" />
-                    </Button>
-                  )}
+                  <input
+                    id="primary-color"
+                    type="color"
+                    value={primaryColor}
+                    onChange={(e) => setPrimaryColor(e.target.value)}
+                    className="h-10 w-10 cursor-pointer rounded-md border p-1"
+                  />
+                  <span className="text-sm text-muted-foreground">{primaryColor}</span>
                 </div>
+                <p className="text-xs text-muted-foreground">
+                  {t("onboarding.primaryColorHelp")}
+                </p>
               </div>
             </div>
           )}
@@ -865,6 +824,70 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
           </Button>
         )}
       </div>
+
+      {/* Embed Code Modal */}
+      {showEmbedModal && createdWorkspaceId && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+          <div className="w-full max-w-lg rounded-xl border bg-card p-6 shadow-2xl">
+            <div className="text-center">
+              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
+                <Check className="h-7 w-7 text-green-600 dark:text-green-400" />
+              </div>
+              <h2 className="mt-4 text-xl font-bold">
+                {t("onboarding.readyTitle")}
+              </h2>
+              <p className="mt-2 text-sm text-muted-foreground">
+                {t("onboarding.readyDescription")}
+              </p>
+            </div>
+
+            <div className="mt-6 space-y-3">
+              <Label>{t("onboarding.embedLabel")}</Label>
+              <div className="relative">
+                <pre className="overflow-x-auto rounded-lg bg-muted p-4 text-xs">
+                  {`<script src="${typeof window !== "undefined" ? window.location.origin : ""}/widget.js" data-workspace="${createdWorkspaceId}"></script>`}
+                </pre>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  className="absolute right-2 top-2"
+                  onClick={() => {
+                    navigator.clipboard.writeText(
+                      `<script src="${window.location.origin}/widget.js" data-workspace="${createdWorkspaceId}"></script>`
+                    );
+                  }}
+                >
+                  {t("onboarding.copyCode")}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                {t("onboarding.embedHelp")}
+              </p>
+            </div>
+
+            <div className="mt-6 flex gap-3">
+              <Button
+                variant="outline"
+                className="flex-1"
+                onClick={() => router.push("/dashboard")}
+              >
+                {t("onboarding.skipEmbed")}
+              </Button>
+              <Button
+                className="flex-1"
+                onClick={() => {
+                  navigator.clipboard.writeText(
+                    `<script src="${window.location.origin}/widget.js" data-workspace="${createdWorkspaceId}"></script>`
+                  );
+                  router.push("/dashboard");
+                }}
+              >
+                {t("onboarding.copyAndContinue")}
+              </Button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
