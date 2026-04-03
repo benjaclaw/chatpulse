@@ -7,23 +7,35 @@ export const dynamic = "force-dynamic";
 export default async function AdminUsersPage(): Promise<React.ReactNode> {
   const supabase = createServiceClient();
 
+  // Fetch separately to avoid nested join issues with service client
   const { data: members } = await supabase
     .from("members")
-    .select("id, user_id, role, created_at, profiles(email, is_super_admin, created_at), workspaces(id, name)");
+    .select("id, user_id, workspace_id, role, created_at");
 
-  const users: AdminUser[] = (members ?? []).map((m: Record<string, unknown>) => {
-    const profile = m.profiles as { email: string; is_super_admin: boolean; created_at: string } | null;
-    const workspace = m.workspaces as { id: string; name: string } | null;
+  const { data: profiles } = await supabase
+    .from("profiles")
+    .select("id, email, is_super_admin, created_at");
+
+  const { data: workspaces } = await supabase
+    .from("workspaces")
+    .select("id, name");
+
+  const profileMap = new Map((profiles ?? []).map((p: { id: string; email: string; is_super_admin: boolean; created_at: string }) => [p.id, p]));
+  const wsMap = new Map((workspaces ?? []).map((w: { id: string; name: string }) => [w.id, w]));
+
+  const users: AdminUser[] = (members ?? []).map((m: { id: string; user_id: string; workspace_id: string; role: string; created_at: string }) => {
+    const profile = profileMap.get(m.user_id);
+    const workspace = wsMap.get(m.workspace_id);
     const email = profile?.email ?? "";
     return {
-      id: m.user_id as string,
+      id: m.user_id,
       name: email.split("@")[0] || "Unknown",
       email,
       role: m.role as MemberRole,
       is_super_admin: profile?.is_super_admin ?? false,
       workspace_id: workspace?.id ?? "",
       workspace_name: workspace?.name ?? "",
-      created_at: profile?.created_at ?? (m.created_at as string),
+      created_at: profile?.created_at ?? m.created_at,
     };
   });
 
