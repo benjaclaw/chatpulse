@@ -1,9 +1,11 @@
 "use client";
 
 import { useState } from "react";
-import { Users, ChevronDown, ChevronRight } from "lucide-react";
+import { useRouter } from "next/navigation";
+import { Users, ChevronDown, ChevronRight, Trash2, ArrowUpCircle } from "lucide-react";
 import { SearchInput } from "@/components/dashboard/search-input";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import {
   Table,
   TableBody,
@@ -16,10 +18,40 @@ import type { AdminWorkspace } from "@/lib/types";
 import { createT } from "@/lib/i18n";
 
 const t = createT("nb");
+const PLANS = ["free", "basic", "startup", "pro"];
 
 export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspace[] }): React.ReactNode {
+  const router = useRouter();
   const [search, setSearch] = useState("");
   const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [loading, setLoading] = useState<string | null>(null);
+
+  async function handleChangePlan(wsId: string, newPlan: string) {
+    if (!confirm(`Endre plan til ${newPlan.toUpperCase()}?`)) return;
+    setLoading(wsId);
+    try {
+      const res = await fetch("/api/admin/workspaces", {
+        method: "PATCH",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ workspaceId: wsId, plan_id: newPlan }),
+      });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || "Feil"); return; }
+      router.refresh();
+    } finally { setLoading(null); }
+  }
+
+  async function handleDelete(wsId: string, wsName: string) {
+    if (!confirm(`Er du sikker på at du vil slette "${wsName}"? Dette kan ikke angres.`)) return;
+    if (!confirm(`Siste sjanse: Slett "${wsName}" permanent?`)) return;
+    setLoading(wsId);
+    try {
+      const res = await fetch(`/api/admin/workspaces?workspaceId=${wsId}`, { method: "DELETE" });
+      const data = await res.json();
+      if (!res.ok) { alert(data.error || "Feil"); return; }
+      router.refresh();
+    } finally { setLoading(null); }
+  }
 
   const filtered = workspaces.filter(
     (ws) =>
@@ -96,26 +128,60 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspace[] }
                       </button>
 
                       {isExpanded && (
-                        <div className="border-t bg-muted/30 px-10 py-3">
-                          <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
-                            {t('admin.workspaces.membersSection')}
-                          </p>
-                          <ul className="space-y-1">
-                            {ws.members.map((m) => (
-                              <li
-                                key={m.id}
-                                className="flex items-center gap-3 text-sm"
+                        <div className="border-t bg-muted/30 px-10 py-4 space-y-4">
+                          <div>
+                            <p className="mb-2 text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                              {t('admin.workspaces.membersSection')}
+                            </p>
+                            <ul className="space-y-1">
+                              {ws.members.map((m) => (
+                                <li
+                                  key={m.id}
+                                  className="flex items-center gap-3 text-sm"
+                                >
+                                  <span className="font-medium">{m.name}</span>
+                                  <span className="text-muted-foreground">
+                                    {m.email}
+                                  </span>
+                                  <Badge variant="outline" className="text-xs">
+                                    {m.role}
+                                  </Badge>
+                                </li>
+                              ))}
+                            </ul>
+                          </div>
+
+                          {/* Admin actions */}
+                          <div className="flex items-center gap-3 border-t pt-3">
+                            <div className="flex items-center gap-2">
+                              <ArrowUpCircle className="h-4 w-4 text-muted-foreground" />
+                              <span className="text-xs font-medium text-muted-foreground">Endre plan:</span>
+                              {PLANS.map((p) => (
+                                <Button
+                                  key={p}
+                                  variant={ws.plan_id === p ? "default" : "outline"}
+                                  size="sm"
+                                  className="h-7 text-xs"
+                                  disabled={ws.plan_id === p || loading === ws.id}
+                                  onClick={(e) => { e.stopPropagation(); handleChangePlan(ws.id, p); }}
+                                >
+                                  {p.toUpperCase()}
+                                </Button>
+                              ))}
+                            </div>
+                            <div className="ml-auto">
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                className="h-7 text-xs"
+                                disabled={loading === ws.id}
+                                onClick={(e) => { e.stopPropagation(); handleDelete(ws.id, ws.name); }}
                               >
-                                <span className="font-medium">{m.name}</span>
-                                <span className="text-muted-foreground">
-                                  {m.email}
-                                </span>
-                                <Badge variant="outline" className="text-xs">
-                                  {m.role}
-                                </Badge>
-                              </li>
-                            ))}
-                          </ul>
+                                <Trash2 className="mr-1 h-3 w-3" />
+                                Slett
+                              </Button>
+                            </div>
+                          </div>
                         </div>
                       )}
                     </TableCell>

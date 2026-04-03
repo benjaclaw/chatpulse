@@ -288,7 +288,7 @@ export function KnowledgePageClient(): React.ReactNode {
               <Plus className="mr-2 h-4 w-4" />
               {t('knowledge.add')}
             </DialogTrigger>
-            <DialogContent className="max-h-[90vh] overflow-y-auto sm:!max-w-2xl w-full">
+            <DialogContent className="max-h-[90vh] overflow-y-auto sm:!max-w-2xl !w-[calc(100%-2rem)] sm:!w-full">
               <DialogHeader>
                 <DialogTitle>{editingItem ? t('knowledge.editArticle') : t('knowledge.newArticle')}</DialogTitle>
                 <DialogDescription>
@@ -297,8 +297,8 @@ export function KnowledgePageClient(): React.ReactNode {
                     : t('knowledge.newDescription')}
                 </DialogDescription>
               </DialogHeader>
-              <form onSubmit={handleSubmit}>
-                <div className="space-y-4 py-4">
+              <form onSubmit={handleSubmit} className="overflow-hidden">
+                <div className="space-y-4 py-4 overflow-hidden">
                   <div className="space-y-2">
                     <Label htmlFor="kb-title">{t('knowledge.titleLabel')}</Label>
                     <Input
@@ -330,7 +330,7 @@ export function KnowledgePageClient(): React.ReactNode {
                       required
                       defaultValue={editingItem?.content ?? ""}
                       key={`con-${editingItem?.id ?? "new"}`}
-                      className="max-h-[50vh] min-h-[200px] resize-y font-mono text-xs leading-relaxed"
+                      className="max-h-[50vh] min-h-[200px] w-full resize-y font-mono text-xs leading-relaxed overflow-x-hidden break-words"
                     />
                   </div>
                 </div>
