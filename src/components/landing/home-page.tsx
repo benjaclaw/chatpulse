@@ -94,15 +94,7 @@ export function HomePage(): React.ReactNode {
           </div>
         </section>
 
-        {/* ─── Trust Badges ─── */}
-        <section className="border-t px-4 py-8 sm:px-6 sm:py-10">
-          <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-6 sm:gap-10">
-            <TrustBadge icon={Shield} text={t("landing.trust.gdpr")} />
-            <TrustBadge icon={Server} text={t("landing.trust.eu")} />
-            <TrustBadge icon={Headset} text={t("landing.trust.support")} />
-            <TrustBadge icon={Clock} text={t("landing.trust.fast")} />
-          </div>
-        </section>
+
 
         {/* ─── Features ─── */}
         <section
