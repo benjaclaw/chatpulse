@@ -461,6 +461,13 @@ const en: Record<string, string> = {
 
   // Common
   'common.unknown': 'Unknown',
+  'upgrade.paywallTitle': 'Choose a plan to activate your chatbot',
+  'upgrade.paywallDescription': 'You\'ve set everything up — pick a plan to activate the chatbot on your website.',
+  'upgrade.seePlans': 'See plans',
+  'upgrade.featureTitle': 'Upgrade to use this feature',
+  'upgrade.featureRequires': 'This feature requires the {plan} plan or higher.',
+  'upgrade.featureGeneric': 'Upgrade your plan to unlock this feature.',
+  'upgrade.upgradePlan': 'Upgrade plan',
 
   // Admin
   'admin.nav.stats': 'Statistics',
@@ -573,6 +580,7 @@ const en: Record<string, string> = {
   'pricing.perMonth': '/mo',
   'pricing.perYear': '/yr',
   'pricing.monthly': 'Monthly',
+  'pricing.monthShort': 'mo',
   'pricing.annual': 'Annual',
   'pricing.save20': 'Save 20%',
   'pricing.popular': 'Most popular',
@@ -703,6 +711,12 @@ const en: Record<string, string> = {
   'onboarding.skipWarning': 'The chatbot won\'t be able to answer questions without knowledge',
   'onboarding.uploadedFiles': 'Uploaded files',
   'onboarding.faqItems': 'FAQ articles',
+  'onboarding.step5': 'Plan',
+  'onboarding.choosePlanTitle': 'Choose your plan',
+  'onboarding.choosePlanDescription': 'Pick the plan that fits your business. You can change anytime.',
+  'onboarding.choosePlanCta': 'Go to payment',
+  'onboarding.exploreLater': 'Explore first',
+  'onboarding.messagesPerMonth': 'messages/mo',
   'onboarding.primaryColor': 'Widget color',
   'onboarding.primaryColorHelp': 'Choose a color that matches your website',
   'onboarding.readyBanner': 'You\'re all set! Your chatbot is configured and ready to go.',

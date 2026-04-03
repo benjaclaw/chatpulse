@@ -15,6 +15,7 @@ import {
   Briefcase,
   Bot,
   BookOpen,
+  CreditCard,
   Loader2,
   Upload,
   FileText,
@@ -22,7 +23,9 @@ import {
   X,
   AlertTriangle,
   Check,
+  ArrowRight,
 } from "lucide-react";
+import { VISIBLE_PLAN_DETAILS } from "@/lib/plans";
 
 // --- Industry defaults ---
 
@@ -129,7 +132,7 @@ function slugify(text: string): string {
 }
 
 // --- Step labels ---
-const STEP_ICONS = [Building2, Briefcase, Bot, BookOpen];
+const STEP_ICONS = [Building2, Briefcase, Bot, BookOpen, CreditCard];
 
 interface OnboardingWizardProps {
   userEmail?: string;
@@ -197,6 +200,11 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
   const [showEmbedModal, setShowEmbedModal] = useState(false);
   const [createdWorkspaceId, setCreatedWorkspaceId] = useState<string | null>(null);
 
+  // Step 5: Plan selection
+  const [selectedPlan, setSelectedPlan] = useState<string>("startup");
+  const [annual, setAnnual] = useState(true);
+  const [checkoutLoading, setCheckoutLoading] = useState(false);
+
   // Step 4: Knowledge
   const [uploadedFiles, setUploadedFiles] = useState<UploadedFile[]>([]);
   const [faqItems, setFaqItems] = useState<FaqItem[]>([]);
@@ -234,7 +242,7 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
       if (!welcomeMessage) setWelcomeMessage(defaults.welcome);
       if (!systemPrompt) setSystemPrompt(defaults.prompt);
     }
-    setStep((s) => Math.min(s + 1, 3));
+    setStep((s) => Math.min(s + 1, 4));
   };
 
   const handleBack = () => {
@@ -358,10 +366,10 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
         });
       }
 
-      // 7. Show embed code modal before redirecting
+      // 7. Save workspace ID and move to plan selection
       setCreatedWorkspaceId(workspaceId);
-      setShowEmbedModal(true);
       setSubmitting(false);
+      setStep(4);
     } catch (err: unknown) {
       const message =
         err instanceof Error ? err.message : "Something went wrong";
@@ -370,11 +378,45 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
     }
   };
 
+  const handlePlanCheckout = async () => {
+    if (!createdWorkspaceId || !selectedPlan) return;
+    setCheckoutLoading(true);
+    setError("");
+
+    try {
+      const res = await fetch("/api/stripe/checkout", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          planId: selectedPlan,
+          workspaceId: createdWorkspaceId,
+          billing: annual ? "annual" : "monthly",
+        }),
+      });
+      const data = await res.json();
+      if (data.url) {
+        window.location.href = data.url;
+      } else {
+        setError(data.error || "Noe gikk galt med checkout.");
+        setCheckoutLoading(false);
+      }
+    } catch {
+      setError("Kunne ikke starte checkout. Prøv igjen.");
+      setCheckoutLoading(false);
+    }
+  };
+
+  const handleSkipPlan = () => {
+    // Go to dashboard without paying — will see paywall there
+    router.push("/dashboard");
+  };
+
   const stepLabels = [
     t("onboarding.step1"),
     t("onboarding.step2"),
     t("onboarding.step3"),
     t("onboarding.step4"),
+    t("onboarding.step5"),
   ];
 
   const hasKnowledge = uploadedFiles.length > 0 || faqItems.length > 0;
@@ -442,11 +484,11 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
         <div className="relative h-2 w-full overflow-hidden rounded-full bg-muted">
           <div
             className="absolute inset-y-0 left-0 rounded-full bg-gradient-to-r from-indigo-500 via-purple-500 to-pink-500 transition-all duration-500 ease-in-out"
-            style={{ width: `${((step + 1) / 4) * 100}%` }}
+            style={{ width: `${((step + 1) / 5) * 100}%` }}
           />
         </div>
         <p className="text-center text-xs text-muted-foreground">
-          {step + 1} / 4 — {stepLabels[step]}
+          {step + 1} / 5 — {stepLabels[step]}
         </p>
       </div>
 
@@ -796,6 +838,91 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
               )}
             </div>
           )}
+
+          {/* Step 5: Plan Selection */}
+          {step === 4 && (
+            <div className="space-y-6">
+              <div className="text-center">
+                <h3 className="text-lg font-semibold">
+                  {t("onboarding.choosePlanTitle")}
+                </h3>
+                <p className="mt-1 text-sm text-muted-foreground">
+                  {t("onboarding.choosePlanDescription")}
+                </p>
+              </div>
+
+              {/* Annual/Monthly toggle */}
+              <div className="flex items-center justify-center gap-3">
+                <div className="inline-flex rounded-full border bg-muted p-1">
+                  <button
+                    type="button"
+                    onClick={() => setAnnual(false)}
+                    className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                      !annual
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {t("pricing.monthly")}
+                  </button>
+                  <button
+                    type="button"
+                    onClick={() => setAnnual(true)}
+                    className={`rounded-full px-4 py-1.5 text-sm font-medium transition-all ${
+                      annual
+                        ? "bg-background text-foreground shadow-sm"
+                        : "text-muted-foreground hover:text-foreground"
+                    }`}
+                  >
+                    {t("pricing.annual")}
+                  </button>
+                </div>
+                {annual && (
+                  <span className="rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-semibold text-green-700 dark:bg-green-900/30 dark:text-green-400">
+                    {t("pricing.save20")}
+                  </span>
+                )}
+              </div>
+
+              {/* Plan cards */}
+              <div className="grid gap-3">
+                {VISIBLE_PLAN_DETAILS.map((plan) => {
+                  const isSelected = selectedPlan === plan.id;
+                  const price = annual ? plan.priceNokAnnual : plan.priceNok;
+                  return (
+                    <button
+                      key={plan.id}
+                      type="button"
+                      onClick={() => setSelectedPlan(plan.id)}
+                      className={`flex items-center justify-between rounded-xl border-2 p-4 text-left transition-all ${
+                        isSelected
+                          ? "border-primary bg-primary/5 shadow-md"
+                          : "border-border hover:border-primary/40"
+                      }`}
+                    >
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <span className="font-semibold">{plan.name}</span>
+                          {plan.id === "startup" && (
+                            <span className="rounded-full bg-primary px-2 py-0.5 text-xs font-medium text-white">
+                              {t("pricing.popular")}
+                            </span>
+                          )}
+                        </div>
+                        <p className="mt-0.5 text-sm text-muted-foreground">
+                          {plan.messageLimit.toLocaleString("nb-NO")} {t("onboarding.messagesPerMonth")}
+                        </p>
+                      </div>
+                      <div className="text-right">
+                        <span className="text-xl font-bold">{price} kr</span>
+                        <span className="text-sm text-muted-foreground">/{t("pricing.monthShort")}</span>
+                      </div>
+                    </button>
+                  );
+                })}
+              </div>
+            </div>
+          )}
         </CardContent>
       </Card>
 
@@ -804,7 +931,7 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
         <Button
           variant="outline"
           onClick={handleBack}
-          disabled={step === 0 || submitting}
+          disabled={step === 0 || step === 4 || submitting}
         >
           {t("onboarding.back")}
         </Button>
@@ -813,81 +940,36 @@ export function OnboardingWizard({ userEmail }: OnboardingWizardProps): React.Re
           <Button onClick={handleNext} disabled={!canProceed()}>
             {t("onboarding.next")}
           </Button>
-        ) : (
+        ) : step === 3 ? (
           <Button onClick={handleFinish} disabled={submitting}>
             {submitting && (
               <Loader2 className="mr-2 h-4 w-4 animate-spin" />
             )}
             {submitting
               ? t("onboarding.finishing")
-              : t("onboarding.finish")}
+              : t("onboarding.next")}
           </Button>
+        ) : (
+          <div className="flex gap-3">
+            <Button
+              variant="ghost"
+              onClick={handleSkipPlan}
+              disabled={checkoutLoading}
+            >
+              {t("onboarding.exploreLater")}
+            </Button>
+            <Button onClick={handlePlanCheckout} disabled={checkoutLoading}>
+              {checkoutLoading && (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              )}
+              {t("onboarding.choosePlanCta")}
+              <ArrowRight className="ml-2 h-4 w-4" />
+            </Button>
+          </div>
         )}
       </div>
 
-      {/* Embed Code Modal */}
-      {showEmbedModal && createdWorkspaceId && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
-          <div className="w-full max-w-lg rounded-xl border bg-card p-6 shadow-2xl">
-            <div className="text-center">
-              <div className="mx-auto flex h-14 w-14 items-center justify-center rounded-full bg-green-100 dark:bg-green-900/30">
-                <Check className="h-7 w-7 text-green-600 dark:text-green-400" />
-              </div>
-              <h2 className="mt-4 text-xl font-bold">
-                {t("onboarding.readyTitle")}
-              </h2>
-              <p className="mt-2 text-sm text-muted-foreground">
-                {t("onboarding.readyDescription")}
-              </p>
-            </div>
 
-            <div className="mt-6 space-y-3">
-              <Label>{t("onboarding.embedLabel")}</Label>
-              <div className="relative">
-                <pre className="overflow-x-auto rounded-lg bg-muted p-4 text-xs">
-                  {`<script src="${typeof window !== "undefined" ? window.location.origin : ""}/widget.js" data-workspace="${createdWorkspaceId}"></script>`}
-                </pre>
-                <Button
-                  variant="outline"
-                  size="sm"
-                  className="absolute right-2 top-2"
-                  onClick={() => {
-                    navigator.clipboard.writeText(
-                      `<script src="${window.location.origin}/widget.js" data-workspace="${createdWorkspaceId}"></script>`
-                    );
-                  }}
-                >
-                  {t("onboarding.copyCode")}
-                </Button>
-              </div>
-              <p className="text-xs text-muted-foreground">
-                {t("onboarding.embedHelp")}
-              </p>
-            </div>
-
-            <div className="mt-6 flex gap-3">
-              <Button
-                variant="outline"
-                className="flex-1"
-                onClick={() => router.push("/dashboard")}
-              >
-                {t("onboarding.skipEmbed")}
-              </Button>
-              <Button
-                className="flex-1"
-                onClick={() => {
-                  navigator.clipboard.writeText(
-                    `<script src="${window.location.origin}/widget.js" data-workspace="${createdWorkspaceId}"></script>`
-                  );
-                  router.push("/dashboard");
-                }}
-              >
-                {t("onboarding.copyAndContinue")}
-              </Button>
-            </div>
-          </div>
-        </div>
-      )}
     </div>
   );
 }

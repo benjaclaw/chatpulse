@@ -15,6 +15,7 @@ import Link from "next/link";
 import { useLanguage } from "@/lib/i18n/context";
 import { useWorkspace } from "@/contexts/workspace-context";
 import { createClient } from "@/lib/supabase/client";
+import { UpgradeBanner } from "@/components/dashboard/upgrade-banner";
 
 interface DashboardStats {
   totalConversations: number;
@@ -118,6 +119,11 @@ export function DashboardContent({ stats }: { stats: DashboardStats }): React.Re
 
   return (
     <div className="space-y-8 animate-scroll-fade">
+      {/* Upgrade banner for free users */}
+      {workspace.plan_id === "free" && (
+        <UpgradeBanner workspaceId={workspace.id} />
+      )}
+
       {/* Page header */}
       <div>
         <h1 className="text-3xl font-bold tracking-tight">{t('dashboard.title')}</h1>

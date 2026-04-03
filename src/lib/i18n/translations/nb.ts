@@ -461,6 +461,13 @@ const nb: Record<string, string> = {
 
   // Common
   'common.unknown': 'Ukjent',
+  'upgrade.paywallTitle': 'Velg en plan for å aktivere chatboten',
+  'upgrade.paywallDescription': 'Du har satt opp alt — velg en plan for å aktivere chatboten på nettsiden din.',
+  'upgrade.seePlans': 'Se planer',
+  'upgrade.featureTitle': 'Oppgrader for å bruke denne funksjonen',
+  'upgrade.featureRequires': 'Denne funksjonen krever {plan}-planen eller høyere.',
+  'upgrade.featureGeneric': 'Oppgrader planen din for å låse opp denne funksjonen.',
+  'upgrade.upgradePlan': 'Oppgrader plan',
 
   // Admin
   'admin.nav.stats': 'Statistikk',
@@ -573,6 +580,7 @@ const nb: Record<string, string> = {
   'pricing.perMonth': '/mnd',
   'pricing.perYear': '/år',
   'pricing.monthly': 'Månedlig',
+  'pricing.monthShort': 'mnd',
   'pricing.annual': 'Årlig',
   'pricing.save20': 'Spar 20%',
   'pricing.popular': 'Mest populær',
@@ -703,6 +711,12 @@ const nb: Record<string, string> = {
   'onboarding.skipWarning': 'Chatboten vil ikke kunne svare på spørsmål uten kunnskap',
   'onboarding.uploadedFiles': 'Opplastede filer',
   'onboarding.faqItems': 'FAQ-artikler',
+  'onboarding.step5': 'Plan',
+  'onboarding.choosePlanTitle': 'Velg din plan',
+  'onboarding.choosePlanDescription': 'Velg planen som passer for bedriften din. Du kan endre når som helst.',
+  'onboarding.choosePlanCta': 'Gå til betaling',
+  'onboarding.exploreLater': 'Utforsk først',
+  'onboarding.messagesPerMonth': 'meldinger/mnd',
   'onboarding.primaryColor': 'Widgetfarge',
   'onboarding.primaryColorHelp': 'Velg en farge som matcher nettsiden din',
   'onboarding.readyBanner': 'Du er klar! Chatboten din er satt opp og klar til bruk.',
