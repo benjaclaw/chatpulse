@@ -13,6 +13,11 @@ import {
   Plus,
   Puzzle,
   Building2,
+  Shield,
+  Server,
+  Headset,
+  Clock,
+  ChevronDown,
 } from "lucide-react";
 import { buttonVariants } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
@@ -94,6 +99,16 @@ export function HomePage(): React.ReactNode {
             <div className="animate-float">
               <WidgetMockup t={t} />
             </div>
+          </div>
+        </section>
+
+        {/* ─── Trust Badges ─── */}
+        <section className="border-t px-4 py-8 sm:px-6 sm:py-10">
+          <div className="mx-auto flex max-w-4xl flex-wrap items-center justify-center gap-6 sm:gap-10">
+            <TrustBadge icon={Shield} text={t("landing.trust.gdpr")} />
+            <TrustBadge icon={Server} text={t("landing.trust.eu")} />
+            <TrustBadge icon={Headset} text={t("landing.trust.support")} />
+            <TrustBadge icon={Clock} text={t("landing.trust.fast")} />
           </div>
         </section>
 
@@ -300,6 +315,22 @@ export function HomePage(): React.ReactNode {
           </div>
         </section>
 
+        {/* ─── FAQ ─── */}
+        <section className="scroll-mt-16 border-t px-4 py-16 sm:px-6 sm:py-24">
+          <div className="mx-auto max-w-3xl">
+            <h2 className="font-heading text-center text-2xl font-bold tracking-tight sm:text-3xl">
+              {t("landing.faq.title")}
+            </h2>
+            <div className="mt-10 space-y-3">
+              <FaqItem question={t("landing.faq.q1")} answer={t("landing.faq.a1")} />
+              <FaqItem question={t("landing.faq.q2")} answer={t("landing.faq.a2")} />
+              <FaqItem question={t("landing.faq.q3")} answer={t("landing.faq.a3")} />
+              <FaqItem question={t("landing.faq.q4")} answer={t("landing.faq.a4")} />
+              <FaqItem question={t("landing.faq.q5")} answer={t("landing.faq.a5")} />
+            </div>
+          </div>
+        </section>
+
         {/* ─── Final CTA ─── */}
         <section className="relative overflow-hidden border-t px-4 py-16 sm:px-6 sm:py-24">
           <div className="pointer-events-none absolute inset-0 bg-gradient-to-br from-primary/5 via-accent/5 to-background" />
@@ -435,5 +466,40 @@ function PricingFeature({ text }: { text: string }): React.ReactNode {
       <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
       {text}
     </li>
+  );
+}
+
+function TrustBadge({
+  icon: Icon,
+  text,
+}: {
+  icon: React.ComponentType<{ className?: string }>;
+  text: string;
+}): React.ReactNode {
+  return (
+    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <Icon className="h-4 w-4 text-primary/70" />
+      <span>{text}</span>
+    </div>
+  );
+}
+
+function FaqItem({
+  question,
+  answer,
+}: {
+  question: string;
+  answer: string;
+}): React.ReactNode {
+  return (
+    <details className="group rounded-lg border bg-card transition-shadow hover:shadow-sm">
+      <summary className="flex cursor-pointer items-center justify-between px-5 py-4 text-sm font-medium [&::-webkit-details-marker]:hidden">
+        {question}
+        <ChevronDown className="h-4 w-4 shrink-0 text-muted-foreground transition-transform group-open:rotate-180" />
+      </summary>
+      <div className="px-5 pb-4 text-sm leading-relaxed text-muted-foreground">
+        {answer}
+      </div>
+    </details>
   );
 }

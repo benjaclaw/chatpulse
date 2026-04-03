@@ -776,6 +776,25 @@ const nb: Record<string, string> = {
   'hint.leads': 'Leads fanges opp automatisk fra chatbot-samtaler der besøkende oppgir kontaktinfo.',
   'hint.team.solo': 'Inviter kolleger for samarbeid i live chat og kunnskapsbase.',
 
+  // Trust badges
+  'landing.trust.gdpr': 'GDPR-kompatibel',
+  'landing.trust.eu': 'Data lagret i EU',
+  'landing.trust.support': 'Norsk support',
+  'landing.trust.fast': 'Klar på 10 min',
+
+  // FAQ
+  'landing.faq.title': 'Ofte stilte spørsmål',
+  'landing.faq.q1': 'Trenger jeg teknisk kunnskap?',
+  'landing.faq.a1': 'Nei, ChatPulse er designet for å være enkelt. Du trenger ingen kodekunnskap — bare last opp innholdet ditt, og chatboten er klar.',
+  'landing.faq.q2': 'Hvor raskt er chatboten oppe?',
+  'landing.faq.a2': 'Du kan ha en fungerende chatbot på nettsiden din på under 10 minutter. Opprett workspace, legg til kunnskap, og lim inn embed-koden.',
+  'landing.faq.q3': 'Er dataene mine trygge?',
+  'landing.faq.a3': 'Ja. All data lagres i EU, og vi følger GDPR. Du har full kontroll over dataene dine og kan slette dem når som helst.',
+  'landing.faq.q4': 'Kan jeg prøve gratis?',
+  'landing.faq.a4': 'Absolutt! Free-planen gir deg 100 meldinger i måneden — helt gratis, uten kredittkort.',
+  'landing.faq.q5': 'Kan jeg tilpasse chatbotens utseende?',
+  'landing.faq.a5': 'Ja, du kan endre farger, velkomstmelding, chatbot-navn og mer. På Starter-planen kan du også legge til egen logo og fjerne ChatPulse-branding.',
+
   // Role labels
   'role.owner': 'Eier',
   'role.admin': 'Admin',
