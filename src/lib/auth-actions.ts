@@ -101,7 +101,7 @@ export async function signup(formData: FormData): Promise<ActionResult> {
     // Non-blocking — don't fail signup if tracking fails
   }
 
-  redirect("/check-email");
+  redirect(redirectTo);
 }
 
 export async function forgotPassword(email: string): Promise<ActionResult> {
