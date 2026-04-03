@@ -32,6 +32,7 @@ export type UserInfo = {
   id: string;
   email: string;
   name?: string;
+  isSuperAdmin?: boolean;
 };
 
 // --- Navigation ---

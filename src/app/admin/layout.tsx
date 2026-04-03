@@ -1,5 +1,6 @@
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { AdminShell } from "@/components/admin/admin-shell";
 
 export const dynamic = "force-dynamic";
@@ -19,7 +20,9 @@ export default async function AdminLayout({
     redirect("/login");
   }
 
-  const { data: profile } = await supabase
+  // Use service client to check super_admin — bypasses RLS
+  const sb = createServiceClient();
+  const { data: profile } = await sb
     .from("profiles")
     .select("is_super_admin")
     .eq("id", user.id)

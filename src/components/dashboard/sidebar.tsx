@@ -3,7 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { ChevronsUpDown, LogOut, Lock } from "lucide-react";
+import { ChevronsUpDown, LogOut, Lock, Shield } from "lucide-react";
 import { hasFeature } from "@/lib/plans";
 import type { PlanFeature } from "@/lib/plans";
 import { signOut } from "@/lib/auth-actions";
@@ -338,6 +338,15 @@ export function Sidebar({
               <span className={`mr-2 h-2 w-2 rounded-full ${isOnline ? "bg-green-500" : "bg-gray-400"}`} />
               {isOnline ? t('inbox.goOffline') : t('inbox.goOnline')}
             </DropdownMenuItem>
+            {user.isSuperAdmin && (
+              <>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem onClick={() => window.location.href = '/admin'}>
+                  <Shield className="mr-2 h-4 w-4" />
+                  Admin Panel
+                </DropdownMenuItem>
+              </>
+            )}
             <DropdownMenuSeparator />
             <DropdownMenuItem
               onClick={() => signOut()}

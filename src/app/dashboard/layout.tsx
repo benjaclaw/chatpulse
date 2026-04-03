@@ -1,6 +1,7 @@
 import { Suspense } from "react";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
+import { createServiceClient } from "@/lib/supabase/service";
 import { DashboardShell } from "@/components/dashboard/shell";
 import { AnalyticsTracker } from "@/components/analytics-tracker";
 import type { MemberRole, WorkspaceMembership } from "@/lib/types";
@@ -37,9 +38,19 @@ export default async function DashboardLayout({
     role: m.role as MemberRole,
   }));
 
+  // Check super_admin status for admin link
+  const sb = createServiceClient();
+  const { data: profile } = await sb
+    .from("profiles")
+    .select("is_super_admin")
+    .eq("id", user.id)
+    .single();
+
+  const isSuperAdmin = profile?.is_super_admin ?? false;
+
   return (
     <DashboardShell
-      user={{ id: user.id, email: user.email!, name: user.user_metadata?.full_name }}
+      user={{ id: user.id, email: user.email!, name: user.user_metadata?.full_name, isSuperAdmin }}
       workspaces={workspaces}
     >
       <Suspense>
