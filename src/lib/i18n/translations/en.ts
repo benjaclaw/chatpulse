@@ -793,7 +793,7 @@ const en: Record<string, string> = {
   'landing.faq.q4': 'Is there a commitment period?',
   'landing.faq.a4': 'No, there is no commitment period. You can upgrade, downgrade, or cancel your subscription at any time.',
   'landing.faq.q5': 'Can I customize the chatbot\'s appearance?',
-  'landing.faq.a5': 'Yes, you can change colors, welcome message, chatbot name, and more. On the Starter plan, you can also add your own logo and remove ChatPulse branding.',
+  'landing.faq.a5': 'Yes, you can change colors, welcome message, chatbot name, and more — so the chatbot fits perfectly on your website.',
 
   // Role labels
   'role.owner': 'Owner',

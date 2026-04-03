@@ -793,7 +793,7 @@ const nb: Record<string, string> = {
   'landing.faq.q4': 'Er det bindingstid?',
   'landing.faq.a4': 'Nei, det er ingen bindingstid. Du kan oppgradere, nedgradere eller avslutte abonnementet når som helst.',
   'landing.faq.q5': 'Kan jeg tilpasse chatbotens utseende?',
-  'landing.faq.a5': 'Ja, du kan endre farger, velkomstmelding, chatbot-navn og mer. På Starter-planen kan du også legge til egen logo og fjerne ChatPulse-branding.',
+  'landing.faq.a5': 'Ja, du kan endre farger, velkomstmelding, chatbot-navn og mer — slik at chatboten passer perfekt inn på nettsiden din.',
 
   // Role labels
   'role.owner': 'Eier',
