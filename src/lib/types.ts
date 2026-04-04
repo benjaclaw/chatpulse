@@ -157,6 +157,8 @@ export type AdminWorkspace = {
   message_count: number;
   member_count: number;
   created_at: string;
+  stripe_customer_id: string | null;
+  stripe_subscription_id: string | null;
   members: { id: string; name: string; email: string; role: string }[];
 };
 

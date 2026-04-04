@@ -10,7 +10,7 @@ export default async function AdminWorkspacesPage(): Promise<React.ReactNode> {
   // Fetch workspaces and members separately to avoid nested join issues with service client
   const { data: workspacesData } = await supabase
     .from("workspaces")
-    .select("id, name, slug, plan_id, message_count, created_at")
+    .select("id, name, slug, plan_id, message_count, created_at, stripe_customer_id, stripe_subscription_id")
     .order("created_at", { ascending: false });
 
   const { data: membersData } = await supabase
@@ -31,6 +31,8 @@ export default async function AdminWorkspacesPage(): Promise<React.ReactNode> {
       slug: ws.slug as string,
       plan_id: (ws.plan_id as string) || "free",
       message_count: (ws.message_count as number) || 0,
+      stripe_customer_id: (ws.stripe_customer_id as string) || null,
+      stripe_subscription_id: (ws.stripe_subscription_id as string) || null,
       member_count: wsMembers.length,
       created_at: ws.created_at as string,
       members: wsMembers.map((m: { id: string; user_id: string; role: string }) => {

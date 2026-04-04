@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { Users, ChevronDown, ChevronRight, Trash2, ArrowUpCircle } from "lucide-react";
+import { Users, ChevronDown, ChevronRight, Trash2, ArrowUpCircle, CreditCard, AlertTriangle } from "lucide-react";
 import { SearchInput } from "@/components/dashboard/search-input";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -76,6 +76,7 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspace[] }
               <TableHead>{t('admin.workspaces.name')}</TableHead>
               <TableHead>Plan</TableHead>
               <TableHead>Meldinger</TableHead>
+              <TableHead>Stripe</TableHead>
               <TableHead>{t('admin.workspaces.members')}</TableHead>
               <TableHead>{t('admin.workspaces.created')}</TableHead>
             </TableRow>
@@ -83,7 +84,7 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspace[] }
           <TableBody>
             {filtered.length === 0 ? (
               <TableRow>
-                <TableCell colSpan={7} className="py-8 text-center text-muted-foreground">
+                <TableCell colSpan={8} className="py-8 text-center text-muted-foreground">
                   {t('admin.workspaces.noWorkspaces')}
                 </TableCell>
               </TableRow>
@@ -92,7 +93,7 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspace[] }
                 const isExpanded = expandedId === ws.id;
                 return (
                   <TableRow key={ws.id} className="group">
-                    <TableCell colSpan={7} className="p-0">
+                    <TableCell colSpan={8} className="p-0">
                       <button
                         onClick={() => setExpandedId(isExpanded ? null : ws.id)}
                         className="flex w-full items-center gap-0 text-left transition-colors hover:bg-muted/50"
@@ -112,6 +113,21 @@ export function WorkspacesTable({ workspaces }: { workspaces: AdminWorkspace[] }
                           >
                             {ws.plan_id}
                           </Badge>
+                        </div>
+                        <div className="flex-1 p-2">
+                          {ws.stripe_subscription_id ? (
+                            <Badge variant="default" className="gap-1 text-xs bg-emerald-600">
+                              <CreditCard className="h-3 w-3" />
+                              Aktiv
+                            </Badge>
+                          ) : ws.plan_id !== "free" ? (
+                            <Badge variant="destructive" className="gap-1 text-xs">
+                              <AlertTriangle className="h-3 w-3" />
+                              Mangler
+                            </Badge>
+                          ) : (
+                            <span className="text-xs text-muted-foreground">—</span>
+                          )}
                         </div>
                         <div className="flex-1 p-2 text-sm text-muted-foreground">
                           {ws.message_count.toLocaleString("nb-NO")}
