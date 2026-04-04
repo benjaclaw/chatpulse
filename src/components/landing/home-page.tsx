@@ -9,7 +9,6 @@ import {
   Code2,
   Sparkles,
   ArrowRight,
-  Check,
   Plus,
   Puzzle,
   Building2,
@@ -25,6 +24,7 @@ import { createT, type Language } from "@/lib/i18n";
 import { LandingHeader } from "./header";
 import { LandingFooter } from "./footer";
 import { GoogleHeroButton } from "@/components/auth/google-sign-in-button";
+import { PricingContent } from "@/components/pricing/pricing-content";
 
 export function HomePage(): React.ReactNode {
   const [language] = useState<Language>(() => {
@@ -171,127 +171,9 @@ export function HomePage(): React.ReactNode {
         </section>
 
         {/* ─── Pricing ─── */}
-        <section
-          id="pricing"
-          className="scroll-mt-16 border-t bg-card/50 px-4 py-16 dark:bg-card/20 sm:px-6 sm:py-24"
-        >
-          <div className="mx-auto max-w-5xl">
-            <h2 className="font-heading text-center text-2xl font-bold tracking-tight sm:text-3xl">
-              {t("landing.pricing.title")}
-            </h2>
-            <p className="mx-auto mt-3 max-w-2xl text-center text-muted-foreground">
-              {t("landing.pricing.description")}
-            </p>
-
-            <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Basic */}
-              <div className="flex flex-col rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md">
-                <h3 className="text-lg font-semibold">
-                  {t("pricing.basicName")}
-                </h3>
-                <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-3xl font-bold tracking-tight">
-                    {t("pricing.basicPriceAnnual")}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {t("pricing.perMonth")}
-                  </span>
-                </div>
-                <ul className="mt-6 flex-1 space-y-2.5">
-                  <PricingFeature text={t("pricing.basicF1")} />
-                  <PricingFeature text={t("pricing.basicF2")} />
-                  <PricingFeature text={t("pricing.basicF3")} />
-                </ul>
-                <Link
-                  href="/signup"
-                  className={cn(
-                    buttonVariants({ variant: "outline", size: "lg" }),
-                    "mt-8 w-full"
-                  )}
-                >
-                  {t("pricing.basicCta")}
-                </Link>
-              </div>
-
-              {/* Starter (popular) */}
-              <div
-                className="relative flex flex-col rounded-xl border-0 bg-card p-6 shadow-lg transition-all duration-200"
-                style={{
-                  backgroundImage:
-                    "linear-gradient(var(--card), var(--card)), linear-gradient(135deg, hsl(var(--primary)), hsl(var(--primary) / 0.4), hsl(var(--primary)))",
-                  backgroundOrigin: "border-box",
-                  backgroundClip: "padding-box, border-box",
-                  border: "2px solid transparent",
-                }}
-              >
-                <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-white shadow-md">
-                  {t("pricing.popular")}
-                </div>
-                <h3 className="text-lg font-semibold">
-                  {t("pricing.startupName")}
-                </h3>
-                <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-3xl font-bold tracking-tight">
-                    {t("pricing.startupPriceAnnual")}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {t("pricing.perMonth")}
-                  </span>
-                </div>
-                <ul className="mt-6 flex-1 space-y-2.5">
-                  <PricingFeature text={t("pricing.startupF1")} />
-                  <PricingFeature text={t("pricing.startupF2")} />
-                  <PricingFeature text={t("pricing.startupF3")} />
-                </ul>
-                <Link
-                  href="/signup"
-                  className={cn(
-                    buttonVariants({ size: "lg" }),
-                    "mt-8 w-full"
-                  )}
-                >
-                  {t("pricing.startupCta")}
-                  <ArrowRight className="ml-2 h-4 w-4" />
-                </Link>
-              </div>
-
-              {/* Pro */}
-              <div className="flex flex-col rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md">
-                <h3 className="text-lg font-semibold">
-                  {t("pricing.proName")}
-                </h3>
-                <div className="mt-2 flex items-baseline gap-1">
-                  <span className="text-3xl font-bold tracking-tight">
-                    {t("pricing.proPriceAnnual")}
-                  </span>
-                  <span className="text-sm text-muted-foreground">
-                    {t("pricing.perMonth")}
-                  </span>
-                </div>
-                <ul className="mt-6 flex-1 space-y-2.5">
-                  <PricingFeature text={t("pricing.proF1")} />
-                  <PricingFeature text={t("pricing.proF2")} />
-                  <PricingFeature text={t("pricing.proF3")} />
-                </ul>
-                <Link
-                  href="/pricing"
-                  className={cn(
-                    buttonVariants({ variant: "outline", size: "lg" }),
-                    "mt-8 w-full"
-                  )}
-                >
-                  {t("pricing.proCta")}
-                </Link>
-              </div>
-            </div>
-
-            <p className="mt-6 text-center text-sm text-muted-foreground">
-              <Link href="/pricing" className="text-primary hover:underline">
-                {t("landing.pricing.viewAll")}
-              </Link>
-            </p>
-          </div>
-        </section>
+        <div id="pricing" className="scroll-mt-16">
+          <PricingContent />
+        </div>
 
         {/* ─── FAQ ─── */}
         <section className="scroll-mt-16 border-t px-4 py-16 sm:px-6 sm:py-24">
@@ -435,15 +317,6 @@ function StepCard({
       <h3 className="text-lg font-semibold">{title}</h3>
       <p className="mt-2 text-sm text-muted-foreground">{description}</p>
     </div>
-  );
-}
-
-function PricingFeature({ text }: { text: string }): React.ReactNode {
-  return (
-    <li className="flex items-start gap-2 text-sm">
-      <Check className="mt-0.5 h-4 w-4 shrink-0 text-primary" />
-      {text}
-    </li>
   );
 }
 
