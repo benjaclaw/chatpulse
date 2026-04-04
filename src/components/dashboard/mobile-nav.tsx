@@ -3,7 +3,7 @@
 import { useState } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
-import { Menu, LogOut, Lock } from "lucide-react";
+import { Menu, LogOut, Lock, Shield } from "lucide-react";
 import { hasFeature } from "@/lib/plans";
 import type { PlanFeature } from "@/lib/plans";
 import { signOut } from "@/lib/auth-actions";
@@ -138,6 +138,16 @@ export function MobileNav({
               )}
             </div>
           </div>
+          {user.isSuperAdmin && (
+            <Link
+              href="/admin"
+              onClick={() => setOpen(false)}
+              className="flex h-10 items-center gap-2 rounded-lg px-3 text-sm font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+            >
+              <Shield className="h-4 w-4" />
+              Admin Panel
+            </Link>
+          )}
           <Button
             variant="ghost"
             className="w-full justify-start text-destructive"
