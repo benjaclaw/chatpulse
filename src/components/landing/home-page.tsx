@@ -184,26 +184,23 @@ export function HomePage(): React.ReactNode {
             </p>
 
             <div className="mt-12 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-              {/* Free */}
+              {/* Basic */}
               <div className="flex flex-col rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md">
                 <h3 className="text-lg font-semibold">
-                  {t("landing.pricing.free")}
+                  {t("pricing.basicName")}
                 </h3>
                 <div className="mt-2 flex items-baseline gap-1">
                   <span className="text-3xl font-bold tracking-tight">
-                    {t("landing.pricing.freePrice")}
+                    {t("pricing.basicPriceAnnual")}
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    {t("landing.pricing.perMonth")}
+                    {t("pricing.perMonth")}
                   </span>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {t("landing.pricing.freeDesc")}
-                </p>
                 <ul className="mt-6 flex-1 space-y-2.5">
-                  <PricingFeature text={t("landing.pricing.freeF1")} />
-                  <PricingFeature text={t("landing.pricing.freeF2")} />
-                  <PricingFeature text={t("landing.pricing.freeF3")} />
+                  <PricingFeature text={t("pricing.basicF1")} />
+                  <PricingFeature text={t("pricing.basicF2")} />
+                  <PricingFeature text={t("pricing.basicF3")} />
                 </ul>
                 <Link
                   href="/signup"
@@ -212,11 +209,11 @@ export function HomePage(): React.ReactNode {
                     "mt-8 w-full"
                   )}
                 >
-                  {t("landing.pricing.freeCta")}
+                  {t("pricing.basicCta")}
                 </Link>
               </div>
 
-              {/* Pro */}
+              {/* Starter (popular) */}
               <div
                 className="relative flex flex-col rounded-xl border-0 bg-card p-6 shadow-lg transition-all duration-200"
                 style={{
@@ -228,26 +225,23 @@ export function HomePage(): React.ReactNode {
                 }}
               >
                 <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-primary px-4 py-1 text-xs font-semibold text-white shadow-md">
-                  {t("landing.pricing.popular")}
+                  {t("pricing.popular")}
                 </div>
                 <h3 className="text-lg font-semibold">
-                  {t("landing.pricing.pro")}
+                  {t("pricing.startupName")}
                 </h3>
                 <div className="mt-2 flex items-baseline gap-1">
                   <span className="text-3xl font-bold tracking-tight">
-                    {t("landing.pricing.proPrice")}
+                    {t("pricing.startupPriceAnnual")}
                   </span>
                   <span className="text-sm text-muted-foreground">
-                    {t("landing.pricing.perMonth")}
+                    {t("pricing.perMonth")}
                   </span>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {t("landing.pricing.proDesc")}
-                </p>
                 <ul className="mt-6 flex-1 space-y-2.5">
-                  <PricingFeature text={t("landing.pricing.proF1")} />
-                  <PricingFeature text={t("landing.pricing.proF2")} />
-                  <PricingFeature text={t("landing.pricing.proF3")} />
+                  <PricingFeature text={t("pricing.startupF1")} />
+                  <PricingFeature text={t("pricing.startupF2")} />
+                  <PricingFeature text={t("pricing.startupF3")} />
                 </ul>
                 <Link
                   href="/signup"
@@ -256,38 +250,38 @@ export function HomePage(): React.ReactNode {
                     "mt-8 w-full"
                   )}
                 >
-                  {t("landing.pricing.proCta")}
+                  {t("pricing.startupCta")}
                   <ArrowRight className="ml-2 h-4 w-4" />
                 </Link>
               </div>
 
-              {/* Enterprise */}
+              {/* Pro */}
               <div className="flex flex-col rounded-xl border bg-card p-6 shadow-sm transition-all duration-200 hover:shadow-md">
                 <h3 className="text-lg font-semibold">
-                  {t("landing.pricing.enterprise")}
+                  {t("pricing.proName")}
                 </h3>
                 <div className="mt-2 flex items-baseline gap-1">
                   <span className="text-3xl font-bold tracking-tight">
-                    {t("landing.pricing.enterprisePrice")}
+                    {t("pricing.proPriceAnnual")}
+                  </span>
+                  <span className="text-sm text-muted-foreground">
+                    {t("pricing.perMonth")}
                   </span>
                 </div>
-                <p className="mt-2 text-sm text-muted-foreground">
-                  {t("landing.pricing.enterpriseDesc")}
-                </p>
                 <ul className="mt-6 flex-1 space-y-2.5">
-                  <PricingFeature text={t("landing.pricing.enterpriseF1")} />
-                  <PricingFeature text={t("landing.pricing.enterpriseF2")} />
-                  <PricingFeature text={t("landing.pricing.enterpriseF3")} />
+                  <PricingFeature text={t("pricing.proF1")} />
+                  <PricingFeature text={t("pricing.proF2")} />
+                  <PricingFeature text={t("pricing.proF3")} />
                 </ul>
-                <a
-                  href="mailto:post@chatpulse.no"
+                <Link
+                  href="/pricing"
                   className={cn(
                     buttonVariants({ variant: "outline", size: "lg" }),
                     "mt-8 w-full"
                   )}
                 >
-                  {t("landing.pricing.enterpriseCta")}
-                </a>
+                  {t("pricing.proCta")}
+                </Link>
               </div>
             </div>
 
