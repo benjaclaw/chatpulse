@@ -41,12 +41,21 @@ export async function POST(request: Request): Promise<Response> {
       const planId = session.metadata?.planId;
 
       if (workspaceId && planId && isValidUUID(workspaceId) && VALID_PLAN_IDS.has(planId)) {
+        // Only upgrade plan if we have a valid subscription
+        const subscriptionId = session.subscription as string | null;
+        const customerId = session.customer as string | null;
+
+        if (!subscriptionId) {
+          console.error(`[webhook] checkout.session.completed without subscription — workspaceId=${workspaceId}, planId=${planId}`);
+          break;
+        }
+
         await supabase
           .from("workspaces")
           .update({
             plan_id: planId,
-            stripe_customer_id: session.customer as string,
-            stripe_subscription_id: session.subscription as string,
+            stripe_customer_id: customerId,
+            stripe_subscription_id: subscriptionId,
           })
           .eq("id", workspaceId);
 
