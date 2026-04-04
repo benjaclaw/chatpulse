@@ -49,8 +49,8 @@ export function MobileNav({
         <Menu className="h-5 w-5" />
         <span className="sr-only">{t('nav.toggleMenu')}</span>
       </SheetTrigger>
-      <SheetContent side="left" className="w-[280px] p-0">
-        <SheetHeader className="p-4">
+      <SheetContent side="left" className="flex w-[280px] flex-col p-0">
+        <SheetHeader className="shrink-0 p-4">
           <SheetTitle className="font-heading text-left">
             {activeWorkspace.name}
           </SheetTitle>
@@ -83,7 +83,7 @@ export function MobileNav({
           </>
         )}
 
-        <nav className="flex-1 p-2">
+        <nav className="min-h-0 flex-1 overflow-y-auto p-2">
           <ul className="space-y-1">
             {NAV_ITEMS.map((item) => {
               const active = isNavActive(item.href, pathname);
@@ -118,9 +118,9 @@ export function MobileNav({
           </ul>
         </nav>
 
-        <Separator />
+        <Separator className="shrink-0" />
 
-        <div className="p-4">
+        <div className="shrink-0 p-4">
           <div className="flex items-center gap-3 mb-3">
             <Avatar className="h-8 w-8">
               <AvatarFallback className="bg-primary/10 text-primary text-xs">
