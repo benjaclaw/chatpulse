@@ -7,11 +7,23 @@ export const dynamic = "force-dynamic";
 export default async function AdminWorkspacesPage(): Promise<React.ReactNode> {
   const supabase = createServiceClient();
 
-  // Fetch workspaces and members separately to avoid nested join issues with service client
-  const { data: workspacesData } = await supabase
+  // Fetch workspaces — try with stripe columns, fall back without
+  let workspacesData: Record<string, unknown>[] | null = null;
+  const { data: wsWithStripe, error: stripeErr } = await supabase
     .from("workspaces")
     .select("id, name, slug, plan_id, message_count, created_at, stripe_customer_id, stripe_subscription_id")
     .order("created_at", { ascending: false });
+
+  if (!stripeErr) {
+    workspacesData = wsWithStripe as unknown as Record<string, unknown>[];
+  } else {
+    // Stripe columns may not exist yet — fetch without them
+    const { data: wsBasic } = await supabase
+      .from("workspaces")
+      .select("id, name, slug, plan_id, message_count, created_at")
+      .order("created_at", { ascending: false });
+    workspacesData = wsBasic as unknown as Record<string, unknown>[];
+  }
 
   const { data: membersData } = await supabase
     .from("members")
