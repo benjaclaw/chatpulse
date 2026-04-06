@@ -348,27 +348,32 @@ export function ChatWidget({
         throw new Error(error.error || `HTTP ${res.status}`);
       }
 
-      const { conversationId, workspaceId } = await res.json();
+      const data = await res.json() as { ok: boolean; liveChat: boolean; conversationId: string; workspaceId: string };
 
-      // Update refs and session
-      conversationIdRef.current = conversationId;
-      workspaceIdRef.current = workspaceId;
+      if (data.liveChat) {
+        // Agents are online — activate live chat mode
+        conversationIdRef.current = data.conversationId;
+        workspaceIdRef.current = data.workspaceId;
 
-      // Activate live chat
-      setLiveChatMode(true);
-      try {
-        sessionStorage.setItem("chatpulse_live_chat_mode", "true");
-        sessionStorage.setItem("chatpulse_conversation_id", conversationId);
-        sessionStorage.setItem("chatpulse_workspace_id", workspaceId);
-      } catch {}
+        setLiveChatMode(true);
+        try {
+          sessionStorage.setItem("chatpulse_live_chat_mode", "true");
+          sessionStorage.setItem("chatpulse_conversation_id", data.conversationId);
+          sessionStorage.setItem("chatpulse_workspace_id", data.workspaceId);
+        } catch {}
 
-      // Show success and setup realtime
-      setMessages((prev) => [...prev, 
-        { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: t('widget.handoffConnecting').replace('{name}', name || email) }
-      ]);
+        setMessages((prev) => [...prev,
+          { id: `handoff-confirm-${Date.now()}`, role: "assistant", content: t('widget.handoffConnecting').replace('{name}', name || email) }
+        ]);
 
-      subscribeToRealtime(conversationId);
-      fetchQueuePosition(conversationId, workspaceId);
+        subscribeToRealtime(data.conversationId);
+        fetchQueuePosition(data.conversationId, data.workspaceId);
+      } else {
+        // No agents online — lead saved, inform the user
+        setMessages((prev) => [...prev,
+          { id: `handoff-offline-${Date.now()}`, role: "assistant", content: "Takk! Ingen agenter er tilgjengelige akkurat nå, men vi tar kontakt på e-post snart." }
+        ]);
+      }
 
       // Cleanup
       const pending = pendingLiveChatRef.current;

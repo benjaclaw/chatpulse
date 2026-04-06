@@ -55,7 +55,7 @@ export async function POST(request: Request): Promise<Response> {
     let workspaceId: string = "";
     let conversation: { id: string; workspace_id: string; visitor_id: string } | null = null;
 
-    // If conversation already exists (from AI chat), use it and update status
+    // 1. Resolve workspaceId (and existing conversation if available)
     if (existingConvId) {
       const { data: existingConv, error: fetchError } = await supabase
         .from("conversations")
@@ -71,18 +71,11 @@ export async function POST(request: Request): Promise<Response> {
         }
         conversation = existingConv;
         workspaceId = existingConv.workspace_id;
-
-        // Update status to "waiting" so it appears in agent inbox
-        await supabase
-          .from("conversations")
-          .update({ status: "waiting", started_at: new Date().toISOString() })
-          .eq("id", existingConvId);
       } else {
         logError("Handoff: fetch existing conversation", fetchError);
       }
     }
 
-    // Otherwise: Create new conversation
     if (!conversation) {
       // Need workspace ID — try botId if provided
       if (botId) {
@@ -100,18 +93,35 @@ export async function POST(request: Request): Promise<Response> {
         if (!workspaceId) {
           return Response.json({ error: "Chatbot has no workspace" }, { status: 400 });
         }
-      } else {
+      } else if (!workspaceId) {
         return Response.json({ error: "No conversation or botId provided" }, { status: 400 });
       }
+    }
 
-      // Create conversation
+    // 2. Check agent presence for this workspace
+    const { data: onlineAgents } = await supabase
+      .from("agent_presence")
+      .select("user_id")
+      .eq("workspace_id", workspaceId)
+      .in("status", ["online", "busy"])
+      .limit(1);
+    const agentsOnline = (onlineAgents?.length ?? 0) > 0;
+
+    // 3. Create or update conversation — only set "waiting" if agents are online
+    if (conversation) {
+      if (agentsOnline) {
+        await supabase
+          .from("conversations")
+          .update({ status: "waiting", started_at: new Date().toISOString() })
+          .eq("id", conversation.id);
+      }
+    } else {
       const { data: newConv, error: convError } = await supabase
         .from("conversations")
         .insert({
           workspace_id: workspaceId,
           visitor_id: body.visitorId,
-          status: "waiting",
-          started_at: new Date().toISOString(),
+          ...(agentsOnline && { status: "waiting", started_at: new Date().toISOString() }),
         })
         .select()
         .single();
@@ -123,10 +133,10 @@ export async function POST(request: Request): Promise<Response> {
       conversation = newConv;
     }
 
-    // At this point conversation is guaranteed non-null (created or fetched above)
+    // At this point conversation is guaranteed non-null
     const activeConversation = conversation!;
 
-    // 3. Create lead
+    // 4. Create lead (always — offline handoff saves lead only)
     const { error: leadError } = await supabase
       .from("leads")
       .insert({
@@ -144,16 +154,19 @@ export async function POST(request: Request): Promise<Response> {
       // Don't fail — lead is secondary to conversation
     }
 
-    // 4. Send push notification to workspace agents (fire-and-forget)
-    notifyNewConversation(workspaceId, activeConversation.id, `${safeName}: ny henvendelse`).catch(() => {});
+    // 5. Push notification only when agents are online
+    if (agentsOnline) {
+      notifyNewConversation(workspaceId, activeConversation.id, `${safeName}: ny henvendelse`).catch(() => {});
+    }
 
-    // 5. Return success with all needed data
+    // 6. Return success — liveChat tells the widget whether to activate live chat mode
     return Response.json(
       {
         ok: true,
+        liveChat: agentsOnline,
         conversationId: activeConversation.id,
         workspaceId,
-        queuePosition: 1, // Placeholder — real position fetched separately
+        ...(agentsOnline && { queuePosition: 1 }),
       },
       { status: 201 }
     );
